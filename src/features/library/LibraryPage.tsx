@@ -2,13 +2,12 @@ import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "../../components/Button";
-import { Chips } from "../../components/Chips";
 import { EmptyState } from "../../components/EmptyState";
 import { Mosaic, Tile } from "../../components/Mosaic";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
-import { compareBy, rankPositions, SORT_LABELS, type SortKey } from "../../lib/ranking";
+import { byRank, rankPositions } from "../../lib/ranking";
 import { useData } from "../../lib/useData";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 import { AddRoasterForm } from "./AddRoasterForm";
@@ -17,14 +16,10 @@ import { fetchLibrary } from "./api";
 
 type View = "roasters" | "roasts";
 
-const SORTS = Object.keys(SORT_LABELS) as SortKey[];
-
 export function LibraryPage() {
   const bro = useCurrentBro();
   const [params, setParams] = useSearchParams();
   const view: View = params.get("view") === "roasts" ? "roasts" : "roasters";
-  const sortParam = params.get("sort") as SortKey | null;
-  const sort: SortKey = sortParam && SORTS.includes(sortParam) ? sortParam : "rank";
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const { data, reload } = useData(() => fetchLibrary(bro.id), [bro.id]);
@@ -44,15 +39,7 @@ export function LibraryPage() {
         [r.name, r.location].join(" ").toLowerCase().includes(q) ||
         roastMatches.some((roast) => roast.roaster_id === r.id),
     )
-    .sort(compareBy(sort, roasterScores));
-
-  // Keep defaults out of the URL
-  function setParam(key: "view" | "sort", value: string, fallback: string) {
-    const next = new URLSearchParams(params);
-    if (value === fallback) next.delete(key);
-    else next.set(key, value);
-    setParams(next, { replace: true });
-  }
+    .sort(byRank(roasterScores));
 
   function closeAdd() {
     setAdding(false);
@@ -75,14 +62,7 @@ export function LibraryPage() {
             { value: "roasts", label: "Roasts" },
           ]}
           value={view}
-          onChange={(v) => setParam("view", v, "roasters")}
-        />
-        <Chips
-          options={SORTS.map((s) => SORT_LABELS[s])}
-          value={SORT_LABELS[sort]}
-          onChange={(label) =>
-            setParam("sort", SORTS.find((s) => SORT_LABELS[s] === label) ?? "rank", "rank")
-          }
+          onChange={(v) => setParams(v === "roasts" ? { view: v } : {}, { replace: true })}
         />
       </div>
 
@@ -109,7 +89,7 @@ export function LibraryPage() {
         roasterMatches.map((roaster) => {
           const group = roastMatches
             .filter((r) => r.roaster_id === roaster.id)
-            .sort(compareBy(sort, roastScores));
+            .sort(byRank(roastScores));
           if (group.length === 0) return null;
           return (
             <section key={roaster.id} {...stylex.props(styles.group)}>

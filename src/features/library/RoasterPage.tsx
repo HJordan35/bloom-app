@@ -7,7 +7,7 @@ import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
-import { compareBy, rankPositions } from "../../lib/ranking";
+import { byRank, rankPositions } from "../../lib/ranking";
 import { useData } from "../../lib/useData";
 import { space } from "../../theme/tokens.stylex";
 import { AddRoastForm } from "./AddRoastForm";
@@ -38,7 +38,7 @@ async function load(id: string) {
   const position = positions.get(id);
   return {
     roaster,
-    roasts: roasts.filter((r) => r.roaster_id === id).sort(compareBy("rank", roastScores)),
+    roasts: roasts.filter((r) => r.roaster_id === id).sort(byRank(roastScores)),
     ranking: roasterRankings.find((r) => r.roaster_id === id),
     rank: position ? { position, total: positions.size } : undefined,
     roastScores,

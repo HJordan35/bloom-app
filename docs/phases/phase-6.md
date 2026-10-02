@@ -34,7 +34,9 @@ Plus one plain sentence: "Brewing a roast often raises its score even without ra
 - The formula lives in **one place in the app**, `lib/ranking.ts` (`ratingPart`, `brewPart`), and mirrors the SQL views.
 - A comment in both places says to keep them in sync.
 
-## 4. Library sort
+## 4. Library sort — removed after review
+> Built, then removed at the user's request: the Library always orders by rank (unranked last, ties by name). `compareBy` became `byRank` in `lib/ranking.ts`.
+
 A small chip row under the Roasters | Roasts switch, remembered in the URL (`?sort=`):
 - **Rank** (default): score, unranked last.
 - **Most brewed**: brew count.
@@ -85,10 +87,9 @@ Candidates for later, roughly in priority order. Not part of this phase.
 - `Score` owns its own `RankingSheet`: tapping it anywhere opens the breakdown, and a faint "How?" hints that it's tappable. Pages only pass `ranking` and `rank`.
 - `formatScore()` is used everywhere a score shows (tiles, roast rows, score block), so unranked reads "—" consistently.
 - The roaster page now lists its roasts by rank.
-- The `?view` and `?sort` URL params drop out when set to their defaults.
+- Sort chips removed after review; the Library uses rank order only and keeps just the `?view` param.
 - Verified read-only against real data:
   - the client formula matches the SQL views for every roast and roaster (0 mismatches)
   - Lemma Coffee Co (no brews or ratings) is unranked and sorts last
   - Stumptown is #1
-  - all four sorts order correctly
 - `run check` and `run build` pass. Not yet checked by eye in a browser.

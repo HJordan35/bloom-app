@@ -65,7 +65,7 @@ Daily drivers climb on brews alone; endorsements tilt the score. Items with no b
 - **Brew Now (home):** who's brewing live, start a brew, finish it with results, recent brews → brew detail.
 - **Library:** mosaic grid with search; Roasters / Roasts toggle (roasts grouped by roaster); add roaster/roast; detail pages show your vs bro roasts and brews, endorsements, ranking, and a "Brew now" shortcut.
 - **Bros Board:** event feed (brews, new roasters, new roasts, endorsements) and a list of bros → bro profile (library, live status, recent brews).
-- **Ranking:** shown on library tiles and detail pages; library sortable by rank.
+- **Ranking:** shown on library tiles and detail pages; library ordered by rank (unranked last).
 
 ## Routes
 

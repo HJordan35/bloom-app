@@ -21,40 +21,20 @@ export function formatScore(ranking?: Ranking) {
   return isRanked(ranking) ? ranking.score.toFixed(1) : "—";
 }
 
-export type SortKey = "rank" | "brews" | "newest" | "name";
+type Sortable = { id: string; name: string };
 
-export const SORT_LABELS: Record<SortKey, string> = {
-  rank: "Rank",
-  brews: "Most brewed",
-  newest: "Newest",
-  name: "A–Z",
-};
-
-type Sortable = { id: string; name: string; created_at: string };
-
-export function compareBy<T extends Sortable>(sort: SortKey, scores: Map<string, Ranking>) {
+/** Highest score first, unranked last, ties by name. */
+export function byRank<T extends Sortable>(scores: Map<string, Ranking>) {
   const score = (item: T) => {
     const ranking = scores.get(item.id);
-    return isRanked(ranking) ? ranking.score : -1; // unranked sorts last
+    return isRanked(ranking) ? ranking.score : -1;
   };
-  const brews = (item: T) => scores.get(item.id)?.brew_count ?? 0;
-  const byName = (a: T, b: T) => a.name.localeCompare(b.name);
-
-  switch (sort) {
-    case "rank":
-      return (a: T, b: T) => score(b) - score(a) || byName(a, b);
-    case "brews":
-      return (a: T, b: T) => brews(b) - brews(a) || byName(a, b);
-    case "newest":
-      return (a: T, b: T) => b.created_at.localeCompare(a.created_at);
-    case "name":
-      return byName;
-  }
+  return (a: T, b: T) => score(b) - score(a) || a.name.localeCompare(b.name);
 }
 
 /** 1-based rank position for each ranked item; unranked items are absent. */
 export function rankPositions<T extends Sortable>(items: T[], scores: Map<string, Ranking>) {
   const ranked = items.filter((item) => isRanked(scores.get(item.id)));
-  ranked.sort(compareBy("rank", scores));
+  ranked.sort(byRank(scores));
   return new Map(ranked.map((item, i) => [item.id, i + 1]));
 }
