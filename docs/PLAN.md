@@ -13,7 +13,7 @@ Mobile-first coffee diary for 3–5 friends ("Bros"): track roasters, roasts, br
 | 3 | Brew Now | ✅ Built — awaiting review | [phase-3.md](phases/phase-3.md) |
 | 4 | Library | ✅ Built — awaiting review | [phase-4.md](phases/phase-4.md) |
 | 5 | Bros Board | ✅ Built — awaiting review | [phase-5.md](phases/phase-5.md) |
-| 6 | Ranking polish | Not started | — |
+| 6 | Ranking polish | 📝 Planned | [phase-6.md](phases/phase-6.md) |
 
 Each phase gets its own plan in `docs/phases/` before implementation, and ends with a checkpoint review.
 
