@@ -21,6 +21,7 @@ const DETAIL_TITLES: [prefix: string, title: string][] = [
   ["/brews/", "Brew"],
   ["/library/roasters/", "Roaster"],
   ["/library/roasts/", "Roast"],
+  ["/bros/", "Bro"],
 ];
 
 export function AppShell() {

@@ -92,7 +92,7 @@ export async function fetchBrewsForRoaster(roasterId: string) {
   );
 }
 
-const ENDORSEMENT_SELECT =
+export const ENDORSEMENT_SELECT =
   "*, bro:bros(id, first_name, last_name, email), roast:roasts!inner(*, roaster:roasters(*))";
 
 export async function fetchEndorsements(filter: { roastId: string } | { roasterId: string }) {

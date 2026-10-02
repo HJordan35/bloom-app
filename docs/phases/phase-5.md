@@ -1,6 +1,6 @@
 # Phase 5 — Bros Board
 
-**Status:** 📝 Planned — awaiting approval
+**Status:** ✅ Built — awaiting review on a phone
 
 ## Goal
 The social tab: a notice board of what everyone's been doing, and a profile for each bro showing their library, live status and brewing habits.
@@ -87,3 +87,20 @@ The Log out button moves from this page to your own profile.
 ## Open questions
 - **Live board for all event types:** a one-file migration (`002_realtime.sql`) would turn on Realtime for `roasters`, `roasts` and `endorsements`, so new roasts and endorsements also appear instantly. Recommended, but it needs you to run the SQL. Without it, only brews are live.
 - **Your own events in the feed:** planned to include them, since the spec says "from you and bros". Could be filtered to bros only.
+
+## Build notes
+- Open questions resolved:
+  - `supabase/migrations/002_realtime.sql` added. **Run it in the SQL editor** to make new roasters, roasts and endorsements appear on the board instantly. Until then, only brews are live; the board still subscribes to all four tables, so it starts working as soon as the SQL is run.
+  - Your own events are included in the feed.
+- Feed brew rows don't show the ✦ dialed-in mark: the `events` view doesn't carry `dialed_in`, and it wasn't worth a view change.
+- Endorsements with no rating read "left a note on *roast*".
+- Shared additions:
+  - `isLive()` and `fetchBrewingNow()` in `features/brew/api.ts` (`fetchLiveBrews` now reuses it)
+  - `ENDORSEMENT_SELECT` exported from the library api
+  - `dayHeading` / `clockTime` in `lib/format.ts`
+  - `caption` prop on `Tile`
+- Verified read-only against real data:
+  - the board resolves every event (roaster, roast, brew, endorsement) to the right bro, roast and roaster names
+  - `fetchBros` never returns `password_hash`
+  - profile brew and endorsement queries return the right rows
+- `run check` and `run build` pass. Not yet checked by eye in a browser.

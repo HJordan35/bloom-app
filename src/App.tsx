@@ -3,6 +3,7 @@ import { AppShell } from "./components/AppShell";
 import { LoginPage } from "./features/auth/LoginPage";
 import { BrewDetailPage } from "./features/brew/BrewDetailPage";
 import { BrewNowPage } from "./features/brew/BrewNowPage";
+import { BroProfilePage } from "./features/bros/BroProfilePage";
 import { BrosBoardPage } from "./features/bros/BrosBoardPage";
 import { LibraryPage } from "./features/library/LibraryPage";
 import { RoasterPage } from "./features/library/RoasterPage";
@@ -40,6 +41,7 @@ function AppRoutes() {
         <Route path="/library/roasters/:id" element={<RoasterPage />} />
         <Route path="/library/roasts/:id" element={<RoastPage />} />
         <Route path="/bros" element={<BrosBoardPage />} />
+        <Route path="/bros/:id" element={<BroProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

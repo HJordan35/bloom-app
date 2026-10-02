@@ -38,6 +38,22 @@ export function relativeDate(iso: string) {
   return date.toLocaleDateString([], { day: "numeric", month: "short" });
 }
 
+/** Feed day heading: "Today", "Yesterday", "Tuesday", "12 Sep". */
+export function dayHeading(iso: string) {
+  const days = Math.floor(
+    (new Date().setHours(0, 0, 0, 0) - new Date(iso).setHours(0, 0, 0, 0)) / 86_400_000,
+  );
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  const date = new Date(iso);
+  if (days < 7) return date.toLocaleDateString([], { weekday: "long" });
+  return date.toLocaleDateString([], { day: "numeric", month: "short" });
+}
+
+export function clockTime(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
 export function greeting() {
   const hour = new Date().getHours();
   if (hour < 12) return "Morning";

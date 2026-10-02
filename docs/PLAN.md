@@ -12,7 +12,7 @@ Mobile-first coffee diary for 3–5 friends ("Bros"): track roasters, roasts, br
 | 2 | Design system, app shell, login | ✅ Done | [phase-2.md](phases/phase-2.md) |
 | 3 | Brew Now | ✅ Built — awaiting review | [phase-3.md](phases/phase-3.md) |
 | 4 | Library | ✅ Built — awaiting review | [phase-4.md](phases/phase-4.md) |
-| 5 | Bros Board | 📝 Planned | [phase-5.md](phases/phase-5.md) |
+| 5 | Bros Board | ✅ Built — awaiting review | [phase-5.md](phases/phase-5.md) |
 | 6 | Ranking polish | Not started | — |
 
 Each phase gets its own plan in `docs/phases/` before implementation, and ends with a checkpoint review.
@@ -45,6 +45,7 @@ Defined in `supabase/migrations/001_init.sql`.
 | `brews` | bro_id, roast_id, method, dose_g, grind_size, grinder, temp_c, brew_time_s, volume_ml, result, dialed_in, started_at, finished_at |
 | `endorsements` | bro_id, roast_id, method, rating (1–10, optional), note |
 
+**Migrations:** `001_init.sql` (schema), `002_realtime.sql` (Realtime for roasters, roasts, endorsements).
 **Views:** `active_brews`, `latest_ratings`, `roast_rankings`, `roaster_rankings`, `events` (Bros Board feed).
 **RPC:** `login(p_email, p_password)`.
 **Brew methods:** constant list in `src/lib/constants.ts`, stored as text.

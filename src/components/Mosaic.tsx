@@ -15,9 +15,11 @@ type TileProps = {
   ranking?: Ranking;
   level?: RoastLevel;
   mine?: boolean;
+  /** Replaces the default "N brews" footer caption. */
+  caption?: string;
 };
 
-export function Tile({ to, title, lines, ranking, level, mine = false }: TileProps) {
+export function Tile({ to, title, lines, ranking, level, mine = false, caption }: TileProps) {
   return (
     <Link to={to} {...stylex.props(styles.tile)}>
       {mine && <span role="img" aria-label="In your library" {...stylex.props(styles.mine)} />}
@@ -31,7 +33,7 @@ export function Tile({ to, title, lines, ranking, level, mine = false }: TilePro
       <span {...stylex.props(styles.footer)}>
         <span {...stylex.props(styles.score)}>{ranking ? ranking.score.toFixed(1) : "—"}</span>
         <span {...stylex.props(styles.line)}>
-          {ranking?.brew_count ?? 0} {ranking?.brew_count === 1 ? "brew" : "brews"}
+          {caption ?? `${ranking?.brew_count ?? 0} ${ranking?.brew_count === 1 ? "brew" : "brews"}`}
         </span>
       </span>
     </Link>

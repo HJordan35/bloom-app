@@ -6,6 +6,11 @@ export const BREW_SELECT =
   "*, roast:roasts(*, roaster:roasters(*)), bro:bros(id, first_name, last_name, email)";
 const LIVE_WINDOW_MS = 2 * 60 * 60 * 1000;
 
+/** Open and started within the last 2 hours — what counts as "brewing now". */
+export function isLive(brew: Pick<Brew, "finished_at" | "started_at">) {
+  return !brew.finished_at && Date.parse(brew.started_at) > Date.now() - LIVE_WINDOW_MS;
+}
+
 export type Recipe = Pick<Brew, "dose_g" | "grind_size" | "grinder" | "temp_c">;
 export type BrewResult = Pick<Brew, "brew_time_s" | "volume_ml" | "result" | "dialed_in">;
 
@@ -25,11 +30,15 @@ export async function fetchMyOpenBrew(broId: string) {
 
 /** Other bros' open brews started in the last 2 hours. */
 export async function fetchLiveBrews(broId: string) {
+  return (await fetchBrewingNow()).filter((b) => b.bro_id !== broId);
+}
+
+/** Every bro's live brew, including yours. */
+export async function fetchBrewingNow() {
   return unwrap<BrewWithRoast[]>(
     await supabase
       .from("brews")
       .select(BREW_SELECT)
-      .neq("bro_id", broId)
       .is("finished_at", null)
       .gt("started_at", new Date(Date.now() - LIVE_WINDOW_MS).toISOString())
       .order("started_at", { ascending: false }),
