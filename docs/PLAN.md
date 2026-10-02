@@ -13,9 +13,11 @@ Mobile-first coffee diary for 3–5 friends ("Bros"): track roasters, roasts, br
 | 3 | Brew Now | ✅ Built — awaiting review | [phase-3.md](phases/phase-3.md) |
 | 4 | Library | ✅ Built — awaiting review | [phase-4.md](phases/phase-4.md) |
 | 5 | Bros Board | ✅ Built — awaiting review | [phase-5.md](phases/phase-5.md) |
-| 6 | Ranking polish | 📝 Planned | [phase-6.md](phases/phase-6.md) |
+| 6 | Ranking polish | ✅ Built — awaiting review | [phase-6.md](phases/phase-6.md) |
 
 Each phase gets its own plan in `docs/phases/` before implementation, and ends with a checkpoint review.
+
+All six MVP phases are built. Candidates for what comes next are listed under [After the MVP](phases/phase-6.md#after-the-mvp).
 
 ## Decisions
 
@@ -56,7 +58,7 @@ Defined in `supabase/migrations/001_init.sql`.
 - `B` = `min(10, 3 · ln(1 + brews))` → 1 brew ≈ 2, 5 ≈ 5.4, 20 ≈ 9, ~28+ = 10
 - `score = 0.5·E + 0.5·B`; roaster score uses the same formula across all its roasts
 
-Daily drivers climb on brews alone; endorsements tilt the score.
+Daily drivers climb on brews alone; endorsements tilt the score. Items with no brews and no ratings are **unranked** (shown as "—"). The app mirrors the formula in `src/lib/ranking.ts` to explain scores; keep it in sync with the SQL views.
 
 ## Features
 

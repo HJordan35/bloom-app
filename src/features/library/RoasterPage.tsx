@@ -7,6 +7,7 @@ import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
+import { compareBy, rankPositions } from "../../lib/ranking";
 import { useData } from "../../lib/useData";
 import { space } from "../../theme/tokens.stylex";
 import { AddRoastForm } from "./AddRoastForm";
@@ -15,25 +16,32 @@ import {
   fetchEndorsements,
   fetchRoaster,
   fetchRoasterRankings,
+  fetchRoasters,
   fetchRoastRankings,
   fetchRoasts,
 } from "./api";
 import { BrewLists, EndorsementRow, RoastRow } from "./LibraryRows";
 
 async function load(id: string) {
-  const [roaster, roasts, roasterRankings, roastRankings, brews, endorsements] = await Promise.all([
-    fetchRoaster(id),
-    fetchRoasts(),
-    fetchRoasterRankings(),
-    fetchRoastRankings(),
-    fetchBrewsForRoaster(id),
-    fetchEndorsements({ roasterId: id }),
-  ]);
+  const [roaster, roasters, roasts, roasterRankings, roastRankings, brews, endorsements] =
+    await Promise.all([
+      fetchRoaster(id),
+      fetchRoasters(),
+      fetchRoasts(),
+      fetchRoasterRankings(),
+      fetchRoastRankings(),
+      fetchBrewsForRoaster(id),
+      fetchEndorsements({ roasterId: id }),
+    ]);
+  const roastScores = new Map(roastRankings.map((r) => [r.roast_id, r]));
+  const positions = rankPositions(roasters, new Map(roasterRankings.map((r) => [r.roaster_id, r])));
+  const position = positions.get(id);
   return {
     roaster,
-    roasts: roasts.filter((r) => r.roaster_id === id),
+    roasts: roasts.filter((r) => r.roaster_id === id).sort(compareBy("rank", roastScores)),
     ranking: roasterRankings.find((r) => r.roaster_id === id),
-    roastScores: new Map(roastRankings.map((r) => [r.roast_id, r])),
+    rank: position ? { position, total: positions.size } : undefined,
+    roastScores,
     brews,
     endorsements,
   };
@@ -47,7 +55,7 @@ export function RoasterPage() {
   const { data } = useData(() => load(id), [id]);
   if (!data) return null;
 
-  const { roaster, roasts, ranking, roastScores, brews, endorsements } = data;
+  const { roaster, roasts, ranking, rank, roastScores, brews, endorsements } = data;
   const myRoastIds = new Set(brews.filter((b) => b.bro_id === bro.id).map((b) => b.roast_id));
   const roastLists = [
     ["Your roasts", roasts.filter((r) => myRoastIds.has(r.id))],
@@ -57,7 +65,7 @@ export function RoasterPage() {
   return (
     <div {...stylex.props(styles.page)}>
       <DetailHeader eyebrow="Roaster" title={roaster.name} meta={roaster.location}>
-        <Score ranking={ranking} />
+        <Score ranking={ranking} rank={rank} />
       </DetailHeader>
 
       <Button onClick={() => navigate("/?start")}>Brew now</Button>

@@ -1,32 +1,64 @@
 import * as stylex from "@stylexjs/stylex";
+import { useState } from "react";
+import { formatScore } from "../lib/ranking";
 import type { Ranking } from "../lib/types";
 import { colors, fonts, space } from "../theme/tokens.stylex";
+import { RankingSheet } from "./RankingSheet";
 
-/** Ranking block for detail headers: big score + brews / rating caption. */
-export function Score({ ranking }: { ranking?: Ranking }) {
+type Props = {
+  ranking?: Ranking;
+  /** e.g. { position: 2, total: 9 } → "#2 of 9" */
+  rank?: { position: number; total: number };
+};
+
+/** Ranking block for detail headers. Tap to see how the score is made. */
+export function Score({ ranking, rank }: Props) {
+  const [explaining, setExplaining] = useState(false);
   const brews = ranking?.brew_count ?? 0;
+
   return (
-    <div {...stylex.props(styles.wrap)}>
-      <span {...stylex.props(styles.score)}>{ranking ? ranking.score.toFixed(1) : "—"}</span>
-      <span {...stylex.props(styles.caption)}>
-        <span>
-          {brews} {brews === 1 ? "brew" : "brews"}
+    <>
+      <button type="button" onClick={() => setExplaining(true)} {...stylex.props(styles.wrap)}>
+        <span {...stylex.props(styles.score)}>{formatScore(ranking)}</span>
+        <span {...stylex.props(styles.caption)}>
+          {rank && (
+            <span {...stylex.props(styles.rank)}>
+              #{rank.position} of {rank.total}
+            </span>
+          )}
+          <span>
+            {brews} {brews === 1 ? "brew" : "brews"}
+          </span>
+          <span>
+            {ranking?.avg_rating != null
+              ? `Rated ${ranking.avg_rating.toFixed(1)} · ${ranking.rating_count}`
+              : "Unrated"}
+          </span>
         </span>
-        <span>
-          {ranking?.avg_rating != null
-            ? `Rated ${ranking.avg_rating.toFixed(1)} · ${ranking.rating_count}`
-            : "Unrated"}
-        </span>
-      </span>
-    </div>
+        <span {...stylex.props(styles.how)}>How?</span>
+      </button>
+      {explaining && (
+        <RankingSheet
+          title="How this score works"
+          ranking={ranking}
+          onClose={() => setExplaining(false)}
+        />
+      )}
+    </>
   );
 }
 
 const styles = stylex.create({
   wrap: {
+    width: "100%",
     display: "flex",
     alignItems: "center",
     gap: space.md,
+    padding: 0,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    textAlign: "left",
+    cursor: "pointer",
   },
   score: {
     fontFamily: fonts.mono,
@@ -35,6 +67,7 @@ const styles = stylex.create({
     color: colors.brass,
   },
   caption: {
+    flex: 1,
     display: "flex",
     flexDirection: "column",
     paddingLeft: space.md,
@@ -44,5 +77,16 @@ const styles = stylex.create({
     fontFamily: fonts.mono,
     fontSize: 11,
     color: colors.muted,
+  },
+  rank: {
+    color: colors.text,
+  },
+  how: {
+    alignSelf: "flex-start",
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: "0.2em",
+    textTransform: "uppercase",
+    color: colors.faint,
   },
 });

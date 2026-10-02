@@ -2,12 +2,13 @@ import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "../../components/Button";
+import { Chips } from "../../components/Chips";
 import { EmptyState } from "../../components/EmptyState";
 import { Mosaic, Tile } from "../../components/Mosaic";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
-import type { Ranking } from "../../lib/types";
+import { compareBy, rankPositions, SORT_LABELS, type SortKey } from "../../lib/ranking";
 import { useData } from "../../lib/useData";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 import { AddRoasterForm } from "./AddRoasterForm";
@@ -16,21 +17,22 @@ import { fetchLibrary } from "./api";
 
 type View = "roasters" | "roasts";
 
-const byScore =
-  <T extends { id: string; name: string }>(scores: Map<string, Ranking>) =>
-  (a: T, b: T) =>
-    (scores.get(b.id)?.score ?? 0) - (scores.get(a.id)?.score ?? 0) || a.name.localeCompare(b.name);
+const SORTS = Object.keys(SORT_LABELS) as SortKey[];
 
 export function LibraryPage() {
   const bro = useCurrentBro();
   const [params, setParams] = useSearchParams();
   const view: View = params.get("view") === "roasts" ? "roasts" : "roasters";
+  const sortParam = params.get("sort") as SortKey | null;
+  const sort: SortKey = sortParam && SORTS.includes(sortParam) ? sortParam : "rank";
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const { data, reload } = useData(() => fetchLibrary(bro.id), [bro.id]);
 
   if (!data) return null;
   const { roasters, roasts, roasterScores, roastScores, myRoastIds } = data;
+  const roasterRanks = rankPositions(roasters, roasterScores);
+  const roastRanks = rankPositions(roasts, roastScores);
 
   const q = query.trim().toLowerCase();
   const roastMatches = roasts.filter((r) =>
@@ -42,7 +44,15 @@ export function LibraryPage() {
         [r.name, r.location].join(" ").toLowerCase().includes(q) ||
         roastMatches.some((roast) => roast.roaster_id === r.id),
     )
-    .sort(byScore(roasterScores));
+    .sort(compareBy(sort, roasterScores));
+
+  // Keep defaults out of the URL
+  function setParam(key: "view" | "sort", value: string, fallback: string) {
+    const next = new URLSearchParams(params);
+    if (value === fallback) next.delete(key);
+    else next.set(key, value);
+    setParams(next, { replace: true });
+  }
 
   function closeAdd() {
     setAdding(false);
@@ -65,7 +75,14 @@ export function LibraryPage() {
             { value: "roasts", label: "Roasts" },
           ]}
           value={view}
-          onChange={(v) => setParams(v === "roasts" ? { view: v } : {}, { replace: true })}
+          onChange={(v) => setParam("view", v, "roasters")}
+        />
+        <Chips
+          options={SORTS.map((s) => SORT_LABELS[s])}
+          value={SORT_LABELS[sort]}
+          onChange={(label) =>
+            setParam("sort", SORTS.find((s) => SORT_LABELS[s] === label) ?? "rank", "rank")
+          }
         />
       </div>
 
@@ -82,6 +99,7 @@ export function LibraryPage() {
                 title={roaster.name}
                 lines={[roaster.location, `${own.length} ${own.length === 1 ? "roast" : "roasts"}`]}
                 ranking={roasterScores.get(roaster.id)}
+                rank={roasterRanks.get(roaster.id)}
                 mine={own.some((r) => myRoastIds.has(r.id))}
               />
             );
@@ -91,7 +109,7 @@ export function LibraryPage() {
         roasterMatches.map((roaster) => {
           const group = roastMatches
             .filter((r) => r.roaster_id === roaster.id)
-            .sort(byScore(roastScores));
+            .sort(compareBy(sort, roastScores));
           if (group.length === 0) return null;
           return (
             <section key={roaster.id} {...stylex.props(styles.group)}>
@@ -105,6 +123,7 @@ export function LibraryPage() {
                     lines={[roast.region, roast.roast_level]}
                     level={roast.roast_level}
                     ranking={roastScores.get(roast.id)}
+                    rank={roastRanks.get(roast.id)}
                     mine={myRoastIds.has(roast.id)}
                   />
                 ))}

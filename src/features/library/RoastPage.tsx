@@ -7,21 +7,37 @@ import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { mmss, recipeLine } from "../../lib/format";
+import { rankPositions } from "../../lib/ranking";
 import type { BrewWithRoast, EndorsementWithRoast } from "../../lib/types";
 import { useData } from "../../lib/useData";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
-import { fetchBrewsForRoast, fetchEndorsements, fetchRoast, fetchRoastRankings } from "./api";
+import {
+  fetchBrewsForRoast,
+  fetchEndorsements,
+  fetchRoast,
+  fetchRoastRankings,
+  fetchRoasts,
+} from "./api";
 import { EndorseSheet } from "./EndorseSheet";
 import { BrewLists, EndorsementRow } from "./LibraryRows";
 
 async function load(id: string) {
-  const [roast, rankings, brews, endorsements] = await Promise.all([
+  const [roast, roasts, rankings, brews, endorsements] = await Promise.all([
     fetchRoast(id),
+    fetchRoasts(),
     fetchRoastRankings(),
     fetchBrewsForRoast(id),
     fetchEndorsements({ roastId: id }),
   ]);
-  return { roast, ranking: rankings.find((r) => r.roast_id === id), brews, endorsements };
+  const positions = rankPositions(roasts, new Map(rankings.map((r) => [r.roast_id, r])));
+  const position = positions.get(id);
+  return {
+    roast,
+    ranking: rankings.find((r) => r.roast_id === id),
+    rank: position ? { position, total: positions.size } : undefined,
+    brews,
+    endorsements,
+  };
 }
 
 type MethodSummary = {
@@ -63,7 +79,7 @@ export function RoastPage() {
   const { data, reload } = useData(() => load(id), [id]);
   if (!data) return null;
 
-  const { roast, ranking, brews, endorsements } = data;
+  const { roast, ranking, rank, brews, endorsements } = data;
   const methods = summarizeByMethod(brews, endorsements).sort((a, b) => b.brewCount - a.brewCount);
 
   return (
@@ -73,7 +89,7 @@ export function RoastPage() {
         title={roast.name}
         meta={[roast.roast_level, roast.region].filter(Boolean).join(" · ")}
       >
-        <Score ranking={ranking} />
+        <Score ranking={ranking} rank={rank} />
       </DetailHeader>
 
       <div {...stylex.props(styles.actions)}>

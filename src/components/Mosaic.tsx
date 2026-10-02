@@ -1,6 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { formatScore } from "../lib/ranking";
 import type { Ranking, RoastLevel } from "../lib/types";
 import { colors, fonts, radius, space } from "../theme/tokens.stylex";
 
@@ -17,9 +18,11 @@ type TileProps = {
   mine?: boolean;
   /** Replaces the default "N brews" footer caption. */
   caption?: string;
+  /** Rank position; only the top three get a mark. */
+  rank?: number;
 };
 
-export function Tile({ to, title, lines, ranking, level, mine = false, caption }: TileProps) {
+export function Tile({ to, title, lines, ranking, level, mine = false, caption, rank }: TileProps) {
   return (
     <Link to={to} {...stylex.props(styles.tile)}>
       {mine && <span role="img" aria-label="In your library" {...stylex.props(styles.mine)} />}
@@ -31,7 +34,10 @@ export function Tile({ to, title, lines, ranking, level, mine = false, caption }
         </span>
       ))}
       <span {...stylex.props(styles.footer)}>
-        <span {...stylex.props(styles.score)}>{ranking ? ranking.score.toFixed(1) : "—"}</span>
+        <span {...stylex.props(styles.score)}>
+          {rank != null && rank <= 3 && <span {...stylex.props(styles.rank)}>#{rank} </span>}
+          {formatScore(ranking)}
+        </span>
         <span {...stylex.props(styles.line)}>
           {caption ?? `${ranking?.brew_count ?? 0} ${ranking?.brew_count === 1 ? "brew" : "brews"}`}
         </span>
@@ -100,6 +106,10 @@ const styles = stylex.create({
     fontFamily: fonts.mono,
     fontSize: 18,
     color: colors.brass,
+  },
+  rank: {
+    fontSize: 11,
+    color: colors.text,
   },
 });
 

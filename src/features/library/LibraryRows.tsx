@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { levelStyles } from "../../components/Mosaic";
 import { Section } from "../../components/Section";
 import { relativeDate } from "../../lib/format";
+import { formatScore } from "../../lib/ranking";
 import type {
   BrewWithRoast,
   EndorsementWithRoast,
@@ -23,7 +24,7 @@ export function RoastRow({ roast, ranking }: { roast: RoastWithRoaster; ranking?
         </span>
       </div>
       <div {...stylex.props(styles.side)}>
-        <span {...stylex.props(styles.score)}>{ranking?.score.toFixed(1) ?? "—"}</span>
+        <span {...stylex.props(styles.score)}>{formatScore(ranking)}</span>
         <span {...stylex.props(styles.meta)}>{ranking?.brew_count ?? 0} brews</span>
       </div>
     </Link>

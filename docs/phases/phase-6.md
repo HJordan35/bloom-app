@@ -1,6 +1,6 @@
 # Phase 6 — Ranking Polish
 
-**Status:** 📝 Planned — awaiting approval
+**Status:** ✅ Built — awaiting review on a phone
 
 ## Goal
 Scores already show on tiles and detail pages, and the Library already sorts by them (Phase 4). This phase makes the ranking **trustworthy and legible**:
@@ -80,3 +80,15 @@ Candidates for later, roughly in priority order. Not part of this phase.
 3. **Installable app:** home-screen icon, app name and offline shell, so it opens like a native app.
 4. **Log a past brew** without the start/finish flow.
 5. **Recency in ranking**, if daily drivers from months ago crowd out what's in rotation now.
+
+## Build notes
+- `Score` owns its own `RankingSheet`: tapping it anywhere opens the breakdown, and a faint "How?" hints that it's tappable. Pages only pass `ranking` and `rank`.
+- `formatScore()` is used everywhere a score shows (tiles, roast rows, score block), so unranked reads "—" consistently.
+- The roaster page now lists its roasts by rank.
+- The `?view` and `?sort` URL params drop out when set to their defaults.
+- Verified read-only against real data:
+  - the client formula matches the SQL views for every roast and roaster (0 mismatches)
+  - Lemma Coffee Co (no brews or ratings) is unranked and sorts last
+  - Stumptown is #1
+  - all four sorts order correctly
+- `run check` and `run build` pass. Not yet checked by eye in a browser.
