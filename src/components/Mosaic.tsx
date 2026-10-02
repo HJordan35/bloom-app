@@ -10,7 +10,9 @@ export function Mosaic({ children }: { children: ReactNode }) {
 }
 
 type TileProps = {
-  to: string;
+  /** Link target, or `onClick` to use the tile as a button (e.g. picking a roast). */
+  to?: string;
+  onClick?: () => void;
   title: string;
   lines: (string | null | false)[];
   ranking?: Ranking;
@@ -22,9 +24,19 @@ type TileProps = {
   rank?: number;
 };
 
-export function Tile({ to, title, lines, ranking, level, mine = false, caption, rank }: TileProps) {
-  return (
-    <Link to={to} {...stylex.props(styles.tile)}>
+export function Tile({
+  to,
+  onClick,
+  title,
+  lines,
+  ranking,
+  level,
+  mine = false,
+  caption,
+  rank,
+}: TileProps) {
+  const content = (
+    <>
       {mine && <span role="img" aria-label="In your library" {...stylex.props(styles.mine)} />}
       {level && <span {...stylex.props(styles.level, levelStyles[level])} />}
       <span {...stylex.props(styles.title)}>{title}</span>
@@ -42,7 +54,17 @@ export function Tile({ to, title, lines, ranking, level, mine = false, caption, 
           {caption ?? `${ranking?.brew_count ?? 0} ${ranking?.brew_count === 1 ? "brew" : "brews"}`}
         </span>
       </span>
+    </>
+  );
+
+  return to ? (
+    <Link to={to} {...stylex.props(styles.tile)}>
+      {content}
     </Link>
+  ) : (
+    <button type="button" onClick={onClick} {...stylex.props(styles.tile, styles.button)}>
+      {content}
+    </button>
   );
 }
 
@@ -65,6 +87,11 @@ const styles = stylex.create({
     borderColor: colors.hairline,
     borderRadius: radius.md,
     overflow: "hidden",
+  },
+  button: {
+    width: "100%",
+    textAlign: "left",
+    cursor: "pointer",
   },
   mine: {
     position: "absolute",

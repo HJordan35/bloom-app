@@ -10,10 +10,10 @@ import { BREW_METHODS } from "../../lib/constants";
 import { toNumber } from "../../lib/format";
 import type { RoastWithRoaster } from "../../lib/types";
 import { useData } from "../../lib/useData";
-import { space } from "../../theme/tokens.stylex";
-import { fetchRoasts } from "../library/api";
+import { colors, fonts, space } from "../../theme/tokens.stylex";
+import { fetchRoast } from "../library/api";
+import { LibraryBrowser } from "../library/LibraryBrowser";
 import { fetchLastRecipe, fetchMyBrewHistory, startBrew } from "./api";
-import { RoastPicker } from "./RoastPicker";
 
 type Props = {
   initialRoastId: string | null;
@@ -23,10 +23,11 @@ type Props = {
 
 export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
   const bro = useCurrentBro();
-  const roasts = useData(fetchRoasts, []);
   const history = useData(() => fetchMyBrewHistory(bro.id), [bro.id]);
 
+  // Step 1 picks the roast in a library drawer; step 2 is the rest of the brew
   const [roast, setRoast] = useState<RoastWithRoaster | null>(null);
+  const [picking, setPicking] = useState(!initialRoastId);
   const [method, setMethod] = useState<string | null>(null);
   const [dose, setDose] = useState("");
   const [grindSize, setGrindSize] = useState("");
@@ -34,11 +35,10 @@ export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
   const [temp, setTemp] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Preselect a roast passed in from the Library
+  // A roast passed in from the Library skips step 1
   useEffect(() => {
-    const match = roasts.data?.find((r) => r.id === initialRoastId);
-    if (match) setRoast(match);
-  }, [roasts.data, initialRoastId]);
+    if (initialRoastId) fetchRoast(initialRoastId).then(setRoast);
+  }, [initialRoastId]);
 
   // Prefill the recipe from your last brew of this roast + method
   useEffect(() => {
@@ -67,16 +67,34 @@ export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
     onStarted();
   }
 
+  if (picking) {
+    return (
+      <Sheet title="Choose a roast" tall onClose={onClose}>
+        <LibraryBrowser
+          onPick={(picked) => {
+            setRoast(picked);
+            setPicking(false);
+          }}
+        />
+      </Sheet>
+    );
+  }
+
+  if (!roast) return null;
+
   return (
     <Sheet title="Start a brew" onClose={onClose}>
-      <Section label="Roast">
-        <RoastPicker
-          roasts={roasts.data ?? []}
-          recentIds={history.data?.roastIds ?? []}
-          value={roast}
-          onChange={setRoast}
-        />
-      </Section>
+      <div {...stylex.props(styles.roast)}>
+        <div {...stylex.props(styles.roastText)}>
+          <span {...stylex.props(styles.roastName)}>{roast.name}</span>
+          <span {...stylex.props(styles.meta)}>
+            {[roast.roaster.name, roast.roast_level, roast.region].filter(Boolean).join(" · ")}
+          </span>
+        </div>
+        <Button variant="text" onClick={() => setPicking(true)}>
+          Change
+        </Button>
+      </div>
 
       <Section label="Method">
         <Chips options={BREW_METHODS} value={method} onChange={setMethod} />
@@ -119,6 +137,27 @@ export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
 }
 
 const styles = stylex.create({
+  roast: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: space.md,
+  },
+  roastText: {
+    display: "flex",
+    flexDirection: "column",
+    minWidth: 0,
+  },
+  roastName: {
+    fontFamily: fonts.display,
+    fontSize: 22,
+    lineHeight: 1.2,
+  },
+  meta: {
+    fontSize: 12,
+    color: colors.muted,
+    textTransform: "capitalize",
+  },
   grid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",

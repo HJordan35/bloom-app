@@ -107,3 +107,14 @@ Plain async functions over `supabase`, using table joins: `brews` with `roast:ro
   - recipe prefill query works
   - Realtime delivers `brews` inserts
 - `run check` and `run build` pass. Not yet checked by eye in a browser.
+
+## Revision: two-step start (after review)
+The inline roast picker didn't scale, so starting a brew is now two steps:
+1. **Choose a roast:** a tall drawer that shows the Library itself (`LibraryBrowser` in pick mode).
+   - Search plus the Roasters | Roasts switch.
+   - A **Recent** row of your last 4 brewed roasts at the top.
+   - Tapping a roaster tile drills into that roaster's roasts.
+   - **+ Add** creates a roast and picks it straight away.
+2. **Brew details:** the chosen roast, with **Change**, then method and recipe as before.
+
+Arriving with `?roast=<id>` skips step 1. `RoastPicker.tsx` was removed; the Library page and the drawer share one component.

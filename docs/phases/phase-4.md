@@ -114,3 +114,12 @@ All lists are small (3–5 bros), so each page loads everything it needs in one 
   - latest-rating-wins scoring: 6 then 9 from the same bro → avg 9, score 5.5
   - roaster score aggregates across roasts
 - `run check` and `run build` pass. Not yet checked by eye in a browser.
+
+## Revision: shared LibraryBrowser (after review)
+The page body moved into `features/library/LibraryBrowser.tsx`, so Brew Now's roast drawer reuses it. `LibraryPage` is now a thin wrapper that keeps the view in the URL.
+
+`LibraryBrowser` has two modes:
+- **Browse** (default): tiles link to the detail pages.
+- **Pick** (`onPick`): tiles select a roast, a Recent row shows first, and roaster tiles filter to that roaster.
+
+`Tile` now takes `to` or `onClick`. `Sheet` has a `tall` option.

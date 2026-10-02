@@ -119,5 +119,6 @@ export async function fetchLibrary(broId: string) {
     roasterScores: new Map(roasterRankings.map((r) => [r.roaster_id, r])),
     roastScores: new Map(roastRankings.map((r) => [r.roast_id, r])),
     myRoastIds: new Set(history.roastIds),
+    recentRoastIds: history.roastIds, // most recent first
   };
 }

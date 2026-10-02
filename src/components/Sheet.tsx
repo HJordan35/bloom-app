@@ -4,12 +4,14 @@ import { colors, fonts, layout, radius, space } from "../theme/tokens.stylex";
 
 type Props = {
   title: string;
+  /** Fill the screen height, for browsing lists. */
+  tall?: boolean;
   onClose: () => void;
   children: ReactNode;
 };
 
 /** Bottom sheet. Render it only while open. */
-export function Sheet({ title, onClose, children }: Props) {
+export function Sheet({ title, tall = false, onClose, children }: Props) {
   return (
     <div {...stylex.props(styles.root)}>
       <button
@@ -18,7 +20,7 @@ export function Sheet({ title, onClose, children }: Props) {
         onClick={onClose}
         {...stylex.props(styles.backdrop)}
       />
-      <section {...stylex.props(styles.panel)}>
+      <section {...stylex.props(styles.panel, tall && styles.tall)}>
         <header {...stylex.props(styles.header)}>
           <h2 {...stylex.props(styles.title)}>{title}</h2>
           <button type="button" onClick={onClose} {...stylex.props(styles.close)}>
@@ -75,6 +77,9 @@ const styles = stylex.create({
     animationName: slideUp,
     animationDuration: "260ms",
     animationTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+  },
+  tall: {
+    height: "92dvh",
   },
   header: {
     display: "flex",
