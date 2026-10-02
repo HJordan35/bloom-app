@@ -9,7 +9,7 @@ Mobile-first coffee diary for 3–5 friends ("Bros"): track roasters, roasts, br
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
 | 1 | Scaffold + data model | ✅ Done | [phase-1.md](phases/phase-1.md) |
-| 2 | Design system, app shell, login | ⏳ Next | [phase-2.md](phases/phase-2.md) |
+| 2 | Design system, app shell, login | ✅ Done — awaiting design review | [phase-2.md](phases/phase-2.md) |
 | 3 | Brew Now | Not started | — |
 | 4 | Library | Not started | — |
 | 5 | Bros Board | Not started | — |
@@ -73,7 +73,7 @@ Daily drivers climb on brews alone; endorsements tilt the score.
 ```
 src/
   main.tsx, App.tsx (router + auth gate)
-  lib/        supabase.ts, types.ts, constants.ts, auth.ts
+  lib/        supabase.ts, types.ts, constants.ts, auth.tsx
   theme/      tokens.stylex.ts, global.css
   components/ AppShell, Card, Mosaic, Sheet, Field/Select/Button, Avatar, Rating, LiveDot, EmptyState
   features/

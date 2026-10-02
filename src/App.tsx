@@ -1,45 +1,41 @@
-import * as stylex from "@stylexjs/stylex";
-import { useEffect, useState } from "react";
-import { supabase } from "./lib/supabase";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AppShell } from "./components/AppShell";
+import { LoginPage } from "./features/auth/LoginPage";
+import { BrewNowPage } from "./features/brew/BrewNowPage";
+import { BrosBoardPage } from "./features/bros/BrosBoardPage";
+import { LibraryPage } from "./features/library/LibraryPage";
+import { AuthProvider, useAuth } from "./lib/auth";
 
-// Phase 1 placeholder: confirms the Supabase connection and schema.
 export function App() {
-  const [status, setStatus] = useState("Connecting…");
-
-  useEffect(() => {
-    supabase
-      .from("bros")
-      .select("id", { count: "exact", head: true })
-      .then(({ count, error }) =>
-        setStatus(error ? `Error: ${error.message}` : `Connected · ${count} bros`),
-      );
-  }, []);
-
   return (
-    <main {...stylex.props(styles.main)}>
-      <h1 {...stylex.props(styles.title)}>Bloom</h1>
-      <p {...stylex.props(styles.status)}>{status}</p>
-    </main>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
-const styles = stylex.create({
-  main: {
-    minHeight: "100dvh",
-    display: "grid",
-    placeContent: "center",
-    gap: 8,
-    textAlign: "center",
-  },
-  title: {
-    fontFamily: "'Playfair Display', serif",
-    fontWeight: 500,
-    fontSize: 40,
-    letterSpacing: "0.04em",
-  },
-  status: {
-    color: "#8a7d70",
-    fontFamily: "'JetBrains Mono', monospace",
-    fontSize: 12,
-  },
-});
+function AppRoutes() {
+  const { bro } = useAuth();
+
+  if (!bro) {
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route element={<AppShell />}>
+        <Route path="/" element={<BrewNowPage />} />
+        <Route path="/library" element={<LibraryPage />} />
+        <Route path="/bros" element={<BrosBoardPage />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}

@@ -1,6 +1,6 @@
 # Phase 2 — Design System, App Shell, Login
 
-**Status:** ⏳ Next
+**Status:** ✅ Built — awaiting design review on a phone
 
 ## Goal
 Set the look and feel and the app's frame so it can be reviewed on a phone before any features are built. By the end, a bro can log in and move between three empty tabs styled in the final visual language.
@@ -12,7 +12,7 @@ Set the look and feel and the app's frame so it can be reviewed on a phone befor
 - `src/theme/global.css`: reset, body background, font smoothing, safe-area padding.
 
 ### Auth
-- `src/lib/auth.ts`:
+- `src/lib/auth.tsx` (`AuthProvider`, `useAuth`, `useCurrentBro`):
   - `login(email, password)` → calls the `login` RPC; on success saves the bro to `localStorage`.
   - `logout()` → clears it.
   - `useCurrentBro()` → a small React context exposing `{ bro, login, logout }`.
@@ -42,3 +42,8 @@ Data features (Phases 3–5), bottom sheets, realtime.
 
 ## Checkpoint (user)
 Review the visual direction on a phone — palette, type, line weight, density — and adjust before Phase 3.
+
+## Build notes
+- Theme tokens added: `surfaceRaised`, `faint`, `danger`, plus `layout` (max width, top bar and tab bar heights).
+- Verified: production build and Biome pass; dev server serves the StyleX CSS; the live Supabase project has the schema, `login` RPC and views.
+- Not yet verified: a real login. The `bros` table was empty at build time — run `supabase/seed.sql` first.
