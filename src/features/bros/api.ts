@@ -4,7 +4,6 @@ import { unwrap } from "../../lib/unwrap";
 import { BREW_SELECT, fetchBrewingNow } from "../brew/api";
 import { ENDORSEMENT_SELECT, fetchRoasters, fetchRoasts } from "../library/api";
 
-// Never select password_hash
 const BRO_SELECT = "id, first_name, last_name, email";
 
 export async function fetchBros() {

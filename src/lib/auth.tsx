@@ -1,8 +1,6 @@
-import { createContext, type ReactNode, useContext, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import { supabase } from "./supabase";
 import type { Bro } from "./types";
-
-const STORAGE_KEY = "bloom.bro";
 
 type Auth = {
   bro: Bro | null;
@@ -12,29 +10,52 @@ type Auth = {
 
 const AuthContext = createContext<Auth | null>(null);
 
-function loadBro(): Bro | null {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  return raw ? (JSON.parse(raw) as Bro) : null;
+async function fetchBroForUser(authId: string) {
+  const { data } = await supabase
+    .from("bros")
+    .select("id, first_name, last_name, email")
+    .eq("auth_id", authId)
+    .maybeSingle<Bro>();
+  return data;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [bro, setBro] = useState<Bro | null>(loadBro);
+  const [bro, setBro] = useState<Bro | null>(null);
+  const [ready, setReady] = useState(false);
+
+  // Restores the session on load and follows sign-in / sign-out
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "TOKEN_REFRESHED") return;
+      // Supabase advises against awaiting its own calls inside this callback
+      setTimeout(async () => {
+        setBro(session ? await fetchBroForUser(session.user.id) : null);
+        setReady(true);
+      });
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   async function login(email: string, password: string) {
-    const { data } = await supabase
-      .rpc("login", { p_email: email.trim(), p_password: password })
-      .maybeSingle<Bro>();
-    if (!data) return false;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    setBro(data);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    if (error) return false;
+    // An auth user without a bros row can't use the app
+    if (!(await fetchBroForUser(data.user.id))) {
+      await supabase.auth.signOut();
+      return false;
+    }
     return true;
   }
 
   function logout() {
-    localStorage.removeItem(STORAGE_KEY);
-    setBro(null);
+    supabase.auth.signOut();
   }
 
+  // Render nothing until the stored session is checked, so login doesn't flash
+  if (!ready) return null;
   return <AuthContext value={{ bro, login, logout }}>{children}</AuthContext>;
 }
 

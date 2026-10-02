@@ -1,6 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
 import { type FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/Button";
 import { Field } from "../../components/Field";
 import { useAuth } from "../../lib/auth";
@@ -8,7 +7,6 @@ import { colors, fonts, space } from "../../theme/tokens.stylex";
 
 export function LoginPage() {
   const { login } = useAuth();
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
@@ -17,10 +15,11 @@ export function LoginPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    const ok = await login(email, password);
-    setBusy(false);
-    if (ok) navigate("/", { replace: true });
-    else setError(true);
+    // On success the auth gate swaps to the app; only failure needs handling here
+    if (!(await login(email, password))) {
+      setBusy(false);
+      setError(true);
+    }
   }
 
   return (

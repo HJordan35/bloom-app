@@ -14,6 +14,7 @@ Mobile-first coffee diary for 3–5 friends ("Bros"): track roasters, roasts, br
 | 4 | Library | ✅ Built — awaiting review | [phase-4.md](phases/phase-4.md) |
 | 5 | Bros Board | ✅ Built — awaiting review | [phase-5.md](phases/phase-5.md) |
 | 6 | Ranking polish | ✅ Built — awaiting review | [phase-6.md](phases/phase-6.md) |
+| 7 | Minimal security for launch | ✅ Built — needs dashboard steps + migration 003 | [phase-7.md](phases/phase-7.md) |
 
 Each phase gets its own plan in `docs/phases/` before implementation, and ends with a checkpoint review.
 
@@ -21,13 +22,16 @@ All six MVP phases are built. Candidates for what comes next are listed under [A
 
 ## Decisions
 
-- **Auth:** simple email + password login, checked by the `login` RPC against a pgcrypto hash; logged-in bro kept in `localStorage`. Bros are added manually via SQL (`supabase/seed.sql`). No sign-up or password resets.
+- **Auth:** Supabase Auth (email + password) since Phase 7, with public sign-up turned off. Bros are added by hand: an auth user in the dashboard, then a `bros` row linked by `auth_id` (see `supabase/seed.sql`).
 - **Supabase key:** publishable key (`sb_publishable_…`), not the legacy anon key.
 - **Brewing now:** a brew is live from Start until Finish. Brew time is a separate manually entered field, so forgetting to press Finish doesn't corrupt data. Open brews older than 2 hours don't count as live.
 - **Endorsements:** many per bro over time; ratings (1–10) are optional so an endorsement can be just a note. Ranking uses each bro's latest rating per roast + method.
 - **Friends:** all bros are implicitly friends.
 - **Library:** the distinct roasts a bro has brewed (a query, not a table).
-- **RLS:** off for the MVP. Anyone with the publishable key can read and write everything, including password hashes. Harden when real auth is added.
+- **RLS:** on since Phase 7.
+  - Only linked bros can read.
+  - Writes are only as yourself, and only your own brews can be updated or deleted.
+  - Views use `security_invoker`, and anonymous access is revoked.
 
 ## Tech
 
@@ -41,15 +45,15 @@ Defined in `supabase/migrations/001_init.sql`.
 
 | Table | Key fields |
 |---|---|
-| `bros` | first_name, last_name, email (unique), password_hash |
+| `bros` | first_name, last_name, email (unique), auth_id → auth.users |
 | `roasters` | name (unique), location, created_by |
 | `roasts` | roaster_id, name, roast_level (light/medium/dark), region, created_by |
 | `brews` | bro_id, roast_id, method, dose_g, grind_size, grinder, temp_c, brew_time_s, volume_ml, result, dialed_in, started_at, finished_at |
 | `endorsements` | bro_id, roast_id, method, rating (1–10, optional), note |
 
-**Migrations:** `001_init.sql` (schema), `002_realtime.sql` (Realtime for roasters, roasts, endorsements).
+**Migrations:** `001_init.sql` (schema), `002_realtime.sql` (Realtime for roasters, roasts, endorsements), `003_auth.sql` (Supabase Auth link + RLS).
 **Views:** `active_brews`, `latest_ratings`, `roast_rankings`, `roaster_rankings`, `events` (Bros Board feed).
-**RPC:** `login(p_email, p_password)`.
+**Function:** `current_bro_id()`, the signed-in bro, used by the RLS policies. (The Phase 1 `login` RPC was removed in 003.)
 **Brew methods:** constant list in `src/lib/constants.ts`, stored as text.
 
 ### Ranking (0–10)
