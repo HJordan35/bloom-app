@@ -1,6 +1,6 @@
 # Phase 3 — Brew Now
 
-**Status:** 📝 Planned — awaiting approval
+**Status:** ✅ Built — awaiting review on a phone
 
 ## Goal
 Make the home tab work end to end: see which bros are brewing live, start a brew, finish it with results (optionally endorsing the roast), and look back over recent brews.
@@ -90,3 +90,20 @@ Plain async functions over `supabase`, using table joins: `brews` with `roast:ro
 ## Checkpoint (user)
 - Brew for real for a day or two, and adjust which fields are captured.
 - Check whether the start → finish flow feels right on a phone.
+
+## Build notes
+- Add-roaster and add-roast forms live in `src/features/library/` (`AddRoasterForm`, `AddRoastForm`, `api.ts`) so Phase 4 can reuse them.
+- Extra shared pieces:
+  - `lib/unwrap.ts` (throws Supabase errors)
+  - `lib/useNow.ts`
+  - `TextAreaField` / `SelectField` in `components/Field.tsx`
+  - a `text` variant on `Button`
+- Brew detail works for any bro's brew, so Phase 5 profiles can link to it.
+- Verified against the live Supabase project with temporary data, deleted afterwards:
+  - start → shows live for another bro → finish → no longer live
+  - endorsement saved
+  - `roast_rankings` / `roaster_rankings` score 5.0 for one brew rated 8
+  - `events` shows all four event types
+  - recipe prefill query works
+  - Realtime delivers `brews` inserts
+- `run check` and `run build` pass. Not yet checked by eye in a browser.

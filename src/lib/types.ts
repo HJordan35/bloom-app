@@ -74,3 +74,10 @@ export type BloomEvent = {
   note: string | null;
   created_at: string;
 };
+
+export type RoastWithRoaster = Roast & { roaster: Roaster };
+
+export type BrewWithRoast = Brew & {
+  roast: RoastWithRoaster;
+  bro: Bro;
+};

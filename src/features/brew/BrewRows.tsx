@@ -1,0 +1,77 @@
+import * as stylex from "@stylexjs/stylex";
+import { Link } from "react-router-dom";
+import { LiveDot } from "../../components/LiveDot";
+import { elapsed, relativeDate } from "../../lib/format";
+import type { BrewWithRoast } from "../../lib/types";
+import { useNow } from "../../lib/useNow";
+import { colors, fonts, space } from "../../theme/tokens.stylex";
+
+export function LiveBrewRow({ brew }: { brew: BrewWithRoast }) {
+  const now = useNow();
+  return (
+    <div {...stylex.props(styles.row)}>
+      <LiveDot />
+      <div {...stylex.props(styles.main)}>
+        <span>{brew.bro.first_name}</span>
+        <span {...stylex.props(styles.meta)}>
+          {brew.roast.name} · {brew.method}
+        </span>
+      </div>
+      <span {...stylex.props(styles.side)}>{elapsed(brew.started_at, now)}</span>
+    </div>
+  );
+}
+
+export function BrewRow({ brew }: { brew: BrewWithRoast }) {
+  return (
+    <Link to={`/brews/${brew.id}`} {...stylex.props(styles.row)}>
+      <div {...stylex.props(styles.main)}>
+        <span>
+          {brew.roast.name}
+          {brew.dialed_in && <span {...stylex.props(styles.dialed)}> ✦</span>}
+        </span>
+        <span {...stylex.props(styles.meta)}>
+          {brew.roast.roaster.name} · {brew.method}
+        </span>
+      </div>
+      <span {...stylex.props(styles.side)}>
+        {relativeDate(brew.finished_at ?? brew.started_at)}
+      </span>
+    </Link>
+  );
+}
+
+const styles = stylex.create({
+  row: {
+    minHeight: 60,
+    display: "flex",
+    alignItems: "center",
+    gap: space.md,
+    paddingBlock: space.sm,
+    borderBottomWidth: 1,
+    borderBottomStyle: "solid",
+    borderBottomColor: colors.hairline,
+  },
+  main: {
+    flex: 1,
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+  },
+  meta: {
+    fontSize: 12,
+    color: colors.muted,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  side: {
+    flexShrink: 0,
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    color: colors.muted,
+  },
+  dialed: {
+    color: colors.brass,
+  },
+});

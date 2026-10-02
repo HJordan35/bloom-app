@@ -1,6 +1,6 @@
 import * as stylex from "@stylexjs/stylex";
 import type { ReactNode } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { colors, fonts, layout, space } from "../theme/tokens.stylex";
 import { BrosIcon, CupIcon, LibraryIcon } from "./icons";
 
@@ -16,14 +16,25 @@ const TITLES: Record<string, string> = {
   "/bros": "Bros Board",
 };
 
+// Detail routes get a back button instead of the wordmark
+const DETAIL_TITLES: [prefix: string, title: string][] = [["/brews/", "Brew"]];
+
 export function AppShell() {
   const { pathname } = useLocation();
-  const title = TITLES[pathname] ?? "Bloom";
+  const navigate = useNavigate();
+  const detail = DETAIL_TITLES.find(([prefix]) => pathname.startsWith(prefix));
+  const title = detail?.[1] ?? TITLES[pathname] ?? "Bloom";
 
   return (
     <div {...stylex.props(styles.frame)}>
       <header {...stylex.props(styles.topBar)}>
-        <span {...stylex.props(styles.mark)}>Bloom</span>
+        {detail ? (
+          <button type="button" onClick={() => navigate(-1)} {...stylex.props(styles.back)}>
+            ← Back
+          </button>
+        ) : (
+          <span {...stylex.props(styles.mark)}>Bloom</span>
+        )}
         <h1 {...stylex.props(styles.title)}>{title}</h1>
       </header>
 
@@ -81,6 +92,18 @@ const styles = stylex.create({
     letterSpacing: "0.3em",
     textTransform: "uppercase",
     color: colors.brass,
+  },
+  back: {
+    minHeight: 44,
+    marginBlock: -12,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: "0.2em",
+    textTransform: "uppercase",
+    color: colors.brass,
+    cursor: "pointer",
   },
   title: {
     fontFamily: fonts.display,

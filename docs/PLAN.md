@@ -9,8 +9,8 @@ Mobile-first coffee diary for 3–5 friends ("Bros"): track roasters, roasts, br
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
 | 1 | Scaffold + data model | ✅ Done | [phase-1.md](phases/phase-1.md) |
-| 2 | Design system, app shell, login | ✅ Done — awaiting design review | [phase-2.md](phases/phase-2.md) |
-| 3 | Brew Now | 📝 Planned | [phase-3.md](phases/phase-3.md) |
+| 2 | Design system, app shell, login | ✅ Done | [phase-2.md](phases/phase-2.md) |
+| 3 | Brew Now | ✅ Built — awaiting review | [phase-3.md](phases/phase-3.md) |
 | 4 | Library | Not started | — |
 | 5 | Bros Board | Not started | — |
 | 6 | Ranking polish | Not started | — |

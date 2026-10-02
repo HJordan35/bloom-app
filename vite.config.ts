@@ -4,4 +4,5 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [stylex.vite(), react()],
+  build: { chunkSizeWarningLimit: 800 },
 });

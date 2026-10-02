@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/AppShell";
 import { LoginPage } from "./features/auth/LoginPage";
+import { BrewDetailPage } from "./features/brew/BrewDetailPage";
 import { BrewNowPage } from "./features/brew/BrewNowPage";
 import { BrosBoardPage } from "./features/bros/BrosBoardPage";
 import { LibraryPage } from "./features/library/LibraryPage";
@@ -32,6 +33,7 @@ function AppRoutes() {
     <Routes>
       <Route element={<AppShell />}>
         <Route path="/" element={<BrewNowPage />} />
+        <Route path="/brews/:id" element={<BrewDetailPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/bros" element={<BrosBoardPage />} />
       </Route>

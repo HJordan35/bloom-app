@@ -3,7 +3,7 @@ import type { ButtonHTMLAttributes } from "react";
 import { colors, radius, space } from "../theme/tokens.stylex";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "ghost";
+  variant?: "primary" | "ghost" | "text";
 };
 
 export function Button({ variant = "primary", ...props }: Props) {
@@ -29,6 +29,14 @@ const styles = stylex.create({
     backgroundColor: { default: "transparent", ":active": colors.brass },
     borderColor: colors.brass,
     color: { default: colors.brass, ":active": colors.bg },
+  },
+  text: {
+    minHeight: 44,
+    paddingInline: 0,
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    color: colors.brass,
+    fontSize: 11,
   },
   ghost: {
     backgroundColor: "transparent",
