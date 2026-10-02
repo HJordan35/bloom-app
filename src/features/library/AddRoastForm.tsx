@@ -16,14 +16,20 @@ const NEW_ROASTER = "__new";
 
 type Props = {
   initialName?: string;
+  initialRoasterId?: string;
   onCreated: (roast: RoastWithRoaster) => void;
   onCancel: () => void;
 };
 
-export function AddRoastForm({ initialName = "", onCreated, onCancel }: Props) {
+export function AddRoastForm({
+  initialName = "",
+  initialRoasterId = "",
+  onCreated,
+  onCancel,
+}: Props) {
   const bro = useCurrentBro();
   const roasters = useData(fetchRoasters, []);
-  const [roasterId, setRoasterId] = useState("");
+  const [roasterId, setRoasterId] = useState(initialRoasterId);
   const [addingRoaster, setAddingRoaster] = useState(false);
   const [name, setName] = useState(initialName);
   const [level, setLevel] = useState<RoastLevel | null>(null);

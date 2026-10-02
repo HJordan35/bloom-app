@@ -18,8 +18,11 @@ import { StartBrewSheet } from "./StartBrewSheet";
 export function BrewNowPage() {
   const bro = useCurrentBro();
   const [params, setParams] = useSearchParams();
+  // `?roast=<id>` or `?start` (from the Library) opens the start sheet
   const roastParam = params.get("roast");
-  const [sheet, setSheet] = useState<"start" | "finish" | null>(roastParam ? "start" : null);
+  const [sheet, setSheet] = useState<"start" | "finish" | null>(
+    roastParam || params.has("start") ? "start" : null,
+  );
 
   const mine = useData(() => fetchMyOpenBrew(bro.id), [bro.id]);
   const live = useData(() => fetchLiveBrews(bro.id), [bro.id]);
@@ -45,7 +48,7 @@ export function BrewNowPage() {
 
   function closeSheet() {
     setSheet(null);
-    if (roastParam) setParams({}, { replace: true });
+    if (params.size > 0) setParams({}, { replace: true });
   }
 
   function refresh() {

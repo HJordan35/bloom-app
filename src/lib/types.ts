@@ -63,6 +63,8 @@ export type Ranking = {
 export type RoastRanking = Ranking & { roast_id: string; roaster_id: string };
 export type RoasterRanking = Ranking & { roaster_id: string };
 
+export type EndorsementWithRoast = Endorsement & { bro: Bro; roast: RoastWithRoaster };
+
 export type BloomEvent = {
   type: "brew" | "roaster" | "roast" | "endorsement";
   ref_id: string;

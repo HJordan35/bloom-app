@@ -17,7 +17,11 @@ const TITLES: Record<string, string> = {
 };
 
 // Detail routes get a back button instead of the wordmark
-const DETAIL_TITLES: [prefix: string, title: string][] = [["/brews/", "Brew"]];
+const DETAIL_TITLES: [prefix: string, title: string][] = [
+  ["/brews/", "Brew"],
+  ["/library/roasters/", "Roaster"],
+  ["/library/roasts/", "Roast"],
+];
 
 export function AppShell() {
   const { pathname } = useLocation();

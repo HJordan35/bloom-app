@@ -12,6 +12,9 @@ export const colors = stylex.defineVars({
   leather: "#6F4428",
   ember: "#C8642F",
   danger: "#B5533C",
+  levelLight: "#D2B48C",
+  levelMedium: "#9A6A42",
+  levelDark: "#5E3B24",
 });
 
 export const fonts = stylex.defineVars({

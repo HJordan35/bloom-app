@@ -22,7 +22,8 @@ export function LiveBrewRow({ brew }: { brew: BrewWithRoast }) {
   );
 }
 
-export function BrewRow({ brew }: { brew: BrewWithRoast }) {
+/** A finished brew. `showBro` swaps the roaster for the bro's name (for shared lists). */
+export function BrewRow({ brew, showBro = false }: { brew: BrewWithRoast; showBro?: boolean }) {
   return (
     <Link to={`/brews/${brew.id}`} {...stylex.props(styles.row)}>
       <div {...stylex.props(styles.main)}>
@@ -31,7 +32,7 @@ export function BrewRow({ brew }: { brew: BrewWithRoast }) {
           {brew.dialed_in && <span {...stylex.props(styles.dialed)}> ✦</span>}
         </span>
         <span {...stylex.props(styles.meta)}>
-          {brew.roast.roaster.name} · {brew.method}
+          {showBro ? brew.bro.first_name : brew.roast.roaster.name} · {brew.method}
         </span>
       </div>
       <span {...stylex.props(styles.side)}>

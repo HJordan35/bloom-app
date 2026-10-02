@@ -1,6 +1,6 @@
 # Phase 4 — Library
 
-**Status:** 📝 Planned — awaiting approval
+**Status:** ✅ Built — awaiting review on a phone
 
 ## Goal
 Browse, search and add roasters and roasts, and drill into any of them for the full picture: who's brewed it, how it rates, what recipes work, and a one-tap "Brew now".
@@ -97,3 +97,20 @@ All lists are small (3–5 bros), so each page loads everything it needs in one 
 ## Open questions
 - **Default scope:** the Library shows the whole shared catalogue, with your brewed items marked. Alternative: an **All / Mine** filter. Easy to add if wanted.
 - **Roaster "Brew now":** opens the start sheet with no roast chosen. It could instead filter the roast picker to that roaster.
+
+## Build notes
+- Open questions resolved as planned:
+  - The Library shows the full catalogue, with a brass diamond on anything you've brewed.
+  - The roaster's **Brew now** opens the start sheet with no roast chosen (`/?start`).
+- New shared pieces:
+  - `components/DetailHeader.tsx`
+  - roast-level colors (`levelLight` / `levelMedium` / `levelDark`) in tokens
+  - `EndorsementWithRoast` type
+  - `features/library/LibraryRows.tsx` (`RoastRow`, `EndorsementRow`, `BrewLists`)
+- Adding a roast from a roaster page jumps straight to the new roast.
+- Verified against the live Supabase project with temporary data, deleted afterwards:
+  - roaster-filtered brews and endorsements (inner join) return only that roaster's rows
+  - "my roasts" split is correct per bro
+  - latest-rating-wins scoring: 6 then 9 from the same bro → avg 9, score 5.5
+  - roaster score aggregates across roasts
+- `run check` and `run build` pass. Not yet checked by eye in a browser.

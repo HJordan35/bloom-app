@@ -1,5 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Section } from "../../components/Section";
 import { mmss, relativeDate } from "../../lib/format";
 import { useData } from "../../lib/useData";
@@ -27,9 +27,14 @@ export function BrewDetailPage() {
           {brew.bro.first_name} · {relativeDate(brew.started_at)}
           {!brew.finished_at && " · brewing"}
         </p>
-        <h2 {...stylex.props(styles.roast)}>{brew.roast.name}</h2>
+        <Link to={`/library/roasts/${brew.roast.id}`} {...stylex.props(styles.roast)}>
+          {brew.roast.name}
+        </Link>
         <p {...stylex.props(styles.meta)}>
-          {brew.roast.roaster.name} · {brew.roast.roast_level}
+          <Link to={`/library/roasters/${brew.roast.roaster.id}`} {...stylex.props(styles.link)}>
+            {brew.roast.roaster.name}
+          </Link>{" "}
+          · {brew.roast.roast_level}
           {brew.roast.region && ` · ${brew.roast.region}`}
         </p>
         <p {...stylex.props(styles.method)}>
@@ -86,6 +91,11 @@ const styles = stylex.create({
     fontSize: 13,
     color: colors.muted,
     textTransform: "capitalize",
+  },
+  link: {
+    textDecoration: "underline",
+    textDecorationColor: colors.hairline,
+    textUnderlineOffset: 3,
   },
   method: {
     display: "flex",

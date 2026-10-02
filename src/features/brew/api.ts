@@ -2,7 +2,7 @@ import { supabase } from "../../lib/supabase";
 import type { Brew, BrewWithRoast } from "../../lib/types";
 import { unwrap } from "../../lib/unwrap";
 
-const BREW_SELECT =
+export const BREW_SELECT =
   "*, roast:roasts(*, roaster:roasters(*)), bro:bros(id, first_name, last_name, email)";
 const LIVE_WINDOW_MS = 2 * 60 * 60 * 1000;
 

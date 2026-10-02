@@ -1,0 +1,125 @@
+import * as stylex from "@stylexjs/stylex";
+import { Link } from "react-router-dom";
+import { levelStyles } from "../../components/Mosaic";
+import { Section } from "../../components/Section";
+import { relativeDate } from "../../lib/format";
+import type {
+  BrewWithRoast,
+  EndorsementWithRoast,
+  Ranking,
+  RoastWithRoaster,
+} from "../../lib/types";
+import { colors, fonts, space } from "../../theme/tokens.stylex";
+import { BrewRow } from "../brew/BrewRows";
+
+export function RoastRow({ roast, ranking }: { roast: RoastWithRoaster; ranking?: Ranking }) {
+  return (
+    <Link to={`/library/roasts/${roast.id}`} {...stylex.props(styles.row)}>
+      <span {...stylex.props(styles.level, levelStyles[roast.roast_level])} />
+      <div {...stylex.props(styles.main)}>
+        <span>{roast.name}</span>
+        <span {...stylex.props(styles.meta)}>
+          {[roast.roast_level, roast.region].filter(Boolean).join(" · ")}
+        </span>
+      </div>
+      <div {...stylex.props(styles.side)}>
+        <span {...stylex.props(styles.score)}>{ranking?.score.toFixed(1) ?? "—"}</span>
+        <span {...stylex.props(styles.meta)}>{ranking?.brew_count ?? 0} brews</span>
+      </div>
+    </Link>
+  );
+}
+
+export function EndorsementRow({
+  endorsement: e,
+  showRoast = false,
+}: {
+  endorsement: EndorsementWithRoast;
+  showRoast?: boolean;
+}) {
+  return (
+    <div {...stylex.props(styles.row, styles.top)}>
+      <div {...stylex.props(styles.main)}>
+        <span {...stylex.props(styles.meta)}>
+          {[e.bro.first_name, showRoast && e.roast.name, e.method, relativeDate(e.created_at)]
+            .filter(Boolean)
+            .join(" · ")}
+        </span>
+        {e.note && <p {...stylex.props(styles.note)}>{e.note}</p>}
+      </div>
+      {e.rating != null && <span {...stylex.props(styles.rating)}>{e.rating}</span>}
+    </div>
+  );
+}
+
+/** Splits brews into "Your brews" and "Bros' brews", latest 10 each. */
+export function BrewLists({ brews, broId }: { brews: BrewWithRoast[]; broId: string }) {
+  const lists: [string, BrewWithRoast[]][] = [
+    ["Your brews", brews.filter((b) => b.bro_id === broId)],
+    ["Bros' brews", brews.filter((b) => b.bro_id !== broId)],
+  ];
+  return lists.map(([label, items]) => (
+    <Section key={label} label={label}>
+      {items.slice(0, 10).map((brew) => (
+        <BrewRow key={brew.id} brew={brew} showBro />
+      ))}
+      {items.length === 0 && <p {...stylex.props(styles.empty)}>None yet.</p>}
+    </Section>
+  ));
+}
+
+const styles = stylex.create({
+  row: {
+    minHeight: 60,
+    display: "flex",
+    alignItems: "center",
+    gap: space.md,
+    paddingBlock: space.sm,
+    borderBottomWidth: 1,
+    borderBottomStyle: "solid",
+    borderBottomColor: colors.hairline,
+  },
+  top: {
+    alignItems: "flex-start",
+  },
+  level: {
+    flexShrink: 0,
+    width: 2,
+    height: 28,
+  },
+  main: {
+    flex: 1,
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+  },
+  meta: {
+    fontSize: 12,
+    color: colors.muted,
+    textTransform: "capitalize",
+  },
+  side: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+  },
+  score: {
+    fontFamily: fonts.mono,
+    fontSize: 15,
+    color: colors.brass,
+  },
+  note: {
+    whiteSpace: "pre-wrap",
+  },
+  rating: {
+    fontFamily: fonts.mono,
+    fontSize: 22,
+    color: colors.brass,
+  },
+  empty: {
+    fontSize: 13,
+    color: colors.faint,
+    paddingBlock: space.sm,
+  },
+});

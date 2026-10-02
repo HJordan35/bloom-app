@@ -5,6 +5,8 @@ import { BrewDetailPage } from "./features/brew/BrewDetailPage";
 import { BrewNowPage } from "./features/brew/BrewNowPage";
 import { BrosBoardPage } from "./features/bros/BrosBoardPage";
 import { LibraryPage } from "./features/library/LibraryPage";
+import { RoasterPage } from "./features/library/RoasterPage";
+import { RoastPage } from "./features/library/RoastPage";
 import { AuthProvider, useAuth } from "./lib/auth";
 
 export function App() {
@@ -35,6 +37,8 @@ function AppRoutes() {
         <Route path="/" element={<BrewNowPage />} />
         <Route path="/brews/:id" element={<BrewDetailPage />} />
         <Route path="/library" element={<LibraryPage />} />
+        <Route path="/library/roasters/:id" element={<RoasterPage />} />
+        <Route path="/library/roasts/:id" element={<RoastPage />} />
         <Route path="/bros" element={<BrosBoardPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
