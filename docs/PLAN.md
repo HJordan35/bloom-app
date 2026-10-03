@@ -14,7 +14,8 @@ Mobile-first coffee diary for 3–5 friends ("Bros"): track roasters, roasts, br
 | 4 | Library | ✅ Built — awaiting review | [phase-4.md](phases/phase-4.md) |
 | 5 | Bros Board | ✅ Built — awaiting review | [phase-5.md](phases/phase-5.md) |
 | 6 | Ranking polish | ✅ Built — awaiting review | [phase-6.md](phases/phase-6.md) |
-| 7 | Minimal security for launch | ✅ Built — needs dashboard steps + migration 003 | [phase-7.md](phases/phase-7.md) |
+| 7 | Minimal security for launch | ✅ Done | [phase-7.md](phases/phase-7.md) |
+| 8 | Home-screen app (PWA) | ✅ Built | [phase-8.md](phases/phase-8.md) |
 
 Each phase gets its own plan in `docs/phases/` before implementation, and ends with a checkpoint review.
 
