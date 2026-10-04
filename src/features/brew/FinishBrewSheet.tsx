@@ -6,9 +6,9 @@ import { RatingInput } from "../../components/RatingInput";
 import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
 import { Toggle } from "../../components/Toggle";
-import { parseDuration, toNumber } from "../../lib/format";
+import { toNumber, toSeconds } from "../../lib/format";
 import type { BrewWithRoast } from "../../lib/types";
-import { space } from "../../theme/tokens.stylex";
+import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { createEndorsement } from "../library/api";
 import { finishBrew } from "./api";
 
@@ -19,7 +19,8 @@ type Props = {
 };
 
 export function FinishBrewSheet({ brew, onClose, onFinished }: Props) {
-  const [brewTime, setBrewTime] = useState("");
+  const [minutes, setMinutes] = useState("");
+  const [seconds, setSeconds] = useState("");
   const [volume, setVolume] = useState("");
   const [result, setResult] = useState("");
   const [dialedIn, setDialedIn] = useState(false);
@@ -31,7 +32,7 @@ export function FinishBrewSheet({ brew, onClose, onFinished }: Props) {
   async function finish() {
     setBusy(true);
     await finishBrew(brew.id, {
-      brew_time_s: parseDuration(brewTime),
+      brew_time_s: toSeconds(minutes, seconds),
       volume_ml: toNumber(volume),
       result: result.trim() || null,
       dialed_in: dialedIn,
@@ -52,13 +53,23 @@ export function FinishBrewSheet({ brew, onClose, onFinished }: Props) {
     <Sheet title="Finish brew" onClose={onClose}>
       <Section label="Result">
         <div {...stylex.props(styles.grid)}>
-          <Field
-            label="Brew time"
-            placeholder="3:30"
-            inputMode="numeric"
-            value={brewTime}
-            onChange={(e) => setBrewTime(e.target.value)}
-          />
+          <div {...stylex.props(styles.time)}>
+            <Field
+              label="Min"
+              placeholder="3"
+              inputMode="numeric"
+              value={minutes}
+              onChange={(e) => setMinutes(e.target.value)}
+            />
+            <span {...stylex.props(styles.colon)}>:</span>
+            <Field
+              label="Sec"
+              placeholder="30"
+              inputMode="numeric"
+              value={seconds}
+              onChange={(e) => setSeconds(e.target.value)}
+            />
+          </div>
           <Field
             label="Volume (ml)"
             inputMode="decimal"
@@ -102,5 +113,16 @@ const styles = stylex.create({
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: space.md,
+  },
+  time: {
+    display: "grid",
+    gridTemplateColumns: "1fr auto 1fr",
+    alignItems: "end",
+    gap: space.xs,
+  },
+  colon: {
+    paddingBottom: 10,
+    fontFamily: fonts.mono,
+    color: colors.muted,
   },
 });

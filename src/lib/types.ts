@@ -1,4 +1,5 @@
 export type RoastLevel = "light" | "medium" | "dark";
+export type TempUnit = "C" | "F";
 
 export type Bro = {
   id: string;
@@ -33,7 +34,8 @@ export type Brew = {
   dose_g: number | null;
   grind_size: string | null;
   grinder: string | null;
-  temp_c: number | null;
+  temp: number | null;
+  temp_unit: TempUnit;
   brew_time_s: number | null;
   volume_ml: number | null;
   result: string | null;

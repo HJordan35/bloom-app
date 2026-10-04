@@ -1,7 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { Link, useParams } from "react-router-dom";
 import { Section } from "../../components/Section";
-import { mmss, relativeDate } from "../../lib/format";
+import { formatTemp, mmss, relativeDate } from "../../lib/format";
 import { useData } from "../../lib/useData";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { fetchBrew } from "./api";
@@ -15,7 +15,7 @@ export function BrewDetailPage() {
     ["Dose", brew.dose_g != null ? `${brew.dose_g} g` : null],
     ["Grind", brew.grind_size],
     ["Grinder", brew.grinder],
-    ["Temp", brew.temp_c != null ? `${brew.temp_c} °C` : null],
+    ["Temp", formatTemp(brew)],
     ["Brew time", brew.brew_time_s != null ? mmss(brew.brew_time_s) : null],
     ["Volume", brew.volume_ml != null ? `${brew.volume_ml} ml` : null],
   ];

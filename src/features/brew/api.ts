@@ -11,7 +11,7 @@ export function isLive(brew: Pick<Brew, "finished_at" | "started_at">) {
   return !brew.finished_at && Date.parse(brew.started_at) > Date.now() - LIVE_WINDOW_MS;
 }
 
-export type Recipe = Pick<Brew, "dose_g" | "grind_size" | "grinder" | "temp_c">;
+export type Recipe = Pick<Brew, "dose_g" | "grind_size" | "grinder" | "temp" | "temp_unit">;
 export type BrewResult = Pick<Brew, "brew_time_s" | "volume_ml" | "result" | "dialed_in">;
 
 /** Your open brew, however old — so a forgotten brew can still be finished. */
@@ -68,7 +68,7 @@ export async function fetchLastRecipe(broId: string, roastId: string, method: st
   return unwrap<Recipe | null>(
     await supabase
       .from("brews")
-      .select("dose_g, grind_size, grinder, temp_c")
+      .select("dose_g, grind_size, grinder, temp, temp_unit")
       .eq("bro_id", broId)
       .eq("roast_id", roastId)
       .eq("method", method)

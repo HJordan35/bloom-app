@@ -49,11 +49,11 @@ Defined in `supabase/migrations/001_init.sql`.
 | `bros` | first_name, last_name, email (unique), auth_id → auth.users |
 | `roasters` | name (unique), location, created_by |
 | `roasts` | roaster_id, name, roast_level (light/medium/dark), region, created_by |
-| `brews` | bro_id, roast_id, method, dose_g, grind_size, grinder, temp_c, brew_time_s, volume_ml, result, dialed_in, started_at, finished_at |
+| `brews` | bro_id, roast_id, method, dose_g, grind_size, grinder, temp, temp_unit (C/F), brew_time_s, volume_ml, result, dialed_in, started_at, finished_at |
 | `endorsements` | bro_id, roast_id, method, rating (1–10, optional), note |
 
-**Migrations:** `001_init.sql` (schema), `002_realtime.sql` (Realtime for roasters, roasts, endorsements), `003_auth.sql` (Supabase Auth link + RLS).
-**Views:** `active_brews`, `latest_ratings`, `roast_rankings`, `roaster_rankings`, `events` (Bros Board feed).
+**Migrations:** `001_init.sql` (schema), `002_realtime.sql` (Realtime for roasters, roasts, endorsements), `003_auth.sql` (Supabase Auth link + RLS), `004_temp_unit.sql` (°F / °C).
+**Views:** `latest_ratings`, `roast_rankings`, `roaster_rankings`, `events` (Bros Board feed).
 **Function:** `current_bro_id()`, the signed-in bro, used by the RLS policies. (The Phase 1 `login` RPC was removed in 003.)
 **Brew methods:** constant list in `src/lib/constants.ts`, stored as text.
 

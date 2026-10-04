@@ -118,3 +118,13 @@ The inline roast picker didn't scale, so starting a brew is now two steps:
 2. **Brew details:** the chosen roast, with **Change**, then method and recipe as before.
 
 Arriving with `?roast=<id>` skips step 1. `RoastPicker.tsx` was removed; the Library page and the drawer share one component.
+
+## Revision: brew time and temperature units (after phone testing)
+- **Brew time:** the iOS number pad has no colon, so the single "3:30" field became two numeric inputs, **Min : Sec**.
+  - They're combined with `toSeconds()` into the existing `brew_time_s` column.
+  - `parseDuration` was removed.
+- **Temperature:** recorded in **°F or °C**.
+  - A borderless `UnitToggle` sits inside the Temp field, through the new `Field` `suffix` prop. New brews start on °F.
+  - The recipe prefill also carries over the last brew's unit.
+  - Brews show in their own unit everywhere, through `formatTemp()` (detail page, active card, dialed-in recipes).
+  - Migration `004_temp_unit.sql`: `temp_c` → `temp`, adds `temp_unit` (existing rows `'C'`, new default `'F'`), and drops the unused `active_brews` view.

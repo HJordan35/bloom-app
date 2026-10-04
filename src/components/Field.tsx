@@ -9,10 +9,23 @@ import { colors, fonts, space } from "../theme/tokens.stylex";
 
 type Labelled = { label: string };
 
-export function Field({ label, ...props }: InputHTMLAttributes<HTMLInputElement> & Labelled) {
+type FieldProps = InputHTMLAttributes<HTMLInputElement> &
+  Labelled & {
+    /** Shown at the right end of the input's underline, e.g. a unit toggle. */
+    suffix?: ReactNode;
+  };
+
+export function Field({ label, suffix, ...props }: FieldProps) {
   return (
     <Label text={label}>
-      <input {...props} {...stylex.props(styles.input)} />
+      {suffix ? (
+        <span {...stylex.props(styles.row)}>
+          <input {...props} {...stylex.props(styles.input, styles.inRow)} />
+          {suffix}
+        </span>
+      ) : (
+        <input {...props} {...stylex.props(styles.input)} />
+      )}
     </Label>
   );
 }
@@ -79,6 +92,20 @@ const styles = stylex.create({
     fontSize: 16, // 16px prevents iOS zoom on focus
     transition: "border-color 150ms",
     "::placeholder": { color: colors.faint },
+  },
+  row: {
+    display: "flex",
+    alignItems: "center",
+    gap: space.sm,
+    borderBottomWidth: 1,
+    borderBottomStyle: "solid",
+    borderBottomColor: { default: colors.hairline, ":focus-within": colors.brass },
+    transition: "border-color 150ms",
+  },
+  inRow: {
+    flex: 1,
+    minWidth: 0,
+    borderBottomWidth: 0,
   },
   textarea: {
     height: "auto",

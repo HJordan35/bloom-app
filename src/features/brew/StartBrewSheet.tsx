@@ -5,10 +5,11 @@ import { Chips } from "../../components/Chips";
 import { Field } from "../../components/Field";
 import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
+import { UnitToggle } from "../../components/UnitToggle";
 import { useCurrentBro } from "../../lib/auth";
-import { BREW_METHODS } from "../../lib/constants";
+import { BREW_METHODS, TEMP_UNITS } from "../../lib/constants";
 import { toNumber } from "../../lib/format";
-import type { RoastWithRoaster } from "../../lib/types";
+import type { RoastWithRoaster, TempUnit } from "../../lib/types";
 import { useData } from "../../lib/useData";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { fetchRoast } from "../library/api";
@@ -33,6 +34,7 @@ export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
   const [grindSize, setGrindSize] = useState("");
   const [grinder, setGrinder] = useState("");
   const [temp, setTemp] = useState("");
+  const [tempUnit, setTempUnit] = useState<TempUnit>("F");
   const [busy, setBusy] = useState(false);
 
   // A roast passed in from the Library skips step 1
@@ -48,7 +50,8 @@ export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
       setDose(last.dose_g?.toString() ?? "");
       setGrindSize(last.grind_size ?? "");
       setGrinder(last.grinder ?? "");
-      setTemp(last.temp_c?.toString() ?? "");
+      setTemp(last.temp?.toString() ?? "");
+      setTempUnit(last.temp_unit);
     });
   }, [bro.id, roast, method]);
 
@@ -62,7 +65,8 @@ export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
       dose_g: toNumber(dose),
       grind_size: grindSize.trim() || null,
       grinder: grinder.trim() || null,
-      temp_c: toNumber(temp),
+      temp: toNumber(temp),
+      temp_unit: tempUnit,
     });
     onStarted();
   }
@@ -109,10 +113,18 @@ export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
             onChange={(e) => setDose(e.target.value)}
           />
           <Field
-            label="Temp (°C)"
+            label="Temp"
             inputMode="decimal"
             value={temp}
             onChange={(e) => setTemp(e.target.value)}
+            suffix={
+              <UnitToggle
+                options={TEMP_UNITS}
+                value={tempUnit}
+                onChange={setTempUnit}
+                format={(unit) => `°${unit}`}
+              />
+            }
           />
           <Field label="Grind" value={grindSize} onChange={(e) => setGrindSize(e.target.value)} />
           <Field

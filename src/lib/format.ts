@@ -13,13 +13,12 @@ export function elapsed(iso: string, now: number) {
   return `${Math.floor(s / 3600)}h ${pad(Math.floor((s % 3600) / 60))}m`;
 }
 
-/** "3:30" → 210, "45" → 45 seconds, "" → null. */
-export function parseDuration(input: string) {
-  const value = input.trim();
-  if (!value) return null;
-  const [a, b] = value.split(":");
-  const seconds = b === undefined ? Number(a) : Number(a) * 60 + Number(b);
-  return Number.isFinite(seconds) ? Math.round(seconds) : null;
+/** Separate minute and second inputs → total seconds, or null when both are empty. */
+export function toSeconds(minutes: string, seconds: string) {
+  const m = toNumber(minutes);
+  const s = toNumber(seconds);
+  if (m == null && s == null) return null;
+  return Math.round((m ?? 0) * 60 + (s ?? 0));
 }
 
 export function toNumber(input: string) {
@@ -61,13 +60,14 @@ export function greeting() {
   return "Evening";
 }
 
-/** "18g · 2.4 · 93°" */
-export function recipeLine(brew: Pick<Brew, "dose_g" | "grind_size" | "temp_c">) {
-  return [
-    brew.dose_g != null && `${brew.dose_g}g`,
-    brew.grind_size,
-    brew.temp_c != null && `${brew.temp_c}°`,
-  ]
+/** "200°F" in the unit the brew was recorded in */
+export function formatTemp(brew: Pick<Brew, "temp" | "temp_unit">) {
+  return brew.temp == null ? null : `${brew.temp}°${brew.temp_unit}`;
+}
+
+/** "18g · 2.4 · 200°F" */
+export function recipeLine(brew: Pick<Brew, "dose_g" | "grind_size" | "temp" | "temp_unit">) {
+  return [brew.dose_g != null && `${brew.dose_g}g`, brew.grind_size, formatTemp(brew)]
     .filter(Boolean)
     .join(" · ");
 }

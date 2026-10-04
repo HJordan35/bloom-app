@@ -10,3 +10,5 @@ export const BREW_METHODS = [
 ] as const;
 
 export const ROAST_LEVELS = ["light", "medium", "dark"] as const;
+
+export const TEMP_UNITS = ["F", "C"] as const;
