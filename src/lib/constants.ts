@@ -1,4 +1,5 @@
 export const BREW_METHODS = [
+  "BeeHouse",
   "Espresso",
   "V60",
   "Chemex",
