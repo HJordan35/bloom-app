@@ -38,7 +38,8 @@ export type Brew = {
   temp_unit: TempUnit;
   brew_time_s: number | null;
   volume_ml: number | null;
-  result: string | null;
+  brew_notes: string | null;
+  brew_results: string | null;
   dialed_in: boolean;
   started_at: string;
   finished_at: string | null;
@@ -49,6 +50,7 @@ export type Endorsement = {
   id: string;
   bro_id: string;
   roast_id: string;
+  brew_id: string | null;
   method: string | null;
   rating: number | null;
   note: string | null;

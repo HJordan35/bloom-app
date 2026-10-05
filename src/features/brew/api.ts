@@ -12,7 +12,15 @@ export function isLive(brew: Pick<Brew, "finished_at" | "started_at">) {
 }
 
 export type Recipe = Pick<Brew, "dose_g" | "grind_size" | "grinder" | "temp" | "temp_unit">;
-export type BrewResult = Pick<Brew, "brew_time_s" | "volume_ml" | "result" | "dialed_in">;
+/** Captured when finishing: how it was brewed. */
+export type BrewProcess = Pick<Brew, "brew_time_s" | "volume_ml" | "brew_notes">;
+/** Captured in the follow-up (or later): how it turned out. */
+export type BrewOutcome = Pick<Brew, "brew_results" | "dialed_in">;
+
+/** Finished, but no results or dialed-in yet ("I'll do it later"). */
+export function resultsPending(brew: Pick<Brew, "finished_at" | "brew_results" | "dialed_in">) {
+  return !!brew.finished_at && !brew.brew_results && !brew.dialed_in;
+}
 
 /** Your open brew, however old — so a forgotten brew can still be finished. */
 export async function fetchMyOpenBrew(broId: string) {
@@ -100,13 +108,12 @@ export async function startBrew(
   return unwrap<Brew>(await supabase.from("brews").insert(input).select().single());
 }
 
-export async function finishBrew(id: string, result: BrewResult) {
-  unwrap(
-    await supabase
-      .from("brews")
-      .update({ ...result, finished_at: new Date().toISOString() })
-      .eq("id", id),
-  );
+export async function updateBrew(id: string, fields: Partial<Omit<Brew, "id" | "bro_id">>) {
+  unwrap(await supabase.from("brews").update(fields).eq("id", id));
+}
+
+export async function finishBrew(id: string, process: BrewProcess) {
+  await updateBrew(id, { ...process, finished_at: new Date().toISOString() });
 }
 
 export async function discardBrew(id: string) {

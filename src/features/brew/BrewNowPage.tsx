@@ -7,10 +7,12 @@ import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { greeting } from "../../lib/format";
 import { supabase } from "../../lib/supabase";
+import type { BrewWithRoast } from "../../lib/types";
 import { useData } from "../../lib/useData";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { ActiveBrewCard } from "./ActiveBrewCard";
 import { discardBrew, fetchLiveBrews, fetchMyOpenBrew, fetchRecentBrews } from "./api";
+import { BrewResultsSheet } from "./BrewResultsSheet";
 import { BrewRow, LiveBrewRow } from "./BrewRows";
 import { FinishBrewSheet } from "./FinishBrewSheet";
 import { StartBrewSheet } from "./StartBrewSheet";
@@ -50,6 +52,9 @@ export function BrewNowPage() {
     setSheet(null);
     if (params.size > 0) setParams({}, { replace: true });
   }
+
+  // After finishing, keep the brew around for the "How was it?" follow-up
+  const [followUp, setFollowUp] = useState<BrewWithRoast | null>(null);
 
   function refresh() {
     closeSheet();
@@ -96,7 +101,24 @@ export function BrewNowPage() {
         <StartBrewSheet initialRoastId={roastParam} onClose={closeSheet} onStarted={refresh} />
       )}
       {sheet === "finish" && mine.data && (
-        <FinishBrewSheet brew={mine.data} onClose={closeSheet} onFinished={refresh} />
+        <FinishBrewSheet
+          brew={mine.data}
+          onClose={closeSheet}
+          onFinished={() => {
+            setFollowUp(mine.data ?? null);
+            refresh();
+          }}
+        />
+      )}
+      {followUp && (
+        <BrewResultsSheet
+          brew={followUp}
+          onClose={() => setFollowUp(null)}
+          onSaved={() => {
+            setFollowUp(null);
+            reloadRecent();
+          }}
+        />
       )}
     </div>
   );

@@ -10,17 +10,18 @@ import { useCurrentBro } from "../../lib/auth";
 import { byRank, rankPositions } from "../../lib/ranking";
 import { useData } from "../../lib/useData";
 import { space } from "../../theme/tokens.stylex";
+import { fetchEndorsements } from "../endorsements/api";
+import { EndorsementRow } from "../endorsements/EndorsementRow";
 import { AddRoastForm } from "./AddRoastForm";
 import {
   fetchBrewsForRoaster,
-  fetchEndorsements,
   fetchRoaster,
   fetchRoasterRankings,
   fetchRoasters,
   fetchRoastRankings,
   fetchRoasts,
 } from "./api";
-import { BrewLists, EndorsementRow, RoastRow } from "./LibraryRows";
+import { BrewLists, RoastRow } from "./LibraryRows";
 
 async function load(id: string) {
   const [roaster, roasters, roasts, roasterRankings, roastRankings, brews, endorsements] =
@@ -52,7 +53,7 @@ export function RoasterPage() {
   const bro = useCurrentBro();
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
-  const { data } = useData(() => load(id), [id]);
+  const { data, reload } = useData(() => load(id), [id]);
   if (!data) return null;
 
   const { roaster, roasts, ranking, rank, roastScores, brews, endorsements } = data;
@@ -88,7 +89,7 @@ export function RoasterPage() {
       {endorsements.length > 0 && (
         <Section label="Endorsements">
           {endorsements.map((e) => (
-            <EndorsementRow key={e.id} endorsement={e} showRoast />
+            <EndorsementRow key={e.id} endorsement={e} showRoast onChanged={reload} />
           ))}
         </Section>
       )}

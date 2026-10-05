@@ -11,15 +11,11 @@ import { rankPositions } from "../../lib/ranking";
 import type { BrewWithRoast, EndorsementWithRoast } from "../../lib/types";
 import { useData } from "../../lib/useData";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
-import {
-  fetchBrewsForRoast,
-  fetchEndorsements,
-  fetchRoast,
-  fetchRoastRankings,
-  fetchRoasts,
-} from "./api";
-import { EndorseSheet } from "./EndorseSheet";
-import { BrewLists, EndorsementRow } from "./LibraryRows";
+import { fetchEndorsements } from "../endorsements/api";
+import { EndorsementRow } from "../endorsements/EndorsementRow";
+import { EndorsementSheet } from "../endorsements/EndorsementSheet";
+import { fetchBrewsForRoast, fetchRoast, fetchRoastRankings, fetchRoasts } from "./api";
+import { BrewLists } from "./LibraryRows";
 
 async function load(id: string) {
   const [roast, roasts, rankings, brews, endorsements] = await Promise.all([
@@ -130,7 +126,7 @@ export function RoastPage() {
       {endorsements.length > 0 && (
         <Section label="Endorsements">
           {endorsements.map((e) => (
-            <EndorsementRow key={e.id} endorsement={e} />
+            <EndorsementRow key={e.id} endorsement={e} onChanged={reload} />
           ))}
         </Section>
       )}
@@ -138,7 +134,7 @@ export function RoastPage() {
       <BrewLists brews={brews} broId={bro.id} />
 
       {endorsing && (
-        <EndorseSheet
+        <EndorsementSheet
           roast={roast}
           onClose={() => setEndorsing(false)}
           onSaved={() => {

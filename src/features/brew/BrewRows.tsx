@@ -5,6 +5,7 @@ import { elapsed, relativeDate } from "../../lib/format";
 import type { BrewWithRoast } from "../../lib/types";
 import { useNow } from "../../lib/useNow";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
+import { resultsPending } from "./api";
 
 export function LiveBrewRow({ brew }: { brew: BrewWithRoast }) {
   const now = useNow();
@@ -34,6 +35,7 @@ export function BrewRow({ brew, showBro = false }: { brew: BrewWithRoast; showBr
         <span {...stylex.props(styles.meta)}>
           {showBro ? brew.bro.first_name : brew.roast.roaster.name} · {brew.method}
         </span>
+        {resultsPending(brew) && <span {...stylex.props(styles.pending)}>Results pending</span>}
       </div>
       <span {...stylex.props(styles.side)}>
         {relativeDate(brew.finished_at ?? brew.started_at)}
@@ -74,5 +76,12 @@ const styles = stylex.create({
   },
   dialed: {
     color: colors.brass,
+  },
+  pending: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: colors.faint,
   },
 });

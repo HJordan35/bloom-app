@@ -1,15 +1,28 @@
 import * as stylex from "@stylexjs/stylex";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Button } from "../../components/Button";
 import { Section } from "../../components/Section";
+import { useCurrentBro } from "../../lib/auth";
 import { formatTemp, mmss, relativeDate } from "../../lib/format";
 import { useData } from "../../lib/useData";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
+import { fetchEndorsements } from "../endorsements/api";
+import { EndorsementRow } from "../endorsements/EndorsementRow";
 import { fetchBrew } from "./api";
+import { EditBrewSheet } from "./EditBrewSheet";
 
 export function BrewDetailPage() {
   const { id = "" } = useParams();
-  const { data: brew } = useData(() => fetchBrew(id), [id]);
-  if (!brew) return null;
+  const me = useCurrentBro();
+  const [editing, setEditing] = useState(false);
+  const { data, reload } = useData(
+    () => Promise.all([fetchBrew(id), fetchEndorsements({ brewId: id })]),
+    [id],
+  );
+  if (!data) return null;
+  const [brew, endorsements] = data;
+  const mine = brew.bro_id === me.id;
 
   const stats: [string, string | null][] = [
     ["Dose", brew.dose_g != null ? `${brew.dose_g} g` : null],
@@ -43,6 +56,12 @@ export function BrewDetailPage() {
         </p>
       </header>
 
+      {mine && (
+        <Button variant="ghost" onClick={() => setEditing(true)}>
+          Edit brew
+        </Button>
+      )}
+
       <Section label="Recipe">
         <dl {...stylex.props(styles.stats)}>
           {stats.map(([label, value]) => (
@@ -54,10 +73,36 @@ export function BrewDetailPage() {
         </dl>
       </Section>
 
-      {brew.result && (
-        <Section label="Notes">
-          <p {...stylex.props(styles.notes)}>{brew.result}</p>
+      {brew.brew_notes && (
+        <Section label="Brew notes">
+          <p {...stylex.props(styles.notes)}>{brew.brew_notes}</p>
         </Section>
+      )}
+
+      {brew.brew_results && (
+        <Section label="Results">
+          <p {...stylex.props(styles.notes)}>{brew.brew_results}</p>
+        </Section>
+      )}
+
+      {endorsements.length > 0 && (
+        <Section label="Endorsement">
+          {endorsements.map((e) => (
+            <EndorsementRow key={e.id} endorsement={e} onChanged={reload} />
+          ))}
+        </Section>
+      )}
+
+      {editing && (
+        <EditBrewSheet
+          brew={brew}
+          endorsement={endorsements[0]}
+          onClose={() => setEditing(false)}
+          onSaved={() => {
+            setEditing(false);
+            reload();
+          }}
+        />
       )}
     </div>
   );

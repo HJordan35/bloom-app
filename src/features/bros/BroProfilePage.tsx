@@ -14,15 +14,16 @@ import { useNow } from "../../lib/useNow";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { isLive } from "../brew/api";
 import { BrewRow } from "../brew/BrewRows";
+import { fetchEndorsements } from "../endorsements/api";
+import { EndorsementRow } from "../endorsements/EndorsementRow";
 import { fetchRoastRankings } from "../library/api";
-import { EndorsementRow } from "../library/LibraryRows";
-import { fetchBro, fetchBroBrews, fetchBroEndorsements } from "./api";
+import { fetchBro, fetchBroBrews } from "./api";
 
 async function load(id: string) {
   const [bro, brews, endorsements, rankings] = await Promise.all([
     fetchBro(id),
     fetchBroBrews(id),
-    fetchBroEndorsements(id),
+    fetchEndorsements({ broId: id }),
     fetchRoastRankings(),
   ]);
   return { bro, brews, endorsements, roastScores: new Map(rankings.map((r) => [r.roast_id, r])) };
@@ -50,7 +51,7 @@ export function BroProfilePage() {
   const me = useCurrentBro();
   const { logout } = useAuth();
   const now = useNow();
-  const { data } = useData(() => load(id), [id]);
+  const { data, reload } = useData(() => load(id), [id]);
   if (!data) return null;
 
   const { bro, brews, endorsements, roastScores } = data;
@@ -128,7 +129,7 @@ export function BroProfilePage() {
       {endorsements.length > 0 && (
         <Section label="Endorsements">
           {endorsements.slice(0, 10).map((e) => (
-            <EndorsementRow key={e.id} endorsement={e} showRoast />
+            <EndorsementRow key={e.id} endorsement={e} showRoast onChanged={reload} />
           ))}
         </Section>
       )}

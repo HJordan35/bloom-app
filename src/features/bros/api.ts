@@ -1,8 +1,8 @@
 import { supabase } from "../../lib/supabase";
-import type { BloomEvent, BrewWithRoast, Bro, EndorsementWithRoast } from "../../lib/types";
+import type { BloomEvent, BrewWithRoast, Bro } from "../../lib/types";
 import { unwrap } from "../../lib/unwrap";
 import { BREW_SELECT, fetchBrewingNow } from "../brew/api";
-import { ENDORSEMENT_SELECT, fetchRoasters, fetchRoasts } from "../library/api";
+import { fetchRoasters, fetchRoasts } from "../library/api";
 
 const BRO_SELECT = "id, first_name, last_name, email";
 
@@ -31,16 +31,6 @@ export async function fetchBroBrews(broId: string) {
       .select(BREW_SELECT)
       .eq("bro_id", broId)
       .order("started_at", { ascending: false }),
-  );
-}
-
-export async function fetchBroEndorsements(broId: string) {
-  return unwrap<EndorsementWithRoast[]>(
-    await supabase
-      .from("endorsements")
-      .select(ENDORSEMENT_SELECT)
-      .eq("bro_id", broId)
-      .order("created_at", { ascending: false }),
   );
 }
 

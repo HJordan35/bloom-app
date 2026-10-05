@@ -2,14 +2,8 @@ import * as stylex from "@stylexjs/stylex";
 import { Link } from "react-router-dom";
 import { levelStyles } from "../../components/Mosaic";
 import { Section } from "../../components/Section";
-import { relativeDate } from "../../lib/format";
 import { formatScore } from "../../lib/ranking";
-import type {
-  BrewWithRoast,
-  EndorsementWithRoast,
-  Ranking,
-  RoastWithRoaster,
-} from "../../lib/types";
+import type { BrewWithRoast, Ranking, RoastWithRoaster } from "../../lib/types";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { BrewRow } from "../brew/BrewRows";
 
@@ -28,28 +22,6 @@ export function RoastRow({ roast, ranking }: { roast: RoastWithRoaster; ranking?
         <span {...stylex.props(styles.meta)}>{ranking?.brew_count ?? 0} brews</span>
       </div>
     </Link>
-  );
-}
-
-export function EndorsementRow({
-  endorsement: e,
-  showRoast = false,
-}: {
-  endorsement: EndorsementWithRoast;
-  showRoast?: boolean;
-}) {
-  return (
-    <div {...stylex.props(styles.row, styles.top)}>
-      <div {...stylex.props(styles.main)}>
-        <span {...stylex.props(styles.meta)}>
-          {[e.bro.first_name, showRoast && e.roast.name, e.method, relativeDate(e.created_at)]
-            .filter(Boolean)
-            .join(" · ")}
-        </span>
-        {e.note && <p {...stylex.props(styles.note)}>{e.note}</p>}
-      </div>
-      {e.rating != null && <span {...stylex.props(styles.rating)}>{e.rating}</span>}
-    </div>
   );
 }
 
@@ -80,9 +52,6 @@ const styles = stylex.create({
     borderBottomStyle: "solid",
     borderBottomColor: colors.hairline,
   },
-  top: {
-    alignItems: "flex-start",
-  },
   level: {
     flexShrink: 0,
     width: 2,
@@ -108,14 +77,6 @@ const styles = stylex.create({
   score: {
     fontFamily: fonts.mono,
     fontSize: 15,
-    color: colors.brass,
-  },
-  note: {
-    whiteSpace: "pre-wrap",
-  },
-  rating: {
-    fontFamily: fonts.mono,
-    fontSize: 22,
     color: colors.brass,
   },
   empty: {

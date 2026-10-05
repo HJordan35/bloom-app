@@ -1,8 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import type {
   BrewWithRoast,
-  Endorsement,
-  EndorsementWithRoast,
   Roaster,
   RoasterRanking,
   RoastLevel,
@@ -44,16 +42,6 @@ export async function createRoast(input: {
   );
 }
 
-export async function createEndorsement(input: {
-  bro_id: string;
-  roast_id: string;
-  method: string | null;
-  rating: number | null;
-  note: string | null;
-}) {
-  return unwrap<Endorsement>(await supabase.from("endorsements").insert(input).select().single());
-}
-
 export async function fetchRoaster(id: string) {
   return unwrap<Roaster>(await supabase.from("roasters").select("*").eq("id", id).single());
 }
@@ -90,18 +78,6 @@ export async function fetchBrewsForRoaster(roasterId: string) {
       .eq("roast.roaster_id", roasterId)
       .order("started_at", { ascending: false }),
   );
-}
-
-export const ENDORSEMENT_SELECT =
-  "*, bro:bros(id, first_name, last_name, email), roast:roasts!inner(*, roaster:roasters(*))";
-
-export async function fetchEndorsements(filter: { roastId: string } | { roasterId: string }) {
-  const query = supabase.from("endorsements").select(ENDORSEMENT_SELECT);
-  const filtered =
-    "roastId" in filter
-      ? query.eq("roast_id", filter.roastId)
-      : query.eq("roast.roaster_id", filter.roasterId);
-  return unwrap<EndorsementWithRoast[]>(await filtered.order("created_at", { ascending: false }));
 }
 
 /** Everything the Library page needs, in one round of requests. */
