@@ -14,8 +14,8 @@ This plan stands on its own. `docs/PLAN.md` covers the original build and isn't 
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
 | G1 | Photo storage, upload and gallery tiles (original photo) | ✅ Done | [phase-g1.md](phase-g1.md) |
-| G2 | Studio transform: Edge Function, background task, Gemini | ✅ Built — needs your setup steps | [phase-g2.md](phase-g2.md) |
-| G3 | Consistency calibration: tune on real bags, lock settings | Not started | `phase-g3.md` |
+| G2 | Studio transform: Edge Function, background task, Gemini | ✅ Done | [phase-g2.md](phase-g2.md) |
+| G3 | Consistency calibration: tune on real bags, lock settings | 🚧 Tooling built — calibrating | [phase-g3.md](phase-g3.md) |
 
 Each phase gets its own plan in `docs/gallery/` before it's built, and ends with a checkpoint review.
 

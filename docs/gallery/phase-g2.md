@@ -1,6 +1,6 @@
 # Phase G2 — Studio transform
 
-**Status:** ✅ Built — needs your setup steps
+**Status:** ✅ Done — tested end to end
 
 ## Goal
 After a bag photo is uploaded, an Edge Function re-shoots it in the locked studio with Gemini. Tiles and the roast page then switch to the studio version by themselves.
