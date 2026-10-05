@@ -15,24 +15,15 @@ type Props = {
 /** Avatars of every bro who has brewed a roast or roaster, from its ranking's `brewed_by`. */
 export function BrewedBy({ ranking, brosById, max, labelled = false }: Props) {
   const me = useCurrentBro();
-  const bros = (ranking?.brewed_by ?? []).flatMap(
-    (id) => brosById.get(id) ?? []
-  );
+  const bros = (ranking?.brewed_by ?? []).flatMap((id) => brosById.get(id) ?? []);
   const stack = (
-    <AvatarStack
-      bros={bros}
-      selfId={me.id}
-      max={max}
-      on={labelled ? "page" : "surface"}
-    />
+    <AvatarStack bros={bros} selfId={me.id} max={max} on={labelled ? "page" : "surface"} />
   );
   if (!labelled) return stack;
 
   const names = bros
     .map((b) => (b.id === me.id ? "You" : b.first_name))
-    .sort(
-      (a, b) => Number(b === "You") - Number(a === "You") || a.localeCompare(b)
-    )
+    .sort((a, b) => Number(b === "You") - Number(a === "You") || a.localeCompare(b))
     .join(", ");
 
   return (

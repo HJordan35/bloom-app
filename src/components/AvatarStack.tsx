@@ -17,8 +17,7 @@ export function AvatarStack({ bros, selfId, max = 3, on = "surface" }: Props) {
   if (bros.length === 0) return null;
   const ordered = [...bros].sort(
     (a, b) =>
-      Number(b.id === selfId) - Number(a.id === selfId) ||
-      a.first_name.localeCompare(b.first_name)
+      Number(b.id === selfId) - Number(a.id === selfId) || a.first_name.localeCompare(b.first_name),
   );
   const shown = ordered.slice(0, max);
   const extra = ordered.length - shown.length;
@@ -35,11 +34,7 @@ export function AvatarStack({ bros, selfId, max = 3, on = "surface" }: Props) {
         // Earlier avatars sit on top, so yours (first) is never covered
         <span
           key={bro.id}
-          {...stylex.props(
-            styles.item,
-            on === "page" && styles.onPage,
-            i > 0 && styles.overlap
-          )}
+          {...stylex.props(styles.item, on === "page" && styles.onPage, i > 0 && styles.overlap)}
           style={{ zIndex: shown.length - i }}
         >
           <Avatar bro={bro} size="xs" self={bro.id === selfId} />

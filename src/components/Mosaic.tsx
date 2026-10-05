@@ -22,21 +22,36 @@ type TileProps = {
   people?: ReactNode;
   /** Replaces the default "N brews" caption, bottom right. */
   caption?: string;
+  /** A photo drawn edge to edge across the top (roast tiles). */
+  media?: ReactNode;
 };
 
-export function Tile({ to, onClick, title, lines, ranking, level, people, caption }: TileProps) {
+export function Tile({
+  to,
+  onClick,
+  title,
+  lines,
+  ranking,
+  level,
+  people,
+  caption,
+  media,
+}: TileProps) {
   const brews = ranking?.brew_count ?? 0;
   const facts = lines.filter(Boolean).join(" · ");
   const content = (
     <>
-      {level && <span {...stylex.props(styles.level, levelStyles[level])} />}
-      <span {...stylex.props(styles.title)}>{title}</span>
-      <RatingDots rating={ranking?.avg_rating} />
-      {facts && <span {...stylex.props(styles.line, styles.facts)}>{facts}</span>}
-      <span {...stylex.props(styles.footer)}>
-        <span>{people}</span>
-        <span {...stylex.props(styles.line, styles.caption)}>
-          {caption ?? `${brews} ${brews === 1 ? "brew" : "brews"}`}
+      {media}
+      <span {...stylex.props(styles.body)}>
+        {level && <span {...stylex.props(styles.level, levelStyles[level])} />}
+        <span {...stylex.props(styles.title)}>{title}</span>
+        <RatingDots rating={ranking?.avg_rating} />
+        {facts && <span {...stylex.props(styles.line, styles.facts)}>{facts}</span>}
+        <span {...stylex.props(styles.footer)}>
+          <span>{people}</span>
+          <span {...stylex.props(styles.line, styles.caption)}>
+            {caption ?? `${brews} ${brews === 1 ? "brew" : "brews"}`}
+          </span>
         </span>
       </span>
     </>
@@ -64,8 +79,6 @@ const styles = stylex.create({
     minHeight: 148,
     display: "flex",
     flexDirection: "column",
-    gap: 2,
-    padding: space.md,
     backgroundColor: { default: colors.surface, ":active": colors.surfaceRaised },
     borderWidth: 1,
     borderStyle: "solid",
@@ -77,6 +90,13 @@ const styles = stylex.create({
     width: "100%",
     textAlign: "left",
     cursor: "pointer",
+  },
+  body: {
+    flexGrow: 1,
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    padding: space.md,
   },
   level: {
     width: 20,

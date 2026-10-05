@@ -15,6 +15,7 @@ import { AddRoasterForm } from "./AddRoasterForm";
 import { AddRoastForm } from "./AddRoastForm";
 import { fetchLibrary } from "./api";
 import { BrewedBy } from "./BrewedBy";
+import { RoastPhoto } from "./RoastPhoto";
 
 export type LibraryView = "roasters" | "roasts";
 
@@ -77,6 +78,7 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
       level={roast.roast_level}
       ranking={roastScores.get(roast.id)}
       people={people(roastScores.get(roast.id))}
+      media={<RoastPhoto roast={roast} />}
     />
   );
 

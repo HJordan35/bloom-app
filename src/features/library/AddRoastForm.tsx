@@ -4,6 +4,7 @@ import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Chips } from "../../components/Chips";
 import { Field, SelectField } from "../../components/Field";
+import { PhotoPicker } from "../../components/PhotoPicker";
 import { useCurrentBro } from "../../lib/auth";
 import { ROAST_LEVELS } from "../../lib/constants";
 import type { RoastLevel, RoastWithRoaster } from "../../lib/types";
@@ -11,6 +12,7 @@ import { useData } from "../../lib/useData";
 import { space } from "../../theme/tokens.stylex";
 import { AddRoasterForm } from "./AddRoasterForm";
 import { createRoast, fetchRoasters } from "./api";
+import { uploadRoastPhoto } from "./photos";
 
 const NEW_ROASTER = "__new";
 
@@ -34,6 +36,7 @@ export function AddRoastForm({
   const [name, setName] = useState(initialName);
   const [level, setLevel] = useState<RoastLevel | null>(null);
   const [region, setRegion] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function save() {
@@ -46,6 +49,7 @@ export function AddRoastForm({
       region: region.trim() || null,
       created_by: bro.id,
     });
+    if (photo) await uploadRoastPhoto(roast.id, photo);
     onCreated(roast);
   }
 
@@ -92,12 +96,13 @@ export function AddRoastForm({
           value={region}
           onChange={(e) => setRegion(e.target.value)}
         />
+        <PhotoPicker label="Bag photo" value={photo} onChange={setPhoto} />
         <div {...stylex.props(styles.actions)}>
           <Button variant="ghost" onClick={onCancel}>
             Cancel
           </Button>
           <Button onClick={save} disabled={!roasterId || !name.trim() || !level || busy}>
-            Add roast
+            {busy ? "Adding…" : "Add roast"}
           </Button>
         </div>
       </div>

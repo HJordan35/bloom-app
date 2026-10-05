@@ -11,21 +11,9 @@ type Props = {
   self?: boolean;
 };
 
-export function Avatar({
-  bro,
-  size = "sm",
-  live = false,
-  self = false,
-}: Props) {
+export function Avatar({ bro, size = "sm", live = false, self = false }: Props) {
   return (
-    <span
-      {...stylex.props(
-        styles.avatar,
-        styles[size],
-        self && styles.self,
-        live && styles.live
-      )}
-    >
+    <span {...stylex.props(styles.avatar, styles[size], self && styles.self, live && styles.live)}>
       {bro.first_name[0]}
       {bro.last_name[0]}
       {live && size === "lg" && (

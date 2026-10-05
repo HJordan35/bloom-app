@@ -22,6 +22,8 @@ export type Roast = {
   name: string;
   roast_level: RoastLevel;
   region: string | null;
+  /** Storage path of the bag photo as uploaded, in the roast-photos bucket. */
+  photo_original_path: string | null;
   created_by: string;
   created_at: string;
 };

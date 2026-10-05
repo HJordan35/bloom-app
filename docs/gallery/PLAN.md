@@ -13,7 +13,7 @@ This plan stands on its own. `docs/PLAN.md` covers the original build and isn't 
 
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
-| G1 | Photo storage, upload and gallery tiles (original photo) | Not started | `phase-g1.md` (written before building) |
+| G1 | Photo storage, upload and gallery tiles (original photo) | ✅ Built — needs migration 007 | [phase-g1.md](phase-g1.md) |
 | G2 | Studio transform: Edge Function, background task, Gemini | Not started | `phase-g2.md` |
 | G3 | Consistency calibration: tune on real bags, lock settings | Not started | `phase-g3.md` |
 

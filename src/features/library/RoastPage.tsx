@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "../../components/Button";
 import { DetailHeader } from "../../components/DetailHeader";
+import { PhotoPicker } from "../../components/PhotoPicker";
 import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
@@ -11,13 +12,15 @@ import { mmss, recipeLine } from "../../lib/format";
 import { rankPositions } from "../../lib/ranking";
 import type { BrewWithRoast, EndorsementWithRoast } from "../../lib/types";
 import { useData } from "../../lib/useData";
-import { colors, fonts, space } from "../../theme/tokens.stylex";
+import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 import { fetchEndorsements } from "../endorsements/api";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
 import { EndorsementSheet } from "../endorsements/EndorsementSheet";
 import { fetchBrewsForRoast, fetchRoast, fetchRoastRankings, fetchRoasts } from "./api";
 import { BrewedBy } from "./BrewedBy";
 import { BrewLists } from "./LibraryRows";
+import { uploadRoastPhoto } from "./photos";
+import { RoastPhoto } from "./RoastPhoto";
 
 async function load(id: string) {
   const [roast, roasts, rankings, brews, endorsements, brosById] = await Promise.all([
@@ -76,14 +79,37 @@ export function RoastPage() {
   const bro = useCurrentBro();
   const navigate = useNavigate();
   const [endorsing, setEndorsing] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { data, reload } = useData(() => load(id), [id]);
   if (!data) return null;
 
   const { roast, ranking, rank, brews, endorsements, brosById } = data;
+  async function changePhoto(file: File) {
+    setUploading(true);
+    await uploadRoastPhoto(roast.id, file);
+    setUploading(false);
+    reload();
+  }
+
   const methods = summarizeByMethod(brews, endorsements).sort((a, b) => b.brewCount - a.brewCount);
 
   return (
     <div {...stylex.props(styles.page)}>
+      {roast.photo_original_path && (
+        <div {...stylex.props(styles.hero)}>
+          <RoastPhoto roast={roast} />
+        </div>
+      )}
+      {uploading ? (
+        <p {...stylex.props(styles.uploading)}>Uploading…</p>
+      ) : (
+        <PhotoPicker
+          label={roast.photo_original_path ? "Replace photo" : "Add bag photo"}
+          value={null}
+          onChange={changePhoto}
+        />
+      )}
+
       <DetailHeader
         eyebrow={<Link to={`/library/roasters/${roast.roaster.id}`}>{roast.roaster.name}</Link>}
         title={roast.name}
@@ -157,6 +183,21 @@ const styles = stylex.create({
     display: "flex",
     flexDirection: "column",
     gap: space.lg,
+  },
+  hero: {
+    width: "70%",
+    alignSelf: "center",
+    borderRadius: radius.md,
+    overflow: "hidden",
+  },
+  uploading: {
+    minHeight: 48,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    color: colors.muted,
   },
   actions: {
     display: "grid",
