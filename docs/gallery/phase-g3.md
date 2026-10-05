@@ -1,6 +1,8 @@
 # Phase G3 — Consistency calibration
 
-**Status:** 🚧 In progress
+**Status:** ⏸ Deferred
+
+The MVP is accepted as it is, and tuning is postponed. The Studio check page described below was built (commit `d901ec6`) and then removed to keep the code lean. Restore it from that commit when calibration resumes. Everything else here is still the plan.
 
 ## Goal
 Confirm that studio photos look like one collection: the same set, camera, light and grade, with every bag faithful to the real thing. Then lock the prompt and settings that get us there. Most of this phase is your eye. The code is just enough to make the loop quick.

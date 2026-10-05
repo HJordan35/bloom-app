@@ -15,7 +15,7 @@ This plan stands on its own. `docs/PLAN.md` covers the original build and isn't 
 |---|---|---|---|
 | G1 | Photo storage, upload and gallery tiles (original photo) | ✅ Done | [phase-g1.md](phase-g1.md) |
 | G2 | Studio transform: Edge Function, background task, Gemini | ✅ Done | [phase-g2.md](phase-g2.md) |
-| G3 | Consistency calibration: tune on real bags, lock settings | 🚧 Tooling built — calibrating | [phase-g3.md](phase-g3.md) |
+| G3 | Consistency calibration: tune on real bags, lock settings | ⏸ Deferred (see Follow-ups) | [phase-g3.md](phase-g3.md) |
 
 Each phase gets its own plan in `docs/gallery/` before it's built, and ends with a checkpoint review.
 
@@ -108,21 +108,46 @@ Proves the whole loop end to end, without the AI.
 ## Needs from you before G2
 ✅ Both received: the studio plate, and the full prompt (committed word for word in `supabase/functions/studio-photo/prompt.ts`).
 
+## Current state (MVP shipped)
+- **Live:** photo upload (Add roast form and roast page), Gemini studio re-shoot in the background, a "Developing…" state, gallery tiles, and the roast page hero.
+- **Migrations:** `007_roast_photos.sql` and `008_studio_photos.sql`, both run.
+- **Edge Function:** `studio-photo`, deployed **through the dashboard editor**. It runs with JWT verification off; the function checks the caller itself.
+  - The source is `supabase/functions/studio-photo/`.
+  - Any change to `index.ts` or `prompt.ts` has to be pasted into the dashboard again, or deployed with the CLI.
+- **Storage** (`roast-photos`, public read):
+  - Originals and studio versions live at `{roast_id}/original-{ts}.*` and `{roast_id}/studio-{ts}.jpg`.
+  - The plate lives at `_studio/studio-plate.png`; the git copy is the master.
+- **Secrets:** `GEMINI_API_KEY`, in Edge Functions → Secrets.
+
 ## Follow-ups
-Deliberately left out of the MVP:
-- **Retry / regenerate:**
-  - A "Re-shoot" button for failed or unsatisfying results.
-  - Automatic retry on transient Gemini errors.
-- **Stuck jobs:** reset `processing` rows older than N minutes to `failed`.
-- **Fidelity check:** a second model pass that compares the label text on the original and the studio image, and flags drift.
-- **Compression:**
-  - Downscale and re-encode the original in the browser before uploading.
-  - Serve smaller WebP or thumbnail versions for tiles.
-  - Note: very large or HEIC phone photos are the most likely thing to break the happy path, so this may get pulled forward.
-- **Original purging:** delete originals once the studio version is accepted, or after N days. Old files from replaced photos are also left in storage until then.
-- **Moderation / validation:** reject photos that aren't a coffee bag.
-- **Several photos per roast:** front and back, or a carousel.
-- **Ownership rules:** decide whether only the roast's creator can replace its photo.
-- **Cost guard:** a rate limit per bro per day.
-- **Roaster imagery:** logos or a hero image on roaster tiles.
-- **Private bucket:** switch to signed URLs if the photos ever need to stay private.
+Deliberately left out of the MVP. They're listed roughly in the order they're likely to matter, and each says where to start.
+
+### Likely soon
+1. **Compression:**
+   - Downscale and re-encode the original in the browser before uploading (canvas → JPEG, about 1600 px on the long edge).
+   - Optionally, save a smaller tile-sized copy of the studio image too.
+   - **Why:** tiles download full-size phone photos, and very large or HEIC files are the most likely thing to break the happy path.
+   - **Start in:** `uploadRoastPhoto` in `src/features/library/photos.ts`.
+2. **Retry / regenerate:**
+   - A "Re-shoot" action on the roast page for `failed` or disappointing results. It's just another call to `studio-photo` with `{ roast_id }`, since the original is already stored.
+   - Automatic retry of transient Gemini errors inside the function.
+   - **Start in:** `photos.ts` (pull the `functions.invoke` call out into its own function) and `RoastPage.tsx`.
+3. **Stuck jobs:**
+   - Rows stuck in `processing` (the function was killed or timed out) never recover.
+   - **Fix:** treat `processing` older than about 5 minutes as `failed`, either in `roastPhoto()` on the client or with a scheduled SQL update.
+4. **Consistency calibration (deferred G3):**
+   - The procedure, checklist and tuning levers are in [phase-g3.md](phase-g3.md).
+   - The side-by-side "Studio check" page with a Re-shoot button was built and then removed to keep the code lean. Restore it from commit `d901ec6` (`src/features/library/StudioCheckPage.tsx` plus its route).
+
+### Later
+5. **Purging originals:**
+   - Delete originals once the studio version is accepted, or after N days.
+   - Photos that were replaced leave both their files in storage. Clean them up by listing `{roast_id}/` and keeping only the paths the roast still references.
+6. **Fidelity check:** a second model pass that compares the label text on the original and the studio image, and flags drift.
+7. **Validation:** reject photos that aren't a coffee bag (one cheap model call before the re-shoot).
+8. **Cost guard:** a per-bro daily limit on `studio-photo` calls.
+9. **Ownership rules:** today any bro can replace any roast's photo. Decide whether only the roast's creator should.
+10. **Several photos per roast:** front and back, or a carousel. This needs a `roast_photos` table in place of the columns on `roasts`.
+11. **Roaster imagery:** logos or a hero image on roaster tiles.
+12. **Private bucket:** switch to signed URLs if photos ever need to stay private. See the scraping note under Decisions.
+13. **Function deploys in git:** deploy with the CLI (`npx supabase functions deploy studio-photo --no-verify-jwt`) so the deployed code can't drift from the repo.
