@@ -1,18 +1,9 @@
+import { fetchBros } from "../../lib/bros";
 import { supabase } from "../../lib/supabase";
-import type { BloomEvent, BrewWithRoast, Bro } from "../../lib/types";
+import type { BloomEvent, BrewWithRoast } from "../../lib/types";
 import { unwrap } from "../../lib/unwrap";
 import { BREW_SELECT, fetchBrewingNow } from "../brew/api";
 import { fetchRoasters, fetchRoasts } from "../library/api";
-
-const BRO_SELECT = "id, first_name, last_name, email";
-
-export async function fetchBros() {
-  return unwrap<Bro[]>(await supabase.from("bros").select(BRO_SELECT).order("first_name"));
-}
-
-export async function fetchBro(id: string) {
-  return unwrap<Bro>(await supabase.from("bros").select(BRO_SELECT).eq("id", id).single());
-}
 
 export async function fetchEvents(limit = 60) {
   return unwrap<BloomEvent[]>(

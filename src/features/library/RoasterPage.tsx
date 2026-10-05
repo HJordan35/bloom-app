@@ -7,6 +7,7 @@ import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
+import { fetchBrosById } from "../../lib/bros";
 import { byRank, rankPositions } from "../../lib/ranking";
 import { useData } from "../../lib/useData";
 import { space } from "../../theme/tokens.stylex";
@@ -21,10 +22,11 @@ import {
   fetchRoastRankings,
   fetchRoasts,
 } from "./api";
+import { BrewedBy } from "./BrewedBy";
 import { BrewLists, RoastRow } from "./LibraryRows";
 
 async function load(id: string) {
-  const [roaster, roasters, roasts, roasterRankings, roastRankings, brews, endorsements] =
+  const [roaster, roasters, roasts, roasterRankings, roastRankings, brews, endorsements, brosById] =
     await Promise.all([
       fetchRoaster(id),
       fetchRoasters(),
@@ -33,6 +35,7 @@ async function load(id: string) {
       fetchRoastRankings(),
       fetchBrewsForRoaster(id),
       fetchEndorsements({ roasterId: id }),
+      fetchBrosById(),
     ]);
   const roastScores = new Map(roastRankings.map((r) => [r.roast_id, r]));
   const positions = rankPositions(roasters, new Map(roasterRankings.map((r) => [r.roaster_id, r])));
@@ -45,6 +48,7 @@ async function load(id: string) {
     roastScores,
     brews,
     endorsements,
+    brosById,
   };
 }
 
@@ -56,7 +60,7 @@ export function RoasterPage() {
   const { data, reload } = useData(() => load(id), [id]);
   if (!data) return null;
 
-  const { roaster, roasts, ranking, rank, roastScores, brews, endorsements } = data;
+  const { roaster, roasts, ranking, rank, roastScores, brews, endorsements, brosById } = data;
   const myRoastIds = new Set(brews.filter((b) => b.bro_id === bro.id).map((b) => b.roast_id));
   const roastLists = [
     ["Your roasts", roasts.filter((r) => myRoastIds.has(r.id))],
@@ -67,6 +71,7 @@ export function RoasterPage() {
     <div {...stylex.props(styles.page)}>
       <DetailHeader eyebrow="Roaster" title={roaster.name} meta={roaster.location}>
         <Score ranking={ranking} rank={rank} />
+        <BrewedBy ranking={ranking} brosById={brosById} max={5} labelled />
       </DetailHeader>
 
       <Button onClick={() => navigate("/?start")}>Brew now</Button>

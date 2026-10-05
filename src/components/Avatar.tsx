@@ -5,13 +5,27 @@ import { LiveDot } from "./LiveDot";
 
 type Props = {
   bro: Pick<Bro, "first_name" | "last_name">;
-  size?: "sm" | "lg";
+  size?: "xs" | "sm" | "lg";
   live?: boolean;
+  /** The logged-in bro: brass ring and initials, to tell "you" apart in a group. */
+  self?: boolean;
 };
 
-export function Avatar({ bro, size = "sm", live = false }: Props) {
+export function Avatar({
+  bro,
+  size = "sm",
+  live = false,
+  self = false,
+}: Props) {
   return (
-    <span {...stylex.props(styles.avatar, styles[size], live && styles.live)}>
+    <span
+      {...stylex.props(
+        styles.avatar,
+        styles[size],
+        self && styles.self,
+        live && styles.live
+      )}
+    >
       {bro.first_name[0]}
       {bro.last_name[0]}
       {live && size === "lg" && (
@@ -39,6 +53,11 @@ const styles = stylex.create({
     color: colors.text,
     textTransform: "uppercase",
   },
+  xs: {
+    width: 22,
+    height: 22,
+    fontSize: 10,
+  },
   sm: {
     width: 30,
     height: 30,
@@ -48,6 +67,10 @@ const styles = stylex.create({
     width: 56,
     height: 56,
     fontSize: 20,
+  },
+  self: {
+    borderColor: colors.brass,
+    color: colors.brass,
   },
   live: {
     borderColor: colors.ember,

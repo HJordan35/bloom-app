@@ -2,17 +2,19 @@ import * as stylex from "@stylexjs/stylex";
 import { type ReactNode, useState } from "react";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
+import { PlusIcon } from "../../components/icons";
 import { Mosaic, Tile } from "../../components/Mosaic";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
-import { byRank, rankPositions } from "../../lib/ranking";
+import { byRank } from "../../lib/ranking";
 import type { Ranking, Roaster, RoastWithRoaster } from "../../lib/types";
 import { useData } from "../../lib/useData";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 import { AddRoasterForm } from "./AddRoasterForm";
 import { AddRoastForm } from "./AddRoastForm";
 import { fetchLibrary } from "./api";
+import { BrewedBy } from "./BrewedBy";
 
 export type LibraryView = "roasters" | "roasts";
 
@@ -42,9 +44,8 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
   const { data, reload } = useData(() => fetchLibrary(bro.id), [bro.id]);
 
   if (!data) return null;
-  const { roasters, roasts, roasterScores, roastScores, myRoastIds, recentRoastIds } = data;
-  const roasterRanks = rankPositions(roasters, roasterScores);
-  const roastRanks = rankPositions(roasts, roastScores);
+  const { roasters, roasts, roasterScores, roastScores, brosById, recentRoastIds } = data;
+  const people = (ranking?: Ranking) => <BrewedBy ranking={ranking} brosById={brosById} max={2} />;
 
   const q = query.trim().toLowerCase();
   const roastMatches = roasts.filter(
@@ -75,8 +76,7 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
       lines={[showRoaster ? roast.roaster.name : roast.region, roast.roast_level]}
       level={roast.roast_level}
       ranking={roastScores.get(roast.id)}
-      rank={roastRanks.get(roast.id)}
-      mine={myRoastIds.has(roast.id)}
+      people={people(roastScores.get(roast.id))}
     />
   );
 
@@ -103,13 +103,24 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
   return (
     <div {...stylex.props(styles.browser)}>
       <div {...stylex.props(styles.controls)}>
-        <input
-          type="search"
-          placeholder="Search the library"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          {...stylex.props(styles.search)}
-        />
+        <div {...stylex.props(styles.searchRow)}>
+          <input
+            type="search"
+            placeholder="Search the library"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            {...stylex.props(styles.search)}
+          />
+          <button
+            type="button"
+            aria-label={view === "roasts" ? "Add roast" : "Add roaster"}
+            title={view === "roasts" ? "Add roast" : "Add roaster"}
+            onClick={() => setAdding(true)}
+            {...stylex.props(styles.add)}
+          >
+            <PlusIcon />
+          </button>
+        </div>
         <SegmentedControl<LibraryView>
           options={[
             { value: "roasters", label: "Roasters" },
@@ -149,8 +160,7 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
                 title={roaster.name}
                 lines={[roaster.location, `${own.length} ${own.length === 1 ? "roast" : "roasts"}`]}
                 ranking={roasterScores.get(roaster.id)}
-                rank={roasterRanks.get(roaster.id)}
-                mine={own.some((r) => myRoastIds.has(r.id))}
+                people={people(roasterScores.get(roaster.id))}
               />
             );
           })}
@@ -169,10 +179,6 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
           ))}
         </>
       )}
-
-      <Button variant="ghost" onClick={() => setAdding(true)}>
-        + Add {view === "roasts" ? "roast" : "roaster"}
-      </Button>
 
       {adding && (
         <Sheet
@@ -220,7 +226,29 @@ const styles = stylex.create({
     flexDirection: "column",
     gap: space.sm,
   },
+  searchRow: {
+    display: "flex",
+    gap: space.sm,
+  },
+  // Same height and hairline as the search box, so it reads as part of the controls
+  add: {
+    flexShrink: 0,
+    width: 44,
+    height: 44,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: { default: colors.surface, ":active": colors.surfaceRaised },
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: colors.hairline,
+    borderRadius: radius.sm,
+    color: colors.brass,
+    cursor: "pointer",
+  },
   search: {
+    flex: 1,
+    minWidth: 0,
     height: 44,
     paddingInline: space.md,
     backgroundColor: colors.surface,

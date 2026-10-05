@@ -18,6 +18,7 @@ Mobile-first coffee diary for 3–5 friends ("Bros"): track roasters, roasts, br
 | 8 | Home-screen app (PWA) | ✅ Built | [phase-8.md](phases/phase-8.md) |
 | 9 | Brew notes + results follow-up | ✅ Done | [phase-9.md](phases/phase-9.md) |
 | 10 | Edit a brew | ✅ Built — awaiting review | [phase-10.md](phases/phase-10.md) |
+| 11 | Who's brewed it (tile avatars) | ✅ Built — needs migration 006 | [phase-11.md](phases/phase-11.md) |
 
 Each phase gets its own plan in `docs/phases/` before implementation, and ends with a checkpoint review.
 
@@ -54,7 +55,7 @@ Defined in `supabase/migrations/001_init.sql`.
 | `brews` | bro_id, roast_id, method, dose_g, grind_size, grinder, temp, temp_unit (C/F), brew_time_s, volume_ml, brew_notes, brew_results, dialed_in, started_at, finished_at |
 | `endorsements` | bro_id, roast_id, brew_id (optional: set when left from a brew), method, rating (1–10, optional), note |
 
-**Migrations:** `001_init.sql` (schema), `002_realtime.sql` (Realtime for roasters, roasts, endorsements), `003_auth.sql` (Supabase Auth link + RLS), `004_temp_unit.sql` (°F / °C), `005_brew_notes.sql` (brew notes vs results, brew-linked and editable endorsements).
+**Migrations:** `001_init.sql` (schema), `002_realtime.sql` (Realtime for roasters, roasts, endorsements), `003_auth.sql` (Supabase Auth link + RLS), `004_temp_unit.sql` (°F / °C), `005_brew_notes.sql` (brew notes vs results, brew-linked and editable endorsements), `006_brewed_by.sql` (`brewed_by` on the ranking views).
 **Views:** `latest_ratings`, `roast_rankings`, `roaster_rankings`, `events` (Bros Board feed).
 **Function:** `current_bro_id()`, the signed-in bro, used by the RLS policies. (The Phase 1 `login` RPC was removed in 003.)
 **Brew methods:** constant list in `src/lib/constants.ts`, stored as text.

@@ -1,3 +1,4 @@
+import { fetchBrosById } from "../../lib/bros";
 import { supabase } from "../../lib/supabase";
 import type {
   BrewWithRoast,
@@ -82,11 +83,12 @@ export async function fetchBrewsForRoaster(roasterId: string) {
 
 /** Everything the Library page needs, in one round of requests. */
 export async function fetchLibrary(broId: string) {
-  const [roasters, roasts, roasterRankings, roastRankings, history] = await Promise.all([
+  const [roasters, roasts, roasterRankings, roastRankings, brosById, history] = await Promise.all([
     fetchRoasters(),
     fetchRoasts(),
     fetchRoasterRankings(),
     fetchRoastRankings(),
+    fetchBrosById(),
     fetchMyBrewHistory(broId),
   ]);
   return {
@@ -94,7 +96,7 @@ export async function fetchLibrary(broId: string) {
     roasts,
     roasterScores: new Map(roasterRankings.map((r) => [r.roaster_id, r])),
     roastScores: new Map(roastRankings.map((r) => [r.roast_id, r])),
-    myRoastIds: new Set(history.roastIds),
-    recentRoastIds: history.roastIds, // most recent first
+    brosById,
+    recentRoastIds: history.roastIds, // most recent first, for the drawer's Recent row
   };
 }

@@ -123,3 +123,6 @@ The page body moved into `features/library/LibraryBrowser.tsx`, so Brew Now's ro
 - **Pick** (`onPick`): tiles select a roast, a Recent row shows first, and roaster tiles filter to that roaster.
 
 `Tile` now takes `to` or `onClick`. `Sheet` has a `tall` option.
+
+## Revision: add action next to search (after review)
+The **+ Add roaster / + Add roast** button used to sit at the bottom of the grid, out of reach in a large library. It's now a square **+** button beside the search box: same height and hairline as the search, brass icon. Its label follows the current view (add roaster / add roast). It's built into `LibraryBrowser`, so the Library tab and the Brew Now roast drawer behave the same.

@@ -6,6 +6,7 @@ import { DetailHeader } from "../../components/DetailHeader";
 import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
+import { fetchBrosById } from "../../lib/bros";
 import { mmss, recipeLine } from "../../lib/format";
 import { rankPositions } from "../../lib/ranking";
 import type { BrewWithRoast, EndorsementWithRoast } from "../../lib/types";
@@ -15,15 +16,17 @@ import { fetchEndorsements } from "../endorsements/api";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
 import { EndorsementSheet } from "../endorsements/EndorsementSheet";
 import { fetchBrewsForRoast, fetchRoast, fetchRoastRankings, fetchRoasts } from "./api";
+import { BrewedBy } from "./BrewedBy";
 import { BrewLists } from "./LibraryRows";
 
 async function load(id: string) {
-  const [roast, roasts, rankings, brews, endorsements] = await Promise.all([
+  const [roast, roasts, rankings, brews, endorsements, brosById] = await Promise.all([
     fetchRoast(id),
     fetchRoasts(),
     fetchRoastRankings(),
     fetchBrewsForRoast(id),
     fetchEndorsements({ roastId: id }),
+    fetchBrosById(),
   ]);
   const positions = rankPositions(roasts, new Map(rankings.map((r) => [r.roast_id, r])));
   const position = positions.get(id);
@@ -33,6 +36,7 @@ async function load(id: string) {
     rank: position ? { position, total: positions.size } : undefined,
     brews,
     endorsements,
+    brosById,
   };
 }
 
@@ -75,7 +79,7 @@ export function RoastPage() {
   const { data, reload } = useData(() => load(id), [id]);
   if (!data) return null;
 
-  const { roast, ranking, rank, brews, endorsements } = data;
+  const { roast, ranking, rank, brews, endorsements, brosById } = data;
   const methods = summarizeByMethod(brews, endorsements).sort((a, b) => b.brewCount - a.brewCount);
 
   return (
@@ -86,6 +90,7 @@ export function RoastPage() {
         meta={[roast.roast_level, roast.region].filter(Boolean).join(" · ")}
       >
         <Score ranking={ranking} rank={rank} />
+        <BrewedBy ranking={ranking} brosById={brosById} max={5} labelled />
       </DetailHeader>
 
       <div {...stylex.props(styles.actions)}>

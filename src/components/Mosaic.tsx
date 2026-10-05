@@ -1,9 +1,9 @@
 import * as stylex from "@stylexjs/stylex";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { formatScore } from "../lib/ranking";
 import type { Ranking, RoastLevel } from "../lib/types";
 import { colors, fonts, radius, space } from "../theme/tokens.stylex";
+import { RatingDots } from "./RatingDots";
 
 export function Mosaic({ children }: { children: ReactNode }) {
   return <div {...stylex.props(styles.grid)}>{children}</div>;
@@ -14,44 +14,29 @@ type TileProps = {
   to?: string;
   onClick?: () => void;
   title: string;
+  /** Short facts, joined on one line ("Colombia · medium"). */
   lines: (string | null | false)[];
   ranking?: Ranking;
   level?: RoastLevel;
-  mine?: boolean;
-  /** Replaces the default "N brews" footer caption. */
+  /** Who has brewed it (an AvatarStack), bottom left. */
+  people?: ReactNode;
+  /** Replaces the default "N brews" caption, bottom right. */
   caption?: string;
-  /** Rank position; only the top three get a mark. */
-  rank?: number;
 };
 
-export function Tile({
-  to,
-  onClick,
-  title,
-  lines,
-  ranking,
-  level,
-  mine = false,
-  caption,
-  rank,
-}: TileProps) {
+export function Tile({ to, onClick, title, lines, ranking, level, people, caption }: TileProps) {
+  const brews = ranking?.brew_count ?? 0;
+  const facts = lines.filter(Boolean).join(" · ");
   const content = (
     <>
-      {mine && <span role="img" aria-label="In your library" {...stylex.props(styles.mine)} />}
       {level && <span {...stylex.props(styles.level, levelStyles[level])} />}
       <span {...stylex.props(styles.title)}>{title}</span>
-      {lines.filter(Boolean).map((line) => (
-        <span key={line as string} {...stylex.props(styles.line)}>
-          {line}
-        </span>
-      ))}
+      <RatingDots rating={ranking?.avg_rating} />
+      {facts && <span {...stylex.props(styles.line, styles.facts)}>{facts}</span>}
       <span {...stylex.props(styles.footer)}>
-        <span {...stylex.props(styles.score)}>
-          {rank != null && rank <= 3 && <span {...stylex.props(styles.rank)}>#{rank} </span>}
-          {formatScore(ranking)}
-        </span>
-        <span {...stylex.props(styles.line)}>
-          {caption ?? `${ranking?.brew_count ?? 0} ${ranking?.brew_count === 1 ? "brew" : "brews"}`}
+        <span>{people}</span>
+        <span {...stylex.props(styles.line, styles.caption)}>
+          {caption ?? `${brews} ${brews === 1 ? "brew" : "brews"}`}
         </span>
       </span>
     </>
@@ -93,15 +78,6 @@ const styles = stylex.create({
     textAlign: "left",
     cursor: "pointer",
   },
-  mine: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    width: 5,
-    height: 5,
-    transform: "rotate(45deg)",
-    backgroundColor: colors.brass,
-  },
   level: {
     width: 20,
     height: 2,
@@ -112,7 +88,7 @@ const styles = stylex.create({
     fontSize: 17,
     lineHeight: 1.25,
     overflowWrap: "anywhere",
-    marginBottom: space.xs,
+    marginBottom: space.sm,
   },
   line: {
     fontSize: 12,
@@ -121,22 +97,20 @@ const styles = stylex.create({
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
+  caption: {
+    flexShrink: 0,
+  },
+  facts: {
+    marginTop: space.sm,
+  },
   footer: {
     marginTop: "auto",
-    paddingTop: space.sm,
+    paddingTop: space.md,
+    minHeight: 26, // an xs avatar plus its ring, so tiles without avatars line up
     display: "flex",
-    alignItems: "baseline",
+    alignItems: "center",
     justifyContent: "space-between",
     gap: space.sm,
-  },
-  score: {
-    fontFamily: fonts.mono,
-    fontSize: 18,
-    color: colors.brass,
-  },
-  rank: {
-    fontSize: 11,
-    color: colors.text,
   },
 });
 

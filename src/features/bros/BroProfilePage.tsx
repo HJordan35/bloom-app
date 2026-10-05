@@ -7,6 +7,7 @@ import { LiveDot } from "../../components/LiveDot";
 import { Mosaic, Tile } from "../../components/Mosaic";
 import { Section } from "../../components/Section";
 import { useAuth, useCurrentBro } from "../../lib/auth";
+import { fetchBro } from "../../lib/bros";
 import { elapsed } from "../../lib/format";
 import type { BrewWithRoast, RoastWithRoaster } from "../../lib/types";
 import { useData } from "../../lib/useData";
@@ -17,7 +18,7 @@ import { BrewRow } from "../brew/BrewRows";
 import { fetchEndorsements } from "../endorsements/api";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
 import { fetchRoastRankings } from "../library/api";
-import { fetchBro, fetchBroBrews } from "./api";
+import { fetchBroBrews } from "./api";
 
 async function load(id: string) {
   const [bro, brews, endorsements, rankings] = await Promise.all([

@@ -39,6 +39,14 @@ export function LibraryIcon() {
   );
 }
 
+export function PlusIcon() {
+  return (
+    <Icon width="18" height="18">
+      <path d="M12 5v14M5 12h14" />
+    </Icon>
+  );
+}
+
 export function BrosIcon() {
   return (
     <Icon>
