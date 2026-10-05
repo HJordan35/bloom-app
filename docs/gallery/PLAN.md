@@ -27,7 +27,7 @@ Bro picks a photo ──► Storage: roast-photos/{roast_id}/original-{ts}.jpg
         └──► Edge Function `studio-photo` { roast_id }
                 ├─ marks roast photo_status = 'processing', replies 202 at once
                 └─ background task (EdgeRuntime.waitUntil):
-                     download original → Gemini (locked prompt + image)
+                     download original → Gemini (locked prompt + studio plate + bag photo)
                      → upload roast-photos/{roast_id}/studio-{ts}.png
                      → roast.photo_path = studio path, photo_status = 'ready'
                                     │
@@ -42,19 +42,21 @@ Library / Roast page ◄── Realtime on `roasts` (already published) ──�
 
 - **Storage:**
   - One bucket, `roast-photos`, holding both the original and the studio version (as requested).
-  - **Public read, signed-in write.** These are photos of coffee bags, and a public bucket means a plain `<img src>` with no signed-URL calls on every Library load. Uploads still need a signed-in bro via storage policies.
+  - **Public read, signed-in write.** These are photos of coffee bags, and a public bucket means a plain `<img src>` with no signed-URL calls on every Library load. Uploads still need a signed-in bro via storage policies. ✅ Confirmed.
+  - **Scraping:** no anonymous listing policy, so the bucket can't be browsed. File paths (roast uuid + timestamp) can't be guessed and only appear in data that needs a sign-in. The worst case is someone who already has a URL re-downloading it, which costs egress quota (served via Supabase's CDN). Fallback if that ever happens: a private bucket with signed URLs (Follow-ups).
 - **File names:** each upload gets a timestamp in its file name, so replacing a photo never serves a stale cached image.
 - **Data:** new nullable columns on `roasts`, with no new table (one photo per roast):
   - `photo_original_path`: added in G1.
   - `photo_path`: the studio version, added in G2.
   - `photo_status`: `processing` | `ready` | `failed`, added in G2.
 - **Who can add photos:** any bro, to any roast. This happens when adding a roast, or from the roast page for existing roasts. A new upload replaces the current photo.
-- **Prompt:** the locked studio spec lives in git at `supabase/functions/studio-photo/prompt.md` and is read by the function. Changing it is a reviewed code change, never an edit made at runtime.
+- **Prompt:** ✅ Confirmed. The locked studio spec lives in git at `supabase/functions/studio-photo/prompt.md` and is read by the function. Changing it is a reviewed code change, never an edit made at runtime.
 - **Model:** Gemini 3.1 Flash Image, called from the Edge Function with a plain `fetch` to the Gemini REST API (no SDK).
   - Settings are pinned in code: the model id, a 4:5 aspect ratio, temperature 0, and a fixed seed if the API supports one.
   - The exact model id and parameters will be confirmed against Google's docs in G2.
 - **Repeatability:** image generation can't be made fully deterministic, even with fixed settings.
-  - Consistency comes from the locked prompt and pinned settings, and possibly a reference "studio plate" image (see G3).
+  - Consistency comes from the locked prompt, the pinned settings, and a **studio plate**: a fixed photo of the empty set, sent with every bag as the background reference. ✅ Confirmed — included from G2, not left for G3.
+  - The plate is committed at `supabase/functions/studio-photo/studio-plate.jpg`, next to the prompt, so changes to it are reviewed too.
   - G3 measures how consistent the results are on real bags before we call it done.
 
 ## Phases
@@ -86,7 +88,9 @@ Proves the whole loop end to end, without the AI.
   - After the original uploads, call the function with `supabase.functions.invoke`.
   - Tiles and the roast page show the studio photo once it's `ready`. Realtime already pushes the `roasts` update.
   - While `processing`, show the original dimmed with a quiet "Developing…" label.
+- **Gemini request:** the prompt, then the studio plate (labelled as the fixed set), then the bag photo (labelled as the product to preserve).
 - **You provide:**
+  - The studio plate image, saved as `supabase/functions/studio-photo/studio-plate.jpg`.
   - A Gemini API key (Google AI Studio; image models may need billing enabled), stored with `supabase secrets set GEMINI_API_KEY=…`.
   - Deploy the function: `npx supabase functions deploy studio-photo`, or through the dashboard editor.
   - Run migration 008.
@@ -97,11 +101,12 @@ Proves the whole loop end to end, without the AI.
 - **Tuning levers, in order:**
   1. Tighten the prompt wording.
   2. Pin the model and its parameters.
-  3. Add a fixed reference "studio plate" image (an empty set photo sent alongside each bag) so the background stops drifting.
+  3. Adjust how the studio plate is described and weighted in the prompt, or swap in a better plate.
 - Lock the final prompt and settings, and record the before/after in `phase-g3.md`.
 - **You provide:** the sample bag photos, and the final say on what looks "right".
 
 ## Needs from you before G2
+- **The studio plate:** saved at `supabase/functions/studio-photo/studio-plate.jpg`. Best if it's 4:5 portrait, framed and lit exactly as the final shots should be, with the tabletop clear where the bag will stand, and under ~4 MB.
 - **The full prompt.** The pasted spec cuts off in section 15 ("Use natural optical depth of fie…"). Please send the complete text; it will be committed as-is to `prompt.md`.
 
 ## Follow-ups
