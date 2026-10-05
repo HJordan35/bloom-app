@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { Ranking, RoastLevel } from "../lib/types";
 import { colors, fonts, radius, space } from "../theme/tokens.stylex";
-import { RatingDots } from "./RatingDots";
+import { ScoreDots } from "./ScoreDots";
 
 export function Mosaic({ children }: { children: ReactNode }) {
   return <div {...stylex.props(styles.grid)}>{children}</div>;
@@ -45,7 +45,7 @@ export function Tile({
       <span {...stylex.props(styles.body)}>
         {level && <span {...stylex.props(styles.level, levelStyles[level])} />}
         <span {...stylex.props(styles.title)}>{title}</span>
-        <RatingDots rating={ranking?.avg_rating} />
+        <ScoreDots ranking={ranking} />
         {facts && <span {...stylex.props(styles.line, styles.facts)}>{facts}</span>}
         <span {...stylex.props(styles.footer)}>
           <span>{people}</span>

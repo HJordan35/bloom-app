@@ -10,7 +10,7 @@ import { useCurrentBro } from "../../lib/auth";
 import { fetchBrosById } from "../../lib/bros";
 import { mmss, recipeLine } from "../../lib/format";
 import { rankPositions } from "../../lib/ranking";
-import type { BrewWithRoast, EndorsementWithRoast } from "../../lib/types";
+import type { BrewWithRoast } from "../../lib/types";
 import { useData } from "../../lib/useData";
 import { useLive } from "../../lib/useLive";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
@@ -44,32 +44,14 @@ async function load(id: string) {
   };
 }
 
-type MethodSummary = {
-  method: string;
-  brewCount: number;
-  avgRating: number | null;
-  dialedIn: BrewWithRoast | undefined;
-};
-
-/** Roll brews and endorsements up per method. Ratings use each bro's latest, like the ranking. */
-function summarizeByMethod(brews: BrewWithRoast[], endorsements: EndorsementWithRoast[]) {
-  const methods = new Set([
-    ...brews.map((b) => b.method),
-    ...endorsements.flatMap((e) => (e.method && e.rating != null ? [e.method] : [])),
-  ]);
-  return [...methods].map((method): MethodSummary => {
+/** Brews per method, with a dialed-in recipe if anyone has one. */
+function summarizeByMethod(brews: BrewWithRoast[]) {
+  const methods = new Set(brews.map((b) => b.method));
+  return [...methods].map((method) => {
     const methodBrews = brews.filter((b) => b.method === method);
-    const latestByBro = new Map<string, number>();
-    for (const e of endorsements) {
-      if (e.method === method && e.rating != null && !latestByBro.has(e.bro_id)) {
-        latestByBro.set(e.bro_id, e.rating);
-      }
-    }
-    const ratings = [...latestByBro.values()];
     return {
       method,
       brewCount: methodBrews.length,
-      avgRating: ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
       dialedIn: methodBrews.find((b) => b.dialed_in),
     };
   });
@@ -93,7 +75,7 @@ export function RoastPage() {
     reload();
   }
 
-  const methods = summarizeByMethod(brews, endorsements).sort((a, b) => b.brewCount - a.brewCount);
+  const methods = summarizeByMethod(brews).sort((a, b) => b.brewCount - a.brewCount);
 
   return (
     <div {...stylex.props(styles.page)}>
@@ -136,7 +118,6 @@ export function RoastPage() {
                 <span>{m.method}</span>
                 <span {...stylex.props(styles.methodStats)}>
                   {m.brewCount} {m.brewCount === 1 ? "brew" : "brews"}
-                  {m.avgRating != null && ` · rated ${m.avgRating.toFixed(1)}`}
                 </span>
               </div>
               {m.dialedIn && (

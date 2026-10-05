@@ -69,3 +69,12 @@ Run `006_brewed_by.sql` and deploy together. The new build expects `brewed_by`.
 - **New `features/library/BrewedBy.tsx`:** turns a ranking's `brewed_by` into an `AvatarStack`. Tiles use it compact (max 2); detail pages use it `labelled`.
 - **`fetchBrosById()` in `lib/bros.ts`:** shared by the Library and both detail pages.
 - **`AvatarStack`** takes `on="page"`, so its separating ring matches the page background instead of the tile colour.
+
+## Revision: dots show the score
+- **Tiles:** the ten dots (`ScoreDots`, renamed from `RatingDots`) now show the **score**, which combines rating and brews, rounded. Before, they showed the average rating.
+- **Average rating removed from:**
+  - the Score caption on the roast and roaster pages ("Rated 7.0 · 2"), which is now the rank and brew count;
+  - the per-method rows on the roast page.
+- **Where ratings still appear:**
+  - on endorsements;
+  - as the "Rating" line in the "How?" score breakdown, where they explain the score.

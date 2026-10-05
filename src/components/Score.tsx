@@ -29,11 +29,6 @@ export function Score({ ranking, rank }: Props) {
           <span>
             {brews} {brews === 1 ? "brew" : "brews"}
           </span>
-          <span>
-            {ranking?.avg_rating != null
-              ? `Rated ${ranking.avg_rating.toFixed(1)} · ${ranking.rating_count}`
-              : "Unrated"}
-          </span>
         </span>
         <span {...stylex.props(styles.how)}>How?</span>
       </button>
