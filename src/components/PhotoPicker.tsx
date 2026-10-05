@@ -6,10 +6,14 @@ type Props = {
   label: string;
   value: File | null;
   onChange: (file: File) => void;
+  /** Shows "Uploading…" and ignores taps. */
+  busy?: boolean;
+  /** Small pill for laying over a photo, instead of a full-width button. */
+  chip?: boolean;
 };
 
 /** Pick a photo (camera or library on iOS), with a small preview once chosen. */
-export function PhotoPicker({ label, value, onChange }: Props) {
+export function PhotoPicker({ label, value, onChange, busy = false, chip = false }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
   useEffect(() => {
     if (!value) return;
@@ -19,12 +23,13 @@ export function PhotoPicker({ label, value, onChange }: Props) {
   }, [value]);
 
   return (
-    <label {...stylex.props(styles.picker)}>
+    <label {...stylex.props(chip ? styles.chip : styles.picker, busy && styles.busy)}>
       {value && preview && <img src={preview} alt="" {...stylex.props(styles.preview)} />}
-      <span>{value ? "Change photo" : label}</span>
+      <span>{busy ? "Uploading…" : value ? "Change photo" : label}</span>
       <input
         type="file"
         accept="image/*"
+        disabled={busy}
         {...stylex.props(styles.input)}
         onChange={(e) => {
           const file = e.target.files?.[0];
@@ -53,6 +58,25 @@ const styles = stylex.create({
     letterSpacing: "0.18em",
     textTransform: "uppercase",
     cursor: "pointer",
+  },
+  chip: {
+    display: "block",
+    paddingBlock: 6,
+    paddingInline: 10,
+    backgroundColor: "rgba(13, 10, 8, 0.6)", // colors.bg, see-through
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: colors.hairline,
+    borderRadius: radius.sm,
+    color: colors.text,
+    fontSize: 10,
+    letterSpacing: "0.18em",
+    textTransform: "uppercase",
+    cursor: "pointer",
+  },
+  busy: {
+    cursor: "default",
+    opacity: 0.6,
   },
   preview: {
     width: 32,

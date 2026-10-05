@@ -13,7 +13,7 @@ import { rankPositions } from "../../lib/ranking";
 import type { BrewWithRoast } from "../../lib/types";
 import { useData } from "../../lib/useData";
 import { useLive } from "../../lib/useLive";
-import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
+import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { fetchEndorsements } from "../endorsements/api";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
 import { EndorsementSheet } from "../endorsements/EndorsementSheet";
@@ -75,29 +75,23 @@ export function RoastPage() {
     reload();
   }
 
+  const hasPhoto = !!roast.photo_original_path;
   const methods = summarizeByMethod(brews).sort((a, b) => b.brewCount - a.brewCount);
 
   return (
     <div {...stylex.props(styles.page)}>
-      {roast.photo_original_path && (
-        <div {...stylex.props(styles.hero)}>
-          <RoastPhoto roast={roast} />
-        </div>
-      )}
-      {uploading ? (
-        <p {...stylex.props(styles.uploading)}>Uploading…</p>
-      ) : (
-        <PhotoPicker
-          label={roast.photo_original_path ? "Replace photo" : "Add bag photo"}
-          value={null}
-          onChange={changePhoto}
-        />
+      {!hasPhoto && (
+        <PhotoPicker label="Add bag photo" value={null} onChange={changePhoto} busy={uploading} />
       )}
 
       <DetailHeader
         eyebrow={<Link to={`/library/roasters/${roast.roaster.id}`}>{roast.roaster.name}</Link>}
         title={roast.name}
         meta={[roast.roast_level, roast.region].filter(Boolean).join(" · ")}
+        media={hasPhoto && <RoastPhoto roast={roast} />}
+        mediaAction={
+          <PhotoPicker label="Replace" value={null} onChange={changePhoto} busy={uploading} chip />
+        }
       >
         <Score ranking={ranking} rank={rank} />
         <BrewedBy ranking={ranking} brosById={brosById} max={5} labelled />
@@ -166,21 +160,6 @@ const styles = stylex.create({
     display: "flex",
     flexDirection: "column",
     gap: space.lg,
-  },
-  hero: {
-    width: "70%",
-    alignSelf: "center",
-    borderRadius: radius.md,
-    overflow: "hidden",
-  },
-  uploading: {
-    minHeight: 48,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    color: colors.muted,
   },
   actions: {
     display: "grid",

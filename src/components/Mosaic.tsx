@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import type { Ranking, RoastLevel } from "../lib/types";
 import { colors, fonts, radius, space } from "../theme/tokens.stylex";
 import { ScoreDots } from "./ScoreDots";
+import { Scrim } from "./Scrim";
 
 export function Mosaic({ children }: { children: ReactNode }) {
   return <div {...stylex.props(styles.grid)}>{children}</div>;
@@ -22,7 +23,7 @@ type TileProps = {
   people?: ReactNode;
   /** Replaces the default "N brews" caption, bottom right. */
   caption?: string;
-  /** A photo drawn edge to edge across the top (roast tiles). */
+  /** A photo filling the tile, with the text laid over its darkened bottom (roast tiles). */
   media?: ReactNode;
 };
 
@@ -41,8 +42,13 @@ export function Tile({
   const facts = lines.filter(Boolean).join(" · ");
   const content = (
     <>
-      {media}
-      <span {...stylex.props(styles.body)}>
+      {media && (
+        <>
+          <span {...stylex.props(styles.media)}>{media}</span>
+          <Scrim />
+        </>
+      )}
+      <span {...stylex.props(styles.body, !!media && styles.overlay)}>
         {level && <span {...stylex.props(styles.level, levelStyles[level])} />}
         <span {...stylex.props(styles.title)}>{title}</span>
         <ScoreDots ranking={ranking} />
@@ -58,11 +64,15 @@ export function Tile({
   );
 
   return to ? (
-    <Link to={to} {...stylex.props(styles.tile)}>
+    <Link to={to} {...stylex.props(styles.tile, !!media && styles.withMedia)}>
       {content}
     </Link>
   ) : (
-    <button type="button" onClick={onClick} {...stylex.props(styles.tile, styles.button)}>
+    <button
+      type="button"
+      onClick={onClick}
+      {...stylex.props(styles.tile, !!media && styles.withMedia, styles.button)}
+    >
       {content}
     </button>
   );
@@ -90,6 +100,18 @@ const styles = stylex.create({
     width: "100%",
     textAlign: "left",
     cursor: "pointer",
+  },
+  withMedia: {
+    aspectRatio: "4 / 5",
+    justifyContent: "flex-end",
+  },
+  media: {
+    position: "absolute",
+    inset: 0,
+  },
+  overlay: {
+    position: "relative",
+    flexGrow: 0,
   },
   body: {
     flexGrow: 1,

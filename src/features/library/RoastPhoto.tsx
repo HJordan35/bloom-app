@@ -7,7 +7,7 @@ type Props = {
   roast: Pick<Roast, "name" | "photo_original_path" | "photo_path" | "photo_status">;
 };
 
-/** The roast's bag photo at 4:5, or a quiet placeholder so gallery tiles line up. */
+/** The roast's bag photo, filling its parent, or a quiet placeholder so gallery tiles line up. */
 export function RoastPhoto({ roast }: Props) {
   const { url, developing } = roastPhoto(roast);
   return (
@@ -32,10 +32,11 @@ const styles = stylex.create({
   frame: {
     position: "relative",
     display: "flex",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "center",
+    paddingTop: "22%", // above the text laid over the photo's lower half
     width: "100%",
-    aspectRatio: "4 / 5",
+    height: "100%",
     backgroundColor: colors.surfaceRaised,
     overflow: "hidden",
   },
