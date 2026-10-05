@@ -13,8 +13,8 @@ This plan stands on its own. `docs/PLAN.md` covers the original build and isn't 
 
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
-| G1 | Photo storage, upload and gallery tiles (original photo) | ✅ Built — needs migration 007 | [phase-g1.md](phase-g1.md) |
-| G2 | Studio transform: Edge Function, background task, Gemini | Not started | `phase-g2.md` |
+| G1 | Photo storage, upload and gallery tiles (original photo) | ✅ Done | [phase-g1.md](phase-g1.md) |
+| G2 | Studio transform: Edge Function, background task, Gemini | ✅ Built — needs your setup steps | [phase-g2.md](phase-g2.md) |
 | G3 | Consistency calibration: tune on real bags, lock settings | Not started | `phase-g3.md` |
 
 Each phase gets its own plan in `docs/gallery/` before it's built, and ends with a checkpoint review.
@@ -50,13 +50,13 @@ Library / Roast page ◄── Realtime on `roasts` (already published) ──�
   - `photo_path`: the studio version, added in G2.
   - `photo_status`: `processing` | `ready` | `failed`, added in G2.
 - **Who can add photos:** any bro, to any roast. This happens when adding a roast, or from the roast page for existing roasts. A new upload replaces the current photo.
-- **Prompt:** ✅ Confirmed. The locked studio spec lives in git at `supabase/functions/studio-photo/prompt.md` and is read by the function. Changing it is a reviewed code change, never an edit made at runtime.
-- **Model:** Gemini 3.1 Flash Image, called from the Edge Function with a plain `fetch` to the Gemini REST API (no SDK).
-  - Settings are pinned in code: the model id, a 4:5 aspect ratio, temperature 0, and a fixed seed if the API supports one.
+- **Prompt:** ✅ Confirmed. The locked studio spec lives in git at `supabase/functions/studio-photo/prompt.ts` and is read by the function. Changing it is a reviewed code change, never an edit made at runtime.
+- **Model:** `gemini-3.1-flash-image`, called from the Edge Function with a plain `fetch` to the Gemini Interactions API (no SDK).
+  - Settings are pinned in code: the model id, a 4:5 aspect ratio at 1K, and seed 1. The image API has no temperature setting.
   - The exact model id and parameters will be confirmed against Google's docs in G2.
 - **Repeatability:** image generation can't be made fully deterministic, even with fixed settings.
   - Consistency comes from the locked prompt, the pinned settings, and a **studio plate**: a fixed photo of the empty set, sent with every bag as the background reference. ✅ Confirmed — included from G2, not left for G3.
-  - The plate is committed at `supabase/functions/studio-photo/studio-plate.jpg`, next to the prompt, so changes to it are reviewed too.
+  - The plate is committed at `supabase/functions/studio-photo/studio-plate.png`, next to the prompt, so changes to it are reviewed too. The function reads its copy from Storage (`roast-photos/_studio/studio-plate.png`).
   - G3 measures how consistent the results are on real bags before we call it done.
 
 ## Phases
@@ -90,7 +90,7 @@ Proves the whole loop end to end, without the AI.
   - While `processing`, show the original dimmed with a quiet "Developing…" label.
 - **Gemini request:** the prompt, then the studio plate (labelled as the fixed set), then the bag photo (labelled as the product to preserve).
 - **You provide:**
-  - The studio plate image, saved as `supabase/functions/studio-photo/studio-plate.jpg`.
+  - ✅ The studio plate (`studio-plate.png`). Still to do: upload a copy to Storage.
   - A Gemini API key (Google AI Studio; image models may need billing enabled), stored with `supabase secrets set GEMINI_API_KEY=…`.
   - Deploy the function: `npx supabase functions deploy studio-photo`, or through the dashboard editor.
   - Run migration 008.
@@ -106,8 +106,7 @@ Proves the whole loop end to end, without the AI.
 - **You provide:** the sample bag photos, and the final say on what looks "right".
 
 ## Needs from you before G2
-- **The studio plate:** saved at `supabase/functions/studio-photo/studio-plate.jpg`. Best if it's 4:5 portrait, framed and lit exactly as the final shots should be, with the tabletop clear where the bag will stand, and under ~4 MB.
-- **The full prompt.** The pasted spec cuts off in section 15 ("Use natural optical depth of fie…"). Please send the complete text; it will be committed as-is to `prompt.md`.
+✅ Both received: the studio plate, and the full prompt (committed word for word in `supabase/functions/studio-photo/prompt.ts`).
 
 ## Follow-ups
 Deliberately left out of the MVP:

@@ -12,6 +12,7 @@ import { mmss, recipeLine } from "../../lib/format";
 import { rankPositions } from "../../lib/ranking";
 import type { BrewWithRoast, EndorsementWithRoast } from "../../lib/types";
 import { useData } from "../../lib/useData";
+import { useLive } from "../../lib/useLive";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 import { fetchEndorsements } from "../endorsements/api";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
@@ -81,6 +82,7 @@ export function RoastPage() {
   const [endorsing, setEndorsing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const { data, reload } = useData(() => load(id), [id]);
+  useLive(["roasts"], reload); // the studio photo finishes developing in the background
   if (!data) return null;
 
   const { roast, ranking, rank, brews, endorsements, brosById } = data;

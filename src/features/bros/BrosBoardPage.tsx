@@ -1,13 +1,12 @@
 import * as stylex from "@stylexjs/stylex";
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Avatar } from "../../components/Avatar";
 import { EmptyState } from "../../components/EmptyState";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { dayHeading } from "../../lib/format";
-import { supabase } from "../../lib/supabase";
 import { useData } from "../../lib/useData";
+import { useLive } from "../../lib/useLive";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { fetchBoard } from "./api";
 import { EventRow } from "./EventRow";
@@ -19,16 +18,7 @@ export function BrosBoardPage() {
   const { data: board, reload } = useData(fetchBoard, []);
 
   // Any change to an event table refreshes the board
-  useEffect(() => {
-    const channel = supabase.channel(`board-${crypto.randomUUID()}`);
-    for (const table of LIVE_TABLES) {
-      channel.on("postgres_changes", { event: "*", schema: "public", table }, reload);
-    }
-    channel.subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [reload]);
+  useLive(LIVE_TABLES, reload);
 
   if (!board) return null;
   const bros = [...board.bros].sort((a, b) => Number(b.id === me.id) - Number(a.id === me.id));

@@ -1,32 +1,66 @@
 import * as stylex from "@stylexjs/stylex";
 import type { Roast } from "../../lib/types";
 import { colors, fonts } from "../../theme/tokens.stylex";
-import { roastPhotoUrl } from "./photos";
+import { roastPhoto } from "./photos";
+
+type Props = {
+  roast: Pick<Roast, "name" | "photo_original_path" | "photo_path" | "photo_status">;
+};
 
 /** The roast's bag photo at 4:5, or a quiet placeholder so gallery tiles line up. */
-export function RoastPhoto({ roast }: { roast: Pick<Roast, "name" | "photo_original_path"> }) {
-  const url = roastPhotoUrl(roast);
-  return url ? (
-    <img src={url} alt="" loading="lazy" decoding="async" {...stylex.props(styles.frame)} />
-  ) : (
-    <span {...stylex.props(styles.frame, styles.empty)}>{roast.name.charAt(0)}</span>
+export function RoastPhoto({ roast }: Props) {
+  const { url, developing } = roastPhoto(roast);
+  return (
+    <span {...stylex.props(styles.frame)}>
+      {url ? (
+        <img
+          src={url}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          {...stylex.props(styles.image, developing && styles.dimmed)}
+        />
+      ) : (
+        <span {...stylex.props(styles.initial)}>{roast.name.charAt(0)}</span>
+      )}
+      {developing && <span {...stylex.props(styles.developing)}>Developing…</span>}
+    </span>
   );
 }
 
 const styles = stylex.create({
   frame: {
-    display: "block",
-    width: "100%",
-    aspectRatio: "4 / 5",
-    objectFit: "cover",
-    backgroundColor: colors.surfaceRaised,
-  },
-  empty: {
+    position: "relative",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    width: "100%",
+    aspectRatio: "4 / 5",
+    backgroundColor: colors.surfaceRaised,
+    overflow: "hidden",
+  },
+  image: {
+    position: "absolute",
+    inset: 0,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    transition: "opacity 300ms",
+  },
+  dimmed: {
+    opacity: 0.35,
+  },
+  initial: {
     fontFamily: fonts.display,
     fontSize: 40,
     color: colors.faint,
+  },
+  developing: {
+    position: "relative",
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: "0.2em",
+    textTransform: "uppercase",
+    color: colors.brass,
   },
 });

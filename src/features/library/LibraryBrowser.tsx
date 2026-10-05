@@ -10,6 +10,7 @@ import { useCurrentBro } from "../../lib/auth";
 import { byRank } from "../../lib/ranking";
 import type { Ranking, Roaster, RoastWithRoaster } from "../../lib/types";
 import { useData } from "../../lib/useData";
+import { useLive } from "../../lib/useLive";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 import { AddRoasterForm } from "./AddRoasterForm";
 import { AddRoastForm } from "./AddRoastForm";
@@ -43,6 +44,7 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
   const [roasterFilter, setRoasterFilter] = useState<Roaster | null>(null);
   const [adding, setAdding] = useState(false);
   const { data, reload } = useData(() => fetchLibrary(bro.id), [bro.id]);
+  useLive(["roasts"], reload); // studio photos finish developing in the background
 
   if (!data) return null;
   const { roasters, roasts, roasterScores, roastScores, brosById, recentRoastIds } = data;

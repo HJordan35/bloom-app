@@ -1,6 +1,6 @@
 # Phase G1 — Photo storage, upload and gallery tiles
 
-**Status:** ✅ Built — needs migration 007
+**Status:** ✅ Done — checked in the app
 
 ## Goal
 Prove **upload → store → display** end to end with the original photo, before any AI is involved. In G2, the studio version replaces the original wherever it's shown.
