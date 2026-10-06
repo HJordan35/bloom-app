@@ -60,3 +60,19 @@ When you're happy:
 ## Verification
 - `run check` and `run build` pass.
 - `/library/studio` lists every roast with a photo, and Re-shoot shows "Developing…", then the new result, live.
+
+## Tuning round 1: orientation (2026-10-05)
+**Seen:** the studio look was consistent, but bags faced left, straight on or right at random.
+
+**Likely causes:**
+- "5–10 degrees rotated toward the LEFT" can mean the viewer's left or the bag's own left.
+- A turn that small is easy to read as "straight on".
+- Image models tend to keep the source photo's pose.
+
+**Changed:**
+- **`prompt.ts`, signed off by you:**
+  - Section 4 now describes what the camera sees. The front panel is about 15° toward camera-left, the left edge (as seen) is farther away, and a sliver of side is visible on the right. It's never straight on or toward camera-right, and it's never mirrored.
+  - Section 1 adds one line: orientation is part of studio consistency and is non-negotiable.
+- **`index.ts`:** the label right before the bag photo repeats the locked orientation and the no-mirroring rule, and says to ignore the source photo's angle.
+
+**Next if this isn't enough:** a pose reference image. That's an unbranded bag shot in the studio at the target angle, sent with the label "match this angle and scale, not this bag".

@@ -38,6 +38,8 @@ PRIORITY 2 — STUDIO CONSISTENCY
 
 Make the photograph look as though it was taken in the exact same studio as every other image in the collection.
 
+Orientation (front panel turned toward camera-left, see section 4) is part of studio consistency and is non-negotiable.
+
 PRIORITY 3 — PHOTOGRAPHIC REALISM
 
 The result must look like a real professional photograph, not a composited or AI-generated scene.
@@ -127,8 +129,12 @@ Every coffee bag in the collection must use the same basic orientation.
 Position
 Bag standing vertically on a tabletop.
 Front of package facing camera.
-Bag positioned approximately 5–10 degrees rotated toward the LEFT.
-Rotation should be subtle.
+The front panel faces slightly toward camera-left (approximately 15 degrees).
+The bag's left edge (as seen in the photograph) sits slightly farther from the camera than its right edge.
+A thin sliver of the bag's side or gusset is visible on the right-hand side of the image.
+Never face the bag straight on or toward camera-right, whatever its angle in the source photograph.
+Never mirror or flip the bag to achieve this orientation; rotate it.
+Rotation should be subtle but clearly visible.
 Front branding must remain clearly readable.
 Do not use extreme three-quarter views.
 Do not show the back of the package unless specifically requested.
