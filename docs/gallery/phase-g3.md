@@ -76,3 +76,16 @@ When you're happy:
 - **`index.ts`:** the label right before the bag photo repeats the locked orientation and the no-mirroring rule, and says to ignore the source photo's angle.
 
 **Next if this isn't enough:** a pose reference image. That's an unbranded bag shot in the studio at the target angle, sent with the label "match this angle and scale, not this bag".
+
+## Tuning round 2: packaging type (2026-10-05)
+**Seen:** orientation improved, but a roast sold in a **box** came back as a bag.
+
+**Likely causes:**
+- The spec calls the product a "bag" throughout, so the model treated "bag" as part of studio consistency.
+- Round 1's orientation wording ("the bag's left edge", "side or gusset") made it worse: a box has no gusset.
+
+**Changed:**
+- **`prompt.ts`, signed off by you:** a definition after ROLE. "Bag" means whatever packaging the coffee arrived in, the package type must be preserved exactly, and package type counts as product identity (Priority 1). In section 4, "bag's … side or gusset" becomes "package's … side panel".
+- **`index.ts`:** the source label says "package" and adds "a box stays a box, a tin stays a tin, a bag stays a bag".
+
+**Next if this isn't enough:** replace "bag" with "package" throughout the prompt.

@@ -15,10 +15,11 @@ const PLATE_PATH = "_studio/studio-plate.png";
 const PLATE_LABEL =
   "STUDIO PLATE — the locked studio set, empty. Photograph the bag in exactly this set: same background, tabletop, lighting, camera position, framing and color grade. Nothing from this image is the product.";
 const SOURCE_LABEL =
-  "SOURCE PHOTOGRAPH — the coffee bag to photograph. Use it only as the product reference: ignore its angle. " +
-  "Orientation is locked: front panel turned about 15 degrees toward camera-left, the bag's left edge (as seen) slightly farther away, " +
-  "a thin sliver of side or gusset visible on the right. Never straight on, never toward camera-right. " +
-  "Never mirror or flip the bag — its text must read correctly.";
+  "SOURCE PHOTOGRAPH — the coffee package to photograph. Use it only as the product reference: ignore its angle. " +
+  "Keep its packaging type exactly: a box stays a box, a tin stays a tin, a bag stays a bag. " +
+  "Orientation is locked: front panel turned about 15 degrees toward camera-left, the package's left edge (as seen) slightly farther away, " +
+  "a thin sliver of side panel visible on the right. Never straight on, never toward camera-right. " +
+  "Never mirror or flip the package — its text must read correctly.";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",

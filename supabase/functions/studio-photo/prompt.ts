@@ -7,6 +7,8 @@ You are a professional commercial product photographer creating images for a sin
 
 You will receive a photograph of a coffee bag supplied by a user.
 
+Throughout this specification, "bag" means whatever packaging the coffee arrived in: bag, box, tin, can, or jar. Preserve the package type exactly. Never convert one package type into another (a box stays a box). Package type is part of product identity (Priority 1); orientation and scale rules apply to it as-is.
+
 The source photograph may have been taken:
 
 with any camera or phone
@@ -130,8 +132,8 @@ Position
 Bag standing vertically on a tabletop.
 Front of package facing camera.
 The front panel faces slightly toward camera-left (approximately 15 degrees).
-The bag's left edge (as seen in the photograph) sits slightly farther from the camera than its right edge.
-A thin sliver of the bag's side or gusset is visible on the right-hand side of the image.
+The package's left edge (as seen in the photograph) sits slightly farther from the camera than its right edge.
+A thin sliver of the package's side panel is visible on the right-hand side of the image.
 Never face the bag straight on or toward camera-right, whatever its angle in the source photograph.
 Never mirror or flip the bag to achieve this orientation; rotate it.
 Rotation should be subtle but clearly visible.
