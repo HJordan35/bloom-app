@@ -13,9 +13,9 @@ This plan stands on its own. `docs/PLAN.md` and `docs/gallery/PLAN.md` aren't ne
 
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
-| P1 | Device subscription: service worker, opt-in toggle, subscriptions table, manual test push | 🔨 Built — awaiting phone test | [phase-p1.md](phase-p1.md) |
-| P2 | Sending: `notify` Edge Function + Database Webhooks for the four events | 📝 Planned | [phase-p2.md](phase-p2.md) |
-| P3 | Badges: unread count on the app icon, plus a monochrome Android status-bar icon | 📝 Planned | [phase-p3.md](phase-p3.md) |
+| P1 | Device subscription: service worker, opt-in toggle, subscriptions table, manual test push | ✅ Done — test push delivered (4c119c0) | [phase-p1.md](phase-p1.md) |
+| P2 | Sending: `notify` Edge Function + Database Webhooks for the four events | 🔨 Built — awaiting setup and test | [phase-p2.md](phase-p2.md) |
+| P3 | Badges: unread count on the app icon, plus a monochrome Android status-bar icon | 🔨 Built — awaiting phone test | [phase-p3.md](phase-p3.md) |
 
 Each phase is planned in `docs/push/` before it's built, and ends with a checkpoint review.
 

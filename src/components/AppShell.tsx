@@ -2,7 +2,7 @@ import * as stylex from "@stylexjs/stylex";
 import { type ReactNode, useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useCurrentBro } from "../lib/auth";
-import { refreshPush } from "../lib/push";
+import { clearBadge, refreshPush } from "../lib/push";
 import { colors, fonts, layout, space } from "../theme/tokens.stylex";
 import { BrosIcon, CupIcon, LibraryIcon } from "./icons";
 
@@ -41,6 +41,14 @@ export function AppShell() {
     navigator.serviceWorker.addEventListener("message", open);
     return () => navigator.serviceWorker.removeEventListener("message", open);
   }, [bro.id, navigate]);
+
+  // Opening Bloom, or switching back to it, marks notifications as seen
+  useEffect(() => {
+    clearBadge();
+    const onVisible = () => document.visibilityState === "visible" && clearBadge();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
 
   return (
     <div {...stylex.props(styles.frame)}>

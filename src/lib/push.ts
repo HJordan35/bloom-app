@@ -61,3 +61,11 @@ export async function refreshPush(broId: string) {
   const subscription = await currentSubscription();
   if (subscription) await save(broId, subscription);
 }
+
+/** Clear the app icon count and the delivered notifications (Bloom is open, so they're seen). */
+export async function clearBadge() {
+  if ("clearAppBadge" in navigator) navigator.clearAppBadge();
+  if (!("serviceWorker" in navigator)) return;
+  const registration = await navigator.serviceWorker.ready;
+  for (const notification of await registration.getNotifications()) notification.close();
+}
