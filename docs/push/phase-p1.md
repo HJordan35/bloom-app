@@ -1,6 +1,6 @@
 # Phase P1 — Device subscription
 
-**Status:** 🔨 Built — awaiting your setup and phone test
+**Status:** ✅ Done — test push delivered to iPhone (commit `4c119c0`)
 
 ## Goal
 A bro can turn notifications on for a device from their profile, and that device can receive a push even when Bloom is closed. Proven with a manual test push sent from the terminal. P2 sends the real ones.
