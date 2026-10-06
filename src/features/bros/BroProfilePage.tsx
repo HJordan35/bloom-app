@@ -19,6 +19,7 @@ import { fetchEndorsements } from "../endorsements/api";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
 import { fetchRoastRankings } from "../library/api";
 import { fetchBroBrews } from "./api";
+import { NotificationsToggle } from "./NotificationsToggle";
 
 async function load(id: string) {
   const [bro, brews, endorsements, rankings] = await Promise.all([
@@ -136,9 +137,12 @@ export function BroProfilePage() {
       )}
 
       {bro.id === me.id && (
-        <Button variant="ghost" onClick={logout}>
-          Log out
-        </Button>
+        <>
+          <NotificationsToggle />
+          <Button variant="ghost" onClick={logout}>
+            Log out
+          </Button>
+        </>
       )}
     </div>
   );

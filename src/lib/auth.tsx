@@ -1,11 +1,12 @@
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
+import { disablePush } from "./push";
 import { supabase } from "./supabase";
 import type { Bro } from "./types";
 
 type Auth = {
   bro: Bro | null;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<Auth | null>(null);
@@ -50,8 +51,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   }
 
-  function logout() {
-    supabase.auth.signOut();
+  async function logout() {
+    // Forget this device's notifications while still signed in (RLS needs the session)
+    await disablePush();
+    // Local: logging out here leaves the bro's other devices signed in
+    await supabase.auth.signOut({ scope: "local" });
   }
 
   // Render nothing until the stored session is checked, so login doesn't flash

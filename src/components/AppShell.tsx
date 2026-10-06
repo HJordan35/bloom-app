@@ -1,6 +1,8 @@
 import * as stylex from "@stylexjs/stylex";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useCurrentBro } from "../lib/auth";
+import { refreshPush } from "../lib/push";
 import { colors, fonts, layout, space } from "../theme/tokens.stylex";
 import { BrosIcon, CupIcon, LibraryIcon } from "./icons";
 
@@ -29,6 +31,16 @@ export function AppShell() {
   const navigate = useNavigate();
   const detail = DETAIL_TITLES.find(([prefix]) => pathname.startsWith(prefix));
   const title = detail?.[1] ?? TITLES[pathname] ?? "Bloom";
+  const bro = useCurrentBro();
+
+  // Keep this device's push subscription saved, and open notification taps (sent by sw.js)
+  useEffect(() => {
+    refreshPush(bro.id);
+    if (!("serviceWorker" in navigator)) return;
+    const open = (event: MessageEvent<{ url: string }>) => navigate(event.data.url);
+    navigator.serviceWorker.addEventListener("message", open);
+    return () => navigator.serviceWorker.removeEventListener("message", open);
+  }, [bro.id, navigate]);
 
   return (
     <div {...stylex.props(styles.frame)}>
