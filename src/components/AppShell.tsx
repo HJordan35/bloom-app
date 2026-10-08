@@ -65,9 +65,10 @@ export function AppShell() {
         <h1 {...stylex.props(styles.title)}>{title}</h1>
       </header>
 
-      <main {...stylex.props(styles.content)}>
-        {/* Keyed so every path change remounts the view and its FadeIn plays, even roast → roast */}
-        <Outlet key={pathname} />
+      {/* Keyed so every path change remounts the view (its FadeIn plays, even roast → roast)
+          and the scroll area, which starts back at the top */}
+      <main key={pathname} {...stylex.props(styles.content)}>
+        <Outlet />
       </main>
 
       <nav {...stylex.props(styles.tabBar)}>
@@ -90,18 +91,21 @@ export function AppShell() {
 }
 
 const styles = stylex.create({
+  // The frame is exactly the screen and never scrolls; only <main> does. On mobile, a
+  // scrolling document drags fixed bars along with its overscroll bounce and toolbar.
   frame: {
     maxWidth: layout.maxWidth,
     marginInline: "auto",
-    minHeight: "100dvh",
+    height: "100dvh",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
     borderInlineWidth: { default: 0, "@media (min-width: 520px)": 1 },
     borderInlineStyle: "solid",
     borderInlineColor: colors.hairline,
   },
   topBar: {
-    position: "sticky",
-    top: 0,
-    zIndex: 10,
+    flexShrink: 0,
     display: "flex",
     alignItems: "baseline",
     justifyContent: "space-between",
@@ -140,18 +144,17 @@ const styles = stylex.create({
     letterSpacing: "0.01em",
   },
   content: {
+    flex: 1,
+    minHeight: 0,
+    overflowY: "auto",
+    // Keep its bounce inside the content, never handed on to the page
+    overscrollBehaviorY: "contain",
     paddingInline: space.md,
     paddingTop: space.lg,
-    paddingBottom: `calc(${layout.tabBar} + env(safe-area-inset-bottom) + ${space.lg})`,
+    paddingBottom: space.lg,
   },
   tabBar: {
-    position: "fixed",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    maxWidth: layout.maxWidth,
-    marginInline: "auto",
+    flexShrink: 0,
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
     paddingBottom: "env(safe-area-inset-bottom)",

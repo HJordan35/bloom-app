@@ -60,7 +60,9 @@ export function LoginPage() {
 const styles = stylex.create({
   page: {
     maxWidth: 400,
-    minHeight: "100dvh",
+    // Its own scroll area, as the page itself never scrolls (theme/global.css)
+    height: "100dvh",
+    overflowY: "auto",
     marginInline: "auto",
     paddingInline: space.lg,
     display: "flex",
