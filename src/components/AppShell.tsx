@@ -66,7 +66,8 @@ export function AppShell() {
       </header>
 
       <main {...stylex.props(styles.content)}>
-        <Outlet />
+        {/* Keyed so every path change remounts the view and its FadeIn plays, even roast → roast */}
+        <Outlet key={pathname} />
       </main>
 
       <nav {...stylex.props(styles.tabBar)}>

@@ -6,6 +6,7 @@ import { brewMutations, brewQueries } from "../../api/brews/brews.queries";
 import type { BrewWithRoast } from "../../api/brews/brews.types";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
+import { FadeIn } from "../../components/FadeIn";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { greeting } from "../../lib/format";
@@ -44,8 +45,11 @@ export function BrewNowPage() {
     discardBrew.mutate(mine.data.id);
   }
 
+  // Wait for all three so the page fades in as one piece
+  if (mine.data === undefined || !live.data || !recent.data) return null;
+
   return (
-    <div {...stylex.props(styles.page)}>
+    <FadeIn xstyle={styles.page}>
       <p {...stylex.props(styles.greeting)}>
         {greeting()}, {bro.first_name}.
       </p>
@@ -93,7 +97,7 @@ export function BrewNowPage() {
           onSaved={() => setFollowUp(null)}
         />
       )}
-    </div>
+    </FadeIn>
   );
 }
 

@@ -9,6 +9,7 @@ import { roasterQueries } from "../../api/roasters/roasters.queries";
 import { roastQueries } from "../../api/roasts/roasts.queries";
 import { Button } from "../../components/Button";
 import { DetailHeader } from "../../components/DetailHeader";
+import { FadeIn } from "../../components/FadeIn";
 import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
@@ -47,7 +48,7 @@ export function RoasterPage() {
   ] as const;
 
   return (
-    <div {...stylex.props(styles.page)}>
+    <FadeIn xstyle={styles.page}>
       <DetailHeader eyebrow="Roaster" title={roaster.name} meta={roaster.location}>
         <Score ranking={ranking} rank={rank} />
         <BrewedBy ranking={ranking} max={5} labelled />
@@ -87,7 +88,7 @@ export function RoasterPage() {
           />
         </Sheet>
       )}
-    </div>
+    </FadeIn>
   );
 }
 

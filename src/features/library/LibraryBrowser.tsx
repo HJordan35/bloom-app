@@ -10,6 +10,7 @@ import { roastQueries } from "../../api/roasts/roasts.queries";
 import type { RoastWithRoaster } from "../../api/roasts/roasts.types";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
+import { FadeIn } from "../../components/FadeIn";
 import { PlusIcon } from "../../components/icons";
 import { Mosaic, Tile } from "../../components/Mosaic";
 import { SegmentedControl } from "../../components/SegmentedControl";
@@ -114,7 +115,7 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
   if (picking && adding) return addForm;
 
   return (
-    <div {...stylex.props(styles.browser)}>
+    <FadeIn xstyle={styles.browser}>
       <div {...stylex.props(styles.controls)}>
         <div {...stylex.props(styles.searchRow)}>
           <input
@@ -201,7 +202,7 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
           {addForm}
         </Sheet>
       )}
-    </div>
+    </FadeIn>
   );
 }
 

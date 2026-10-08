@@ -10,6 +10,7 @@ import type { RoastWithRoaster } from "../../api/roasts/roasts.types";
 import { Avatar } from "../../components/Avatar";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
+import { FadeIn } from "../../components/FadeIn";
 import { LiveDot } from "../../components/LiveDot";
 import { Mosaic, Tile } from "../../components/Mosaic";
 import { Section } from "../../components/Section";
@@ -60,7 +61,7 @@ export function BroProfilePage() {
   ];
 
   return (
-    <div {...stylex.props(styles.page)}>
+    <FadeIn xstyle={styles.page}>
       <header {...stylex.props(styles.header)}>
         <Avatar bro={bro} size="lg" live={!!live} />
         <div>
@@ -137,7 +138,7 @@ export function BroProfilePage() {
           </Button>
         </>
       )}
-    </div>
+    </FadeIn>
   );
 }
 

@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { brewQueries } from "../../api/brews/brews.queries";
 import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
 import { Button } from "../../components/Button";
+import { FadeIn } from "../../components/FadeIn";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { formatTemp, mmss, relativeDate } from "../../lib/format";
@@ -31,7 +32,7 @@ export function BrewDetailPage() {
   ];
 
   return (
-    <div {...stylex.props(styles.page)}>
+    <FadeIn xstyle={styles.page}>
       <header {...stylex.props(styles.header)}>
         <p {...stylex.props(styles.eyebrow)}>
           {brew.bro.first_name} · {relativeDate(brew.started_at)}
@@ -98,7 +99,7 @@ export function BrewDetailPage() {
           onSaved={() => setEditing(false)}
         />
       )}
-    </div>
+    </FadeIn>
   );
 }
 

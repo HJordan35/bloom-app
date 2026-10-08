@@ -1,6 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { type FormEvent, useState } from "react";
 import { Button } from "../../components/Button";
+import { FadeIn } from "../../components/FadeIn";
 import { Field } from "../../components/Field";
 import { useAuth } from "../../lib/auth";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
@@ -23,7 +24,7 @@ export function LoginPage() {
   }
 
   return (
-    <main {...stylex.props(styles.page)}>
+    <FadeIn xstyle={styles.page} as="main">
       <header {...stylex.props(styles.brand)}>
         <span {...stylex.props(styles.rule)} />
         <h1 {...stylex.props(styles.wordmark)}>Bloom</h1>
@@ -52,7 +53,7 @@ export function LoginPage() {
           {busy ? "Entering…" : "Enter"}
         </Button>
       </form>
-    </main>
+    </FadeIn>
   );
 }
 

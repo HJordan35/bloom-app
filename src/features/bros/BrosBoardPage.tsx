@@ -8,6 +8,7 @@ import { roasterQueries } from "../../api/roasters/roasters.queries";
 import { roastQueries } from "../../api/roasts/roasts.queries";
 import { Avatar } from "../../components/Avatar";
 import { EmptyState } from "../../components/EmptyState";
+import { FadeIn } from "../../components/FadeIn";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { dayHeading } from "../../lib/format";
@@ -29,7 +30,7 @@ export function BrosBoardPage() {
   const bros = [...allBros].sort((a, b) => Number(b.id === me.id) - Number(a.id === me.id));
 
   return (
-    <div {...stylex.props(styles.page)}>
+    <FadeIn xstyle={styles.page}>
       <div {...stylex.props(styles.strip)}>
         {bros.map((bro) => (
           <Link key={bro.id} to={`/bros/${bro.id}`} {...stylex.props(styles.bro)}>
@@ -54,7 +55,7 @@ export function BrosBoardPage() {
           </Section>
         ))
       )}
-    </div>
+    </FadeIn>
   );
 }
 

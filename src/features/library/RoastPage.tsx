@@ -9,6 +9,7 @@ import { byRoastId, rankingQueries } from "../../api/rankings/rankings.queries";
 import { roastMutations, roastQueries } from "../../api/roasts/roasts.queries";
 import { Button } from "../../components/Button";
 import { DetailHeader } from "../../components/DetailHeader";
+import { FadeIn } from "../../components/FadeIn";
 import { PhotoPicker } from "../../components/PhotoPicker";
 import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
@@ -59,7 +60,7 @@ export function RoastPage() {
   const methods = summarizeByMethod(brews).sort((a, b) => b.brewCount - a.brewCount);
 
   return (
-    <div {...stylex.props(styles.page)}>
+    <FadeIn xstyle={styles.page}>
       {!hasPhoto && (
         <PhotoPicker label="Add bag photo" value={null} onChange={changePhoto} busy={uploading} />
       )}
@@ -128,7 +129,7 @@ export function RoastPage() {
           onSaved={() => setEndorsing(false)}
         />
       )}
-    </div>
+    </FadeIn>
   );
 }
 
