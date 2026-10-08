@@ -1,5 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
-import type { Bro } from "../lib/types";
+import type { Bro } from "../api/bros/bros.types";
 import { colors, fonts } from "../theme/tokens.stylex";
 import { Avatar } from "./Avatar";
 

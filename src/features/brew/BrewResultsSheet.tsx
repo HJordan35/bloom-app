@@ -1,12 +1,13 @@
 import * as stylex from "@stylexjs/stylex";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import { brewMutations } from "../../api/brews/brews.queries";
+import type { BrewWithRoast } from "../../api/brews/brews.types";
 import { Button } from "../../components/Button";
 import { Sheet } from "../../components/Sheet";
-import type { BrewWithRoast } from "../../lib/types";
 import { space } from "../../theme/tokens.stylex";
 import { type EndorsementDraft, endorsementDraft, saveEndorsement } from "../endorsements/draft";
 import { EndorsementFields } from "../endorsements/EndorsementFields";
-import { updateBrew } from "./api";
 import { OutcomeFields } from "./BrewFields";
 import { brewDraft, outcomeFromDraft } from "./draft";
 
@@ -24,11 +25,13 @@ export function BrewResultsSheet({ brew, onClose, onSaved }: Props) {
     method: brew.method,
   }));
   const [endorsing, setEndorsing] = useState(false);
+  const updateBrew = useMutation(brewMutations.update());
+  // Held across both writes (brew, then endorsement)
   const [busy, setBusy] = useState(false);
 
   async function save() {
     setBusy(true);
-    await updateBrew(brew.id, outcomeFromDraft(draft));
+    await updateBrew.mutateAsync({ id: brew.id, fields: outcomeFromDraft(draft) });
     if (endorsing)
       await saveEndorsement(endorsement, {
         bro_id: brew.bro_id,

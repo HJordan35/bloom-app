@@ -1,20 +1,25 @@
 import * as stylex from "@stylexjs/stylex";
+import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
+import { brewQueries } from "../../api/brews/brews.queries";
+import { byRoasterId, byRoastId, rankingQueries } from "../../api/rankings/rankings.queries";
+import type { Ranking } from "../../api/rankings/rankings.types";
+import { roasterQueries } from "../../api/roasters/roasters.queries";
+import type { Roaster } from "../../api/roasters/roasters.types";
+import { roastQueries } from "../../api/roasts/roasts.queries";
+import type { RoastWithRoaster } from "../../api/roasts/roasts.types";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
+import { FadeIn } from "../../components/FadeIn";
 import { PlusIcon } from "../../components/icons";
 import { Mosaic, Tile } from "../../components/Mosaic";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
 import { byRank } from "../../lib/ranking";
-import type { Ranking, Roaster, RoastWithRoaster } from "../../lib/types";
-import { useData } from "../../lib/useData";
-import { useLive } from "../../lib/useLive";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 import { AddRoasterForm } from "./AddRoasterForm";
 import { AddRoastForm } from "./AddRoastForm";
-import { fetchLibrary } from "./api";
 import { BrewedBy } from "./BrewedBy";
 import { RoastPhoto } from "./RoastPhoto";
 
@@ -43,12 +48,19 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
   const [query, setQuery] = useState("");
   const [roasterFilter, setRoasterFilter] = useState<Roaster | null>(null);
   const [adding, setAdding] = useState(false);
-  const { data, reload } = useData(() => fetchLibrary(bro.id), [bro.id]);
-  useLive(["roasts"], reload); // studio photos finish developing in the background
+  const { data: roasters } = useQuery(roasterQueries.list());
+  const { data: roasts } = useQuery(roastQueries.list());
+  const { data: roasterScores } = useQuery({ ...rankingQueries.roasters(), select: byRoasterId });
+  const { data: roastScores } = useQuery({ ...rankingQueries.roasts(), select: byRoastId });
+  // Only the drawer's Recent row needs your history
+  const { data: recentRoastIds = [] } = useQuery({
+    ...brewQueries.history(bro.id),
+    select: (history) => history.roastIds, // most recent first
+    enabled: picking,
+  });
 
-  if (!data) return null;
-  const { roasters, roasts, roasterScores, roastScores, brosById, recentRoastIds } = data;
-  const people = (ranking?: Ranking) => <BrewedBy ranking={ranking} brosById={brosById} max={2} />;
+  if (!roasters || !roasts || !roasterScores || !roastScores) return null;
+  const people = (ranking?: Ranking) => <BrewedBy ranking={ranking} max={2} />;
 
   const q = query.trim().toLowerCase();
   const roastMatches = roasts.filter(
@@ -84,10 +96,8 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
     />
   );
 
-  function closeAdd() {
-    setAdding(false);
-    reload();
-  }
+  // The create mutations refresh the cached lists themselves
+  const closeAdd = () => setAdding(false);
 
   const addForm =
     view === "roasts" ? (
@@ -105,7 +115,7 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
   if (picking && adding) return addForm;
 
   return (
-    <div {...stylex.props(styles.browser)}>
+    <FadeIn xstyle={styles.browser}>
       <div {...stylex.props(styles.controls)}>
         <div {...stylex.props(styles.searchRow)}>
           <input
@@ -192,7 +202,7 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
           {addForm}
         </Sheet>
       )}
-    </div>
+    </FadeIn>
   );
 }
 

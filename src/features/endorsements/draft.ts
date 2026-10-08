@@ -1,5 +1,6 @@
-import type { Endorsement } from "../../lib/types";
-import { createEndorsement, updateEndorsement } from "./api";
+import { invalidateEndorsements } from "../../api/endorsements/endorsements.queries";
+import { createEndorsement, updateEndorsement } from "../../api/endorsements/endorsements.service";
+import type { Endorsement } from "../../api/endorsements/endorsements.types";
 
 /** Form state for an endorsement, shared by every screen that creates or edits one. */
 export type EndorsementDraft = {
@@ -23,6 +24,7 @@ export function isEmptyEndorsement(draft: EndorsementDraft) {
 /**
  * Create, update, or skip: updates `existing` if given, otherwise creates one —
  * unless the draft is empty (no rating and no note), which saves nothing.
+ * Refreshes the cached endorsements (and the rankings and events built from them).
  */
 export async function saveEndorsement(
   draft: EndorsementDraft,
@@ -46,4 +48,5 @@ export async function saveEndorsement(
       brew_id: target.brew_id ?? null,
     });
   }
+  await invalidateEndorsements();
 }

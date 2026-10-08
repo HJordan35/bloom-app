@@ -1,7 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
+import type { RoastWithRoaster } from "../../api/roasts/roasts.types";
 import { Button } from "../../components/Button";
 import { Sheet } from "../../components/Sheet";
-import type { RoastWithRoaster } from "../../lib/types";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { LibraryBrowser } from "../library/LibraryBrowser";
 

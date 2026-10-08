@@ -1,5 +1,9 @@
 import * as stylex from "@stylexjs/stylex";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { roasterQueries } from "../../api/roasters/roasters.queries";
+import { roastMutations } from "../../api/roasts/roasts.queries";
+import type { RoastLevel, RoastWithRoaster } from "../../api/roasts/roasts.types";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Chips } from "../../components/Chips";
@@ -7,12 +11,8 @@ import { Field, SelectField } from "../../components/Field";
 import { PhotoPicker } from "../../components/PhotoPicker";
 import { useCurrentBro } from "../../lib/auth";
 import { ROAST_LEVELS } from "../../lib/constants";
-import type { RoastLevel, RoastWithRoaster } from "../../lib/types";
-import { useData } from "../../lib/useData";
 import { space } from "../../theme/tokens.stylex";
 import { AddRoasterForm } from "./AddRoasterForm";
-import { createRoast, fetchRoasters } from "./api";
-import { uploadRoastPhoto } from "./photos";
 
 const NEW_ROASTER = "__new";
 
@@ -30,7 +30,9 @@ export function AddRoastForm({
   onCancel,
 }: Props) {
   const bro = useCurrentBro();
-  const roasters = useData(fetchRoasters, []);
+  const roasters = useQuery(roasterQueries.list());
+  const create = useMutation(roastMutations.create());
+  const uploadPhoto = useMutation(roastMutations.uploadPhoto());
   const [roasterId, setRoasterId] = useState(initialRoasterId);
   const [addingRoaster, setAddingRoaster] = useState(false);
   const [name, setName] = useState(initialName);
@@ -42,14 +44,14 @@ export function AddRoastForm({
   async function save() {
     if (!level) return;
     setBusy(true);
-    const roast = await createRoast({
+    const roast = await create.mutateAsync({
       roaster_id: roasterId,
       name: name.trim(),
       roast_level: level,
       region: region.trim() || null,
       created_by: bro.id,
     });
-    if (photo) await uploadRoastPhoto(roast.id, photo);
+    if (photo) await uploadPhoto.mutateAsync({ roastId: roast.id, file: photo });
     onCreated(roast);
   }
 
@@ -59,7 +61,6 @@ export function AddRoastForm({
         {addingRoaster ? (
           <AddRoasterForm
             onCreated={(roaster) => {
-              roasters.reload();
               setRoasterId(roaster.id);
               setAddingRoaster(false);
             }}

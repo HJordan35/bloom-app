@@ -1,15 +1,15 @@
 import { supabase } from "../../lib/supabase";
-import type { Endorsement, EndorsementWithRoast } from "../../lib/types";
-import { unwrap } from "../../lib/unwrap";
+import { unwrap } from "../api.utils";
+import type {
+  Endorsement,
+  EndorsementFilter,
+  EndorsementUpdate,
+  EndorsementWithRoast,
+  NewEndorsement,
+} from "./endorsements.types";
 
 export const ENDORSEMENT_SELECT =
   "*, bro:bros(id, first_name, last_name, email), roast:roasts!inner(*, roaster:roasters(*))";
-
-export type EndorsementFilter =
-  | { roastId: string }
-  | { roasterId: string }
-  | { broId: string }
-  | { brewId: string };
 
 /** Endorsements for a roast, roaster, bro or brew, newest first. */
 export async function fetchEndorsements(filter: EndorsementFilter) {
@@ -25,17 +25,10 @@ export async function fetchEndorsements(filter: EndorsementFilter) {
   return unwrap<EndorsementWithRoast[]>(await filtered.order("created_at", { ascending: false }));
 }
 
-type EndorsementFields = Pick<Endorsement, "method" | "rating" | "note">;
-
-export async function createEndorsement(
-  input: EndorsementFields & Pick<Endorsement, "bro_id" | "roast_id" | "brew_id">,
-) {
+export async function createEndorsement(input: NewEndorsement) {
   return unwrap<Endorsement>(await supabase.from("endorsements").insert(input).select().single());
 }
 
-export async function updateEndorsement(
-  id: string,
-  fields: EndorsementFields & Partial<Pick<Endorsement, "roast_id">>,
-) {
+export async function updateEndorsement(id: string, fields: EndorsementUpdate) {
   unwrap(await supabase.from("endorsements").update(fields).eq("id", id));
 }

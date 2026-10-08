@@ -1,48 +1,27 @@
 import * as stylex from "@stylexjs/stylex";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { brewQueries } from "../../api/brews/brews.queries";
+import type { BrewWithRoast } from "../../api/brews/brews.types";
+import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
+import { byRoastId, rankingQueries } from "../../api/rankings/rankings.queries";
+import { roastMutations, roastQueries } from "../../api/roasts/roasts.queries";
 import { Button } from "../../components/Button";
 import { DetailHeader } from "../../components/DetailHeader";
+import { FadeIn } from "../../components/FadeIn";
 import { PhotoPicker } from "../../components/PhotoPicker";
 import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
-import { fetchBrosById } from "../../lib/bros";
 import { mmss, recipeLine } from "../../lib/format";
 import { rankPositions } from "../../lib/ranking";
-import type { BrewWithRoast } from "../../lib/types";
-import { useData } from "../../lib/useData";
-import { useLive } from "../../lib/useLive";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
-import { fetchEndorsements } from "../endorsements/api";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
 import { EndorsementSheet } from "../endorsements/EndorsementSheet";
-import { fetchBrewsForRoast, fetchRoast, fetchRoastRankings, fetchRoasts } from "./api";
 import { BrewedBy } from "./BrewedBy";
 import { BrewLists } from "./LibraryRows";
-import { uploadRoastPhoto } from "./photos";
 import { RoastPhoto } from "./RoastPhoto";
-
-async function load(id: string) {
-  const [roast, roasts, rankings, brews, endorsements, brosById] = await Promise.all([
-    fetchRoast(id),
-    fetchRoasts(),
-    fetchRoastRankings(),
-    fetchBrewsForRoast(id),
-    fetchEndorsements({ roastId: id }),
-    fetchBrosById(),
-  ]);
-  const positions = rankPositions(roasts, new Map(rankings.map((r) => [r.roast_id, r])));
-  const position = positions.get(id);
-  return {
-    roast,
-    ranking: rankings.find((r) => r.roast_id === id),
-    rank: position ? { position, total: positions.size } : undefined,
-    brews,
-    endorsements,
-    brosById,
-  };
-}
 
 /** Brews per method, with a dialed-in recipe if anyone has one. */
 function summarizeByMethod(brews: BrewWithRoast[]) {
@@ -62,24 +41,26 @@ export function RoastPage() {
   const bro = useCurrentBro();
   const navigate = useNavigate();
   const [endorsing, setEndorsing] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const { data, reload } = useData(() => load(id), [id]);
-  useLive(["roasts"], reload); // the studio photo finishes developing in the background
-  if (!data) return null;
+  const { data: roast } = useQuery(roastQueries.detail(id));
+  const { data: roasts } = useQuery(roastQueries.list());
+  const { data: scores } = useQuery({ ...rankingQueries.roasts(), select: byRoastId });
+  const { data: brews } = useQuery(brewQueries.forRoast(id));
+  const { data: endorsements } = useQuery(endorsementQueries.list({ roastId: id }));
+  const uploadPhoto = useMutation(roastMutations.uploadPhoto());
+  if (!roast || !roasts || !scores || !brews || !endorsements) return null;
 
-  const { roast, ranking, rank, brews, endorsements, brosById } = data;
-  async function changePhoto(file: File) {
-    setUploading(true);
-    await uploadRoastPhoto(roast.id, file);
-    setUploading(false);
-    reload();
-  }
+  const ranking = scores.get(id);
+  const positions = rankPositions(roasts, scores);
+  const position = positions.get(id);
+  const rank = position ? { position, total: positions.size } : undefined;
+  const uploading = uploadPhoto.isPending;
+  const changePhoto = (file: File) => uploadPhoto.mutate({ roastId: roast.id, file });
 
   const hasPhoto = !!roast.photo_original_path;
   const methods = summarizeByMethod(brews).sort((a, b) => b.brewCount - a.brewCount);
 
   return (
-    <div {...stylex.props(styles.page)}>
+    <FadeIn xstyle={styles.page}>
       {!hasPhoto && (
         <PhotoPicker label="Add bag photo" value={null} onChange={changePhoto} busy={uploading} />
       )}
@@ -94,7 +75,7 @@ export function RoastPage() {
         }
       >
         <Score ranking={ranking} rank={rank} />
-        <BrewedBy ranking={ranking} brosById={brosById} max={5} labelled />
+        <BrewedBy ranking={ranking} max={5} labelled />
       </DetailHeader>
 
       <div {...stylex.props(styles.actions)}>
@@ -134,7 +115,7 @@ export function RoastPage() {
       {endorsements.length > 0 && (
         <Section label="Endorsements">
           {endorsements.map((e) => (
-            <EndorsementRow key={e.id} endorsement={e} onChanged={reload} />
+            <EndorsementRow key={e.id} endorsement={e} />
           ))}
         </Section>
       )}
@@ -145,13 +126,10 @@ export function RoastPage() {
         <EndorsementSheet
           roast={roast}
           onClose={() => setEndorsing(false)}
-          onSaved={() => {
-            setEndorsing(false);
-            reload();
-          }}
+          onSaved={() => setEndorsing(false)}
         />
       )}
-    </div>
+    </FadeIn>
   );
 }
 

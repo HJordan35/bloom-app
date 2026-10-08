@@ -1,27 +1,25 @@
 import * as stylex from "@stylexjs/stylex";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { brewQueries } from "../../api/brews/brews.queries";
+import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
 import { Button } from "../../components/Button";
+import { FadeIn } from "../../components/FadeIn";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { formatTemp, mmss, relativeDate } from "../../lib/format";
-import { useData } from "../../lib/useData";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
-import { fetchEndorsements } from "../endorsements/api";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
-import { fetchBrew } from "./api";
 import { EditBrewSheet } from "./EditBrewSheet";
 
 export function BrewDetailPage() {
   const { id = "" } = useParams();
   const me = useCurrentBro();
   const [editing, setEditing] = useState(false);
-  const { data, reload } = useData(
-    () => Promise.all([fetchBrew(id), fetchEndorsements({ brewId: id })]),
-    [id],
-  );
-  if (!data) return null;
-  const [brew, endorsements] = data;
+  const { data: brew } = useQuery(brewQueries.detail(id));
+  const { data: endorsements } = useQuery(endorsementQueries.list({ brewId: id }));
+  if (!brew || !endorsements) return null;
   const mine = brew.bro_id === me.id;
 
   const stats: [string, string | null][] = [
@@ -34,7 +32,7 @@ export function BrewDetailPage() {
   ];
 
   return (
-    <div {...stylex.props(styles.page)}>
+    <FadeIn xstyle={styles.page}>
       <header {...stylex.props(styles.header)}>
         <p {...stylex.props(styles.eyebrow)}>
           {brew.bro.first_name} · {relativeDate(brew.started_at)}
@@ -88,7 +86,7 @@ export function BrewDetailPage() {
       {endorsements.length > 0 && (
         <Section label="Endorsement">
           {endorsements.map((e) => (
-            <EndorsementRow key={e.id} endorsement={e} onChanged={reload} />
+            <EndorsementRow key={e.id} endorsement={e} />
           ))}
         </Section>
       )}
@@ -98,13 +96,10 @@ export function BrewDetailPage() {
           brew={brew}
           endorsement={endorsements[0]}
           onClose={() => setEditing(false)}
-          onSaved={() => {
-            setEditing(false);
-            reload();
-          }}
+          onSaved={() => setEditing(false)}
         />
       )}
-    </div>
+    </FadeIn>
   );
 }
 

@@ -1,5 +1,6 @@
 import * as stylex from "@stylexjs/stylex";
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { colors, fonts, layout, radius, space } from "../theme/tokens.stylex";
 
 type Props = {
@@ -10,9 +11,12 @@ type Props = {
   children: ReactNode;
 };
 
-/** Bottom sheet. Render it only while open. */
+/**
+ * Bottom sheet. Render it only while open. Portaled to <body> so it always covers the
+ * screen, whatever its parent view is animating (see FadeIn).
+ */
 export function Sheet({ title, tall = false, onClose, children }: Props) {
-  return (
+  return createPortal(
     <div {...stylex.props(styles.root)}>
       <button
         type="button"
@@ -29,7 +33,8 @@ export function Sheet({ title, tall = false, onClose, children }: Props) {
         </header>
         <div {...stylex.props(styles.body)}>{children}</div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

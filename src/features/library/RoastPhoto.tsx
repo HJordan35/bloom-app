@@ -1,5 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
-import type { Roast } from "../../lib/types";
+import type { Roast } from "../../api/roasts/roasts.types";
 import { colors, fonts } from "../../theme/tokens.stylex";
 import { roastPhoto } from "./photos";
 

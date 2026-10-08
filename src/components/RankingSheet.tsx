@@ -1,6 +1,6 @@
 import * as stylex from "@stylexjs/stylex";
+import type { Ranking } from "../api/rankings/rankings.types";
 import { brewPart, isRanked, NEUTRAL_RATING, ratingPart } from "../lib/ranking";
-import type { Ranking } from "../lib/types";
 import { colors, fonts, space } from "../theme/tokens.stylex";
 import { Sheet } from "./Sheet";
 

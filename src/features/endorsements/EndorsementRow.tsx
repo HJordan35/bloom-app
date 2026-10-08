@@ -1,20 +1,18 @@
 import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
+import type { EndorsementWithRoast } from "../../api/endorsements/endorsements.types";
 import { Button } from "../../components/Button";
 import { useCurrentBro } from "../../lib/auth";
 import { relativeDate } from "../../lib/format";
-import type { EndorsementWithRoast } from "../../lib/types";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { EndorsementSheet } from "./EndorsementSheet";
 
 type Props = {
   endorsement: EndorsementWithRoast;
   showRoast?: boolean;
-  /** Called after the owner edits it, so the page can reload. */
-  onChanged: () => void;
 };
 
-export function EndorsementRow({ endorsement: e, showRoast = false, onChanged }: Props) {
+export function EndorsementRow({ endorsement: e, showRoast = false }: Props) {
   const bro = useCurrentBro();
   const [editing, setEditing] = useState(false);
 
@@ -42,10 +40,7 @@ export function EndorsementRow({ endorsement: e, showRoast = false, onChanged }:
           roast={e.roast}
           endorsement={e}
           onClose={() => setEditing(false)}
-          onSaved={() => {
-            setEditing(false);
-            onChanged();
-          }}
+          onSaved={() => setEditing(false)}
         />
       )}
     </div>
