@@ -61,7 +61,7 @@ const styles = stylex.create({
   page: {
     maxWidth: 400,
     // Its own scroll area, as the page itself never scrolls (theme/global.css)
-    height: "100dvh",
+    height: "100vh",
     overflowY: "auto",
     marginInline: "auto",
     paddingInline: space.lg,

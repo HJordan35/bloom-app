@@ -96,7 +96,8 @@ const styles = stylex.create({
   frame: {
     maxWidth: layout.maxWidth,
     marginInline: "auto",
-    height: "100dvh",
+    // vh, not dvh or %: see the html/body height in theme/global.css
+    height: "100vh",
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
@@ -157,9 +158,7 @@ const styles = stylex.create({
     flexShrink: 0,
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
-    // iOS's full home-indicator inset (34px) under the tabs leaves a tall dead band; the
-    // indicator only needs the bottom part of it, as with native tab bars
-    paddingBottom: "max(calc(env(safe-area-inset-bottom) - 20px), 0px)",
+    paddingBottom: "env(safe-area-inset-bottom)",
     backgroundColor: colors.bg,
     borderTopWidth: 1,
     borderTopStyle: "solid",
