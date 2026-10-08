@@ -1,4 +1,4 @@
-import type { Brew } from "./types";
+import type { Brew } from "../api/brews/brews.types";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 

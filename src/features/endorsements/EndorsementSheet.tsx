@@ -1,9 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import type { Endorsement } from "../../api/endorsements/endorsements.types";
 import { Button } from "../../components/Button";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
-import type { Endorsement } from "../../lib/types";
 import { endorsementDraft, isEmptyEndorsement, saveEndorsement } from "./draft";
 import { EndorsementFields } from "./EndorsementFields";
 

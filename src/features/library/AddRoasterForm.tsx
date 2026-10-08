@@ -2,11 +2,11 @@ import * as stylex from "@stylexjs/stylex";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { roasterMutations } from "../../api/roasters/roasters.queries";
+import type { Roaster } from "../../api/roasters/roasters.types";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Field } from "../../components/Field";
 import { useCurrentBro } from "../../lib/auth";
-import type { Roaster } from "../../lib/types";
 import { space } from "../../theme/tokens.stylex";
 
 type Props = {

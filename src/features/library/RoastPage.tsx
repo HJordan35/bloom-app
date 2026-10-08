@@ -3,9 +3,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { brewQueries } from "../../api/brews/brews.queries";
+import type { BrewWithRoast } from "../../api/brews/brews.types";
 import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
 import { byRoastId, rankingQueries } from "../../api/rankings/rankings.queries";
-import { invalidateRoasts, roastMutations, roastQueries } from "../../api/roasts/roasts.queries";
+import { roastMutations, roastQueries } from "../../api/roasts/roasts.queries";
 import { Button } from "../../components/Button";
 import { DetailHeader } from "../../components/DetailHeader";
 import { PhotoPicker } from "../../components/PhotoPicker";
@@ -14,8 +15,6 @@ import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { mmss, recipeLine } from "../../lib/format";
 import { rankPositions } from "../../lib/ranking";
-import type { BrewWithRoast } from "../../lib/types";
-import { useLive } from "../../lib/useLive";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
 import { EndorsementSheet } from "../endorsements/EndorsementSheet";
@@ -47,7 +46,6 @@ export function RoastPage() {
   const { data: brews } = useQuery(brewQueries.forRoast(id));
   const { data: endorsements } = useQuery(endorsementQueries.list({ roastId: id }));
   const uploadPhoto = useMutation(roastMutations.uploadPhoto());
-  useLive(["roasts"], invalidateRoasts); // the studio photo finishes developing in the background
   if (!roast || !roasts || !scores || !brews || !endorsements) return null;
 
   const ranking = scores.get(id);

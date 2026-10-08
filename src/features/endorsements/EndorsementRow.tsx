@@ -1,9 +1,9 @@
 import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
+import type { EndorsementWithRoast } from "../../api/endorsements/endorsements.types";
 import { Button } from "../../components/Button";
 import { useCurrentBro } from "../../lib/auth";
 import { relativeDate } from "../../lib/format";
-import type { EndorsementWithRoast } from "../../lib/types";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { EndorsementSheet } from "./EndorsementSheet";
 

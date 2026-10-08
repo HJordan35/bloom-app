@@ -1,6 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { type ReactNode, useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useRealtimeSync } from "../api/realtime";
 import { useCurrentBro } from "../lib/auth";
 import { clearBadge, refreshPush } from "../lib/push";
 import { colors, fonts, layout, space } from "../theme/tokens.stylex";
@@ -32,6 +33,7 @@ export function AppShell() {
   const detail = DETAIL_TITLES.find(([prefix]) => pathname.startsWith(prefix));
   const title = detail?.[1] ?? TITLES[pathname] ?? "Bloom";
   const bro = useCurrentBro();
+  useRealtimeSync();
 
   // Keep this device's push subscription saved, and open notification taps (sent by sw.js)
   useEffect(() => {

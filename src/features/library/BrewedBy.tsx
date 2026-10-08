@@ -2,9 +2,9 @@ import * as stylex from "@stylexjs/stylex";
 import { useQuery } from "@tanstack/react-query";
 import { byId } from "../../api/api.utils";
 import { broQueries } from "../../api/bros/bros.queries";
+import type { Ranking } from "../../api/rankings/rankings.types";
 import { AvatarStack } from "../../components/AvatarStack";
 import { useCurrentBro } from "../../lib/auth";
-import type { Ranking } from "../../lib/types";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 
 type Props = {

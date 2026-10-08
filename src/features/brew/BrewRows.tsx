@@ -1,8 +1,8 @@
 import * as stylex from "@stylexjs/stylex";
 import { Link } from "react-router-dom";
+import type { BrewWithRoast } from "../../api/brews/brews.types";
 import { LiveDot } from "../../components/LiveDot";
 import { elapsed, relativeDate } from "../../lib/format";
-import type { BrewWithRoast } from "../../lib/types";
 import { useNow } from "../../lib/useNow";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { resultsPending } from "./api";

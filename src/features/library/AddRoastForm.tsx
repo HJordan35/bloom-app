@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { roasterQueries } from "../../api/roasters/roasters.queries";
 import { roastMutations } from "../../api/roasts/roasts.queries";
+import type { RoastLevel, RoastWithRoaster } from "../../api/roasts/roasts.types";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Chips } from "../../components/Chips";
@@ -10,7 +11,6 @@ import { Field, SelectField } from "../../components/Field";
 import { PhotoPicker } from "../../components/PhotoPicker";
 import { useCurrentBro } from "../../lib/auth";
 import { ROAST_LEVELS } from "../../lib/constants";
-import type { RoastLevel, RoastWithRoaster } from "../../lib/types";
 import { space } from "../../theme/tokens.stylex";
 import { AddRoasterForm } from "./AddRoasterForm";
 

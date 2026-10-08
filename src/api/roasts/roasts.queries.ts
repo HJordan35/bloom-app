@@ -16,22 +16,17 @@ export const roastQueries = {
     queryOptions({ queryKey: roastKeys.detail(id), queryFn: () => fetchRoast(id) }),
 };
 
-/** Refresh every roast query, e.g. when Realtime reports a studio photo finished. */
+/** Roasts feed the rankings and events views, so those refresh too. */
 export function invalidateRoasts() {
-  return queryClient.invalidateQueries({ queryKey: roastKeys.all });
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: roastKeys.all }),
+    queryClient.invalidateQueries({ queryKey: rankingKeys.all }),
+    queryClient.invalidateQueries({ queryKey: eventKeys.all }),
+  ]);
 }
 
 export const roastMutations = {
-  create: () =>
-    mutationOptions({
-      mutationFn: createRoast,
-      onSuccess: () =>
-        Promise.all([
-          queryClient.invalidateQueries({ queryKey: roastKeys.all }),
-          queryClient.invalidateQueries({ queryKey: rankingKeys.all }),
-          queryClient.invalidateQueries({ queryKey: eventKeys.all }),
-        ]),
-    }),
+  create: () => mutationOptions({ mutationFn: createRoast, onSuccess: invalidateRoasts }),
   uploadPhoto: () =>
     mutationOptions({
       mutationFn: ({ roastId, file }: { roastId: string; file: File }) =>

@@ -1,4 +1,4 @@
-import type { Ranking } from "./types";
+import type { Ranking } from "../api/rankings/rankings.types";
 
 // Mirrors the roast_rankings / roaster_rankings views in
 // supabase/migrations/001_init.sql — keep the two in sync.

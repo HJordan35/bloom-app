@@ -2,14 +2,13 @@ import * as stylex from "@stylexjs/stylex";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { brewMutations, brewQueries, invalidateBrews } from "../../api/brews/brews.queries";
+import { brewMutations, brewQueries } from "../../api/brews/brews.queries";
+import type { BrewWithRoast } from "../../api/brews/brews.types";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { greeting } from "../../lib/format";
-import type { BrewWithRoast } from "../../lib/types";
-import { useLive } from "../../lib/useLive";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { ActiveBrewCard } from "./ActiveBrewCard";
 import { BrewResultsSheet } from "./BrewResultsSheet";
@@ -30,9 +29,6 @@ export function BrewNowPage() {
   const live = useQuery(brewQueries.live(bro.id));
   const recent = useQuery(brewQueries.recent(bro.id));
   const discardBrew = useMutation(brewMutations.discard());
-
-  // Any brew change by any bro refreshes the page
-  useLive(["brews"], invalidateBrews);
 
   // The brew mutations refresh the cached brews themselves
   function closeSheet() {

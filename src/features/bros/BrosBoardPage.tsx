@@ -1,29 +1,18 @@
 import * as stylex from "@stylexjs/stylex";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { brewKeys, brewQueries } from "../../api/brews/brews.queries";
+import { brewQueries } from "../../api/brews/brews.queries";
 import { broQueries } from "../../api/bros/bros.queries";
-import { eventKeys, eventQueries } from "../../api/events/events.queries";
-import { queryClient } from "../../api/queryClient";
-import { roasterKeys, roasterQueries } from "../../api/roasters/roasters.queries";
-import { roastKeys, roastQueries } from "../../api/roasts/roasts.queries";
+import { eventQueries } from "../../api/events/events.queries";
+import { roasterQueries } from "../../api/roasters/roasters.queries";
+import { roastQueries } from "../../api/roasts/roasts.queries";
 import { Avatar } from "../../components/Avatar";
 import { EmptyState } from "../../components/EmptyState";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { dayHeading } from "../../lib/format";
-import { useLive } from "../../lib/useLive";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { EventRow } from "./EventRow";
-
-const LIVE_TABLES = ["brews", "roasters", "roasts", "endorsements"];
-
-/** Any change to an event table refreshes what the board shows. */
-function refreshBoard() {
-  for (const queryKey of [eventKeys.all, brewKeys.brewingNow(), roastKeys.all, roasterKeys.all]) {
-    queryClient.invalidateQueries({ queryKey });
-  }
-}
 
 const brewingBroIds = (brews: { bro_id: string }[]) => new Set(brews.map((b) => b.bro_id));
 
@@ -35,7 +24,6 @@ export function BrosBoardPage() {
   // Event rows read these from the cache; waiting here keeps names from popping in
   const { data: roasts } = useQuery(roastQueries.list());
   const { data: roasters } = useQuery(roasterQueries.list());
-  useLive(LIVE_TABLES, refreshBoard);
 
   if (!events || !allBros || !brewing || !roasts || !roasters) return null;
   const bros = [...allBros].sort((a, b) => Number(b.id === me.id) - Number(a.id === me.id));

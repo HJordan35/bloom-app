@@ -1,7 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
+import type { Ranking } from "../api/rankings/rankings.types";
 import { formatScore } from "../lib/ranking";
-import type { Ranking } from "../lib/types";
 import { colors, fonts, space } from "../theme/tokens.stylex";
 import { RankingSheet } from "./RankingSheet";
 

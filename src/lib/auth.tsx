@@ -1,7 +1,8 @@
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
+import type { Bro } from "../api/bros/bros.types";
+import { queryClient } from "../api/queryClient";
 import { disablePush } from "./push";
 import { supabase } from "./supabase";
-import type { Bro } from "./types";
 
 type Auth = {
   bro: Bro | null;
@@ -56,6 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await disablePush();
     // Local: logging out here leaves the bro's other devices signed in
     await supabase.auth.signOut({ scope: "local" });
+    // The next bro to sign in on this device starts with an empty cache
+    queryClient.clear();
   }
 
   // Render nothing until the stored session is checked, so login doesn't flash

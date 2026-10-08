@@ -16,15 +16,15 @@ export const roasterQueries = {
     queryOptions({ queryKey: roasterKeys.detail(id), queryFn: () => fetchRoaster(id) }),
 };
 
+/** Roasters feed the rankings and events views, so those refresh too. */
+export function invalidateRoasters() {
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: roasterKeys.all }),
+    queryClient.invalidateQueries({ queryKey: rankingKeys.all }),
+    queryClient.invalidateQueries({ queryKey: eventKeys.all }),
+  ]);
+}
+
 export const roasterMutations = {
-  create: () =>
-    mutationOptions({
-      mutationFn: createRoaster,
-      onSuccess: () =>
-        Promise.all([
-          queryClient.invalidateQueries({ queryKey: roasterKeys.all }),
-          queryClient.invalidateQueries({ queryKey: rankingKeys.all }),
-          queryClient.invalidateQueries({ queryKey: eventKeys.all }),
-        ]),
-    }),
+  create: () => mutationOptions({ mutationFn: createRoaster, onSuccess: invalidateRoasters }),
 };

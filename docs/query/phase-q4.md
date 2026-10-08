@@ -1,6 +1,6 @@
 # Phase Q4 — Bros
 
-**Status:** ✅ Done
+**Status:** ✅ Done (9f3c860)
 
 ## Goal
 The Bros board, the profile pages and the endorsement sheet read from the query cache. `useData` and every pass-through module except `lib/types.ts` are gone.

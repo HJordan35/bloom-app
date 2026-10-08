@@ -1,8 +1,8 @@
 import * as stylex from "@stylexjs/stylex";
+import type { BrewWithRoast } from "../../api/brews/brews.types";
 import { Button } from "../../components/Button";
 import { LiveDot } from "../../components/LiveDot";
 import { elapsed, recipeLine } from "../../lib/format";
-import type { BrewWithRoast } from "../../lib/types";
 import { useNow } from "../../lib/useNow";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 

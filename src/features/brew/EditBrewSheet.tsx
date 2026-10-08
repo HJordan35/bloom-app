@@ -1,13 +1,14 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { brewMutations, brewQueries } from "../../api/brews/brews.queries";
+import type { BrewWithRoast } from "../../api/brews/brews.types";
+import type { Endorsement } from "../../api/endorsements/endorsements.types";
 import { Button } from "../../components/Button";
 import { Chips } from "../../components/Chips";
 import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
 import { BREW_METHODS } from "../../lib/constants";
-import type { BrewWithRoast, Endorsement } from "../../lib/types";
 import { type EndorsementDraft, endorsementDraft, saveEndorsement } from "../endorsements/draft";
 import { EndorsementFields } from "../endorsements/EndorsementFields";
 import { OutcomeFields, ProcessFields, RecipeFields } from "./BrewFields";

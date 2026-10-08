@@ -1,6 +1,6 @@
 import * as stylex from "@stylexjs/stylex";
+import type { Ranking } from "../api/rankings/rankings.types";
 import { isRanked } from "../lib/ranking";
-import type { Ranking } from "../lib/types";
 import { colors } from "../theme/tokens.stylex";
 
 /** The 0–10 score (rating and brews combined) as ten dots; all empty when unranked. */

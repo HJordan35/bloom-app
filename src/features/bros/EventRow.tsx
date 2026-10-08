@@ -5,12 +5,12 @@ import { Link } from "react-router-dom";
 import { byId } from "../../api/api.utils";
 import { brewQueries } from "../../api/brews/brews.queries";
 import { broQueries } from "../../api/bros/bros.queries";
+import type { BloomEvent } from "../../api/events/events.types";
 import { roasterQueries } from "../../api/roasters/roasters.queries";
 import { roastQueries } from "../../api/roasts/roasts.queries";
 import { Avatar } from "../../components/Avatar";
 import { LiveDot } from "../../components/LiveDot";
 import { clockTime } from "../../lib/format";
-import type { BloomEvent } from "../../lib/types";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 
 const brewIds = (brews: { id: string }[]) => new Set(brews.map((b) => b.id));

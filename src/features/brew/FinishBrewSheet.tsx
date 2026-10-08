@@ -1,9 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { brewMutations } from "../../api/brews/brews.queries";
+import type { BrewWithRoast } from "../../api/brews/brews.types";
 import { Button } from "../../components/Button";
 import { Sheet } from "../../components/Sheet";
-import type { BrewWithRoast } from "../../lib/types";
 import { ProcessFields } from "./BrewFields";
 import { brewDraft, processFromDraft } from "./draft";
 

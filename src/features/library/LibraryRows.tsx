@@ -1,9 +1,11 @@
 import * as stylex from "@stylexjs/stylex";
 import { Link } from "react-router-dom";
+import type { BrewWithRoast } from "../../api/brews/brews.types";
+import type { Ranking } from "../../api/rankings/rankings.types";
+import type { RoastWithRoaster } from "../../api/roasts/roasts.types";
 import { levelStyles } from "../../components/Mosaic";
 import { Section } from "../../components/Section";
 import { formatScore } from "../../lib/ranking";
-import type { BrewWithRoast, Ranking, RoastWithRoaster } from "../../lib/types";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { BrewRow } from "../brew/BrewRows";
 

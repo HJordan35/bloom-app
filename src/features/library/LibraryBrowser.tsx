@@ -3,8 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { brewQueries } from "../../api/brews/brews.queries";
 import { byRoasterId, byRoastId, rankingQueries } from "../../api/rankings/rankings.queries";
+import type { Ranking } from "../../api/rankings/rankings.types";
 import { roasterQueries } from "../../api/roasters/roasters.queries";
-import { invalidateRoasts, roastQueries } from "../../api/roasts/roasts.queries";
+import type { Roaster } from "../../api/roasters/roasters.types";
+import { roastQueries } from "../../api/roasts/roasts.queries";
+import type { RoastWithRoaster } from "../../api/roasts/roasts.types";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
 import { PlusIcon } from "../../components/icons";
@@ -13,8 +16,6 @@ import { SegmentedControl } from "../../components/SegmentedControl";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
 import { byRank } from "../../lib/ranking";
-import type { Ranking, Roaster, RoastWithRoaster } from "../../lib/types";
-import { useLive } from "../../lib/useLive";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 import { AddRoasterForm } from "./AddRoasterForm";
 import { AddRoastForm } from "./AddRoastForm";
@@ -56,7 +57,6 @@ export function LibraryBrowser({ view: controlledView, onViewChange, onPick }: P
     select: (history) => history.roastIds, // most recent first
     enabled: picking,
   });
-  useLive(["roasts"], invalidateRoasts); // studio photos finish developing in the background
 
   if (!roasters || !roasts || !roasterScores || !roastScores) return null;
   const people = (ranking?: Ranking) => <BrewedBy ranking={ranking} max={2} />;

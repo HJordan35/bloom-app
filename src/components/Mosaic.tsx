@@ -1,7 +1,8 @@
 import * as stylex from "@stylexjs/stylex";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import type { Ranking, RoastLevel } from "../lib/types";
+import type { Ranking } from "../api/rankings/rankings.types";
+import type { RoastLevel } from "../api/roasts/roasts.types";
 import { colors, fonts, radius, space } from "../theme/tokens.stylex";
 import { ScoreDots } from "./ScoreDots";
 import { Scrim } from "./Scrim";
