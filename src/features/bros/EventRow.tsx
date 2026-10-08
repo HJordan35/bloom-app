@@ -1,22 +1,33 @@
 import * as stylex from "@stylexjs/stylex";
+import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { byId } from "../../api/api.utils";
+import { brewQueries } from "../../api/brews/brews.queries";
+import { broQueries } from "../../api/bros/bros.queries";
+import { roasterQueries } from "../../api/roasters/roasters.queries";
+import { roastQueries } from "../../api/roasts/roasts.queries";
 import { Avatar } from "../../components/Avatar";
 import { LiveDot } from "../../components/LiveDot";
 import { clockTime } from "../../lib/format";
 import type { BloomEvent } from "../../lib/types";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
-import type { Board } from "./api";
 
-export function EventRow({ event: e, board }: { event: BloomEvent; board: Board }) {
-  const bro = board.brosById.get(e.bro_id);
-  const roast = e.roast_id ? board.roastsById.get(e.roast_id) : undefined;
-  const roaster = e.roaster_id ? board.roastersById.get(e.roaster_id) : undefined;
+const brewIds = (brews: { id: string }[]) => new Set(brews.map((b) => b.id));
+
+export function EventRow({ event: e }: { event: BloomEvent }) {
+  const { data: bros } = useQuery({ ...broQueries.list(), select: byId });
+  const { data: roasts } = useQuery({ ...roastQueries.list(), select: byId });
+  const { data: roasters } = useQuery({ ...roasterQueries.list(), select: byId });
+  const { data: brewingIds } = useQuery({ ...brewQueries.brewingNow(), select: brewIds });
+  const bro = bros?.get(e.bro_id);
+  const roast = e.roast_id ? roasts?.get(e.roast_id) : undefined;
+  const roaster = e.roaster_id ? roasters?.get(e.roaster_id) : undefined;
   if (!bro) return null;
 
   const name = <strong {...stylex.props(styles.name)}>{bro.first_name}</strong>;
   const roastName = <em {...stylex.props(styles.subject)}>{roast?.name}</em>;
-  const live = e.type === "brew" && board.brewingIds.has(e.ref_id);
+  const live = e.type === "brew" && !!brewingIds?.has(e.ref_id);
 
   let to: string;
   let sentence: ReactNode;

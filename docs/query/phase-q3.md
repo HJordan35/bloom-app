@@ -1,6 +1,6 @@
 # Phase Q3 — Brew
 
-**Status:** ✅ Done
+**Status:** ✅ Done (9308ef7)
 
 ## Goal
 The Brew pages and sheets read from the query cache and write through the brew mutations. Starting, finishing or editing a brew now refreshes rankings and events everywhere. That closes the Q2 gap where Library scores could lag behind a finished brew for up to 30 seconds.

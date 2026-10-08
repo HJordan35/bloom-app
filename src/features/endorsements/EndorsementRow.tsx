@@ -10,11 +10,9 @@ import { EndorsementSheet } from "./EndorsementSheet";
 type Props = {
   endorsement: EndorsementWithRoast;
   showRoast?: boolean;
-  /** After the owner edits it. Cached queries refresh themselves; only `useData` pages need it. */
-  onChanged?: () => void;
 };
 
-export function EndorsementRow({ endorsement: e, showRoast = false, onChanged }: Props) {
+export function EndorsementRow({ endorsement: e, showRoast = false }: Props) {
   const bro = useCurrentBro();
   const [editing, setEditing] = useState(false);
 
@@ -42,10 +40,7 @@ export function EndorsementRow({ endorsement: e, showRoast = false, onChanged }:
           roast={e.roast}
           endorsement={e}
           onClose={() => setEditing(false)}
-          onSaved={() => {
-            setEditing(false);
-            onChanged?.();
-          }}
+          onSaved={() => setEditing(false)}
         />
       )}
     </div>

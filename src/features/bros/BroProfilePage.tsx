@@ -1,5 +1,10 @@
 import * as stylex from "@stylexjs/stylex";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
+import { brewQueries } from "../../api/brews/brews.queries";
+import { broQueries } from "../../api/bros/bros.queries";
+import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
+import { byRoastId, rankingQueries } from "../../api/rankings/rankings.queries";
 import { Avatar } from "../../components/Avatar";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
@@ -7,29 +12,14 @@ import { LiveDot } from "../../components/LiveDot";
 import { Mosaic, Tile } from "../../components/Mosaic";
 import { Section } from "../../components/Section";
 import { useAuth, useCurrentBro } from "../../lib/auth";
-import { fetchBro } from "../../lib/bros";
 import { elapsed } from "../../lib/format";
 import type { BrewWithRoast, RoastWithRoaster } from "../../lib/types";
-import { useData } from "../../lib/useData";
 import { useNow } from "../../lib/useNow";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { isLive } from "../brew/api";
 import { BrewRow } from "../brew/BrewRows";
-import { fetchEndorsements } from "../endorsements/api";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
-import { fetchRoastRankings } from "../library/api";
-import { fetchBroBrews } from "./api";
 import { NotificationsToggle } from "./NotificationsToggle";
-
-async function load(id: string) {
-  const [bro, brews, endorsements, rankings] = await Promise.all([
-    fetchBro(id),
-    fetchBroBrews(id),
-    fetchEndorsements({ broId: id }),
-    fetchRoastRankings(),
-  ]);
-  return { bro, brews, endorsements, roastScores: new Map(rankings.map((r) => [r.roast_id, r])) };
-}
 
 /** Their roasts with how many times they've brewed each, most brewed first. */
 function libraryOf(brews: BrewWithRoast[]) {
@@ -53,10 +43,12 @@ export function BroProfilePage() {
   const me = useCurrentBro();
   const { logout } = useAuth();
   const now = useNow();
-  const { data, reload } = useData(() => load(id), [id]);
-  if (!data) return null;
+  const { data: bro } = useQuery(broQueries.detail(id));
+  const { data: brews } = useQuery(brewQueries.forBro(id));
+  const { data: endorsements } = useQuery(endorsementQueries.list({ broId: id }));
+  const { data: roastScores } = useQuery({ ...rankingQueries.roasts(), select: byRoastId });
+  if (!bro || !brews || !endorsements || !roastScores) return null;
 
-  const { bro, brews, endorsements, roastScores } = data;
   const live = brews.find(isLive);
   const library = libraryOf(brews);
   const stats: [string, string | number][] = [
@@ -131,7 +123,7 @@ export function BroProfilePage() {
       {endorsements.length > 0 && (
         <Section label="Endorsements">
           {endorsements.slice(0, 10).map((e) => (
-            <EndorsementRow key={e.id} endorsement={e} showRoast onChanged={reload} />
+            <EndorsementRow key={e.id} endorsement={e} showRoast />
           ))}
         </Section>
       )}

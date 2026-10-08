@@ -1,34 +1,51 @@
 import * as stylex from "@stylexjs/stylex";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { brewKeys, brewQueries } from "../../api/brews/brews.queries";
+import { broQueries } from "../../api/bros/bros.queries";
+import { eventKeys, eventQueries } from "../../api/events/events.queries";
+import { queryClient } from "../../api/queryClient";
+import { roasterKeys, roasterQueries } from "../../api/roasters/roasters.queries";
+import { roastKeys, roastQueries } from "../../api/roasts/roasts.queries";
 import { Avatar } from "../../components/Avatar";
 import { EmptyState } from "../../components/EmptyState";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { dayHeading } from "../../lib/format";
-import { useData } from "../../lib/useData";
 import { useLive } from "../../lib/useLive";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
-import { fetchBoard } from "./api";
 import { EventRow } from "./EventRow";
 
 const LIVE_TABLES = ["brews", "roasters", "roasts", "endorsements"];
 
+/** Any change to an event table refreshes what the board shows. */
+function refreshBoard() {
+  for (const queryKey of [eventKeys.all, brewKeys.brewingNow(), roastKeys.all, roasterKeys.all]) {
+    queryClient.invalidateQueries({ queryKey });
+  }
+}
+
+const brewingBroIds = (brews: { bro_id: string }[]) => new Set(brews.map((b) => b.bro_id));
+
 export function BrosBoardPage() {
   const me = useCurrentBro();
-  const { data: board, reload } = useData(fetchBoard, []);
+  const { data: events } = useQuery(eventQueries.list());
+  const { data: allBros } = useQuery(broQueries.list());
+  const { data: brewing } = useQuery({ ...brewQueries.brewingNow(), select: brewingBroIds });
+  // Event rows read these from the cache; waiting here keeps names from popping in
+  const { data: roasts } = useQuery(roastQueries.list());
+  const { data: roasters } = useQuery(roasterQueries.list());
+  useLive(LIVE_TABLES, refreshBoard);
 
-  // Any change to an event table refreshes the board
-  useLive(LIVE_TABLES, reload);
-
-  if (!board) return null;
-  const bros = [...board.bros].sort((a, b) => Number(b.id === me.id) - Number(a.id === me.id));
+  if (!events || !allBros || !brewing || !roasts || !roasters) return null;
+  const bros = [...allBros].sort((a, b) => Number(b.id === me.id) - Number(a.id === me.id));
 
   return (
     <div {...stylex.props(styles.page)}>
       <div {...stylex.props(styles.strip)}>
         {bros.map((bro) => (
           <Link key={bro.id} to={`/bros/${bro.id}`} {...stylex.props(styles.bro)}>
-            <Avatar bro={bro} size="lg" live={board.brewingBroIds.has(bro.id)} />
+            <Avatar bro={bro} size="lg" live={brewing.has(bro.id)} />
             <span {...stylex.props(styles.broName)}>
               {bro.id === me.id ? "You" : bro.first_name}
             </span>
@@ -36,15 +53,15 @@ export function BrosBoardPage() {
         ))}
       </div>
 
-      {board.events.length === 0 ? (
+      {events.length === 0 ? (
         <EmptyState title="Quiet in the lounge.">
           Brews, roasts and endorsements land here.
         </EmptyState>
       ) : (
-        groupByDay(board.events).map(([day, events]) => (
+        groupByDay(events).map(([day, events]) => (
           <Section key={day} label={day}>
             {events.map((e) => (
-              <EventRow key={`${e.type}-${e.ref_id}`} event={e} board={board} />
+              <EventRow key={`${e.type}-${e.ref_id}`} event={e} />
             ))}
           </Section>
         ))
