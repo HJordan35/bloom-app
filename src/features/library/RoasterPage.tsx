@@ -3,10 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { brewQueries } from "../../api/brews/brews.queries";
-import {
-  endorsementQueries,
-  invalidateEndorsements,
-} from "../../api/endorsements/endorsements.queries";
+import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
 import { byRoasterId, byRoastId, rankingQueries } from "../../api/rankings/rankings.queries";
 import { roasterQueries } from "../../api/roasters/roasters.queries";
 import { roastQueries } from "../../api/roasts/roasts.queries";
@@ -76,12 +73,7 @@ export function RoasterPage() {
       {endorsements.length > 0 && (
         <Section label="Endorsements">
           {endorsements.map((e) => (
-            <EndorsementRow
-              key={e.id}
-              endorsement={e}
-              showRoast
-              onChanged={invalidateEndorsements}
-            />
+            <EndorsementRow key={e.id} endorsement={e} showRoast />
           ))}
         </Section>
       )}

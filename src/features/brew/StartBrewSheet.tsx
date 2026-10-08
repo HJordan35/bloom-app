@@ -1,4 +1,8 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { brewMutations, brewQueries } from "../../api/brews/brews.queries";
+import { queryClient } from "../../api/queryClient";
+import { roastQueries } from "../../api/roasts/roasts.queries";
 import { Button } from "../../components/Button";
 import { Chips } from "../../components/Chips";
 import { Section } from "../../components/Section";
@@ -6,9 +10,6 @@ import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
 import { BREW_METHODS } from "../../lib/constants";
 import type { RoastWithRoaster } from "../../lib/types";
-import { useData } from "../../lib/useData";
-import { fetchRoast } from "../library/api";
-import { fetchLastRecipe, fetchMyBrewHistory, startBrew } from "./api";
 import { RecipeFields } from "./BrewFields";
 import { brewDraft, recipeFromDraft } from "./draft";
 import { RoastPickerSheet, SelectedRoast } from "./RoastChoice";
@@ -21,34 +22,40 @@ type Props = {
 
 export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
   const bro = useCurrentBro();
-  const history = useData(() => fetchMyBrewHistory(bro.id), [bro.id]);
+  const { data: grinders } = useQuery({
+    ...brewQueries.history(bro.id),
+    select: (history) => history.grinders,
+  });
+  const startBrew = useMutation(brewMutations.start());
 
   // Step 1 picks the roast in a library drawer; step 2 is the rest of the brew
-  const [roast, setRoast] = useState<RoastWithRoaster | null>(null);
+  const [picked, setPicked] = useState<RoastWithRoaster | null>(null);
   const [picking, setPicking] = useState(!initialRoastId);
   const [method, setMethod] = useState<string | null>(null);
   const [draft, setDraft] = useState(() => brewDraft());
-  const [busy, setBusy] = useState(false);
 
   // A roast passed in from the Library skips step 1
-  useEffect(() => {
-    if (initialRoastId) fetchRoast(initialRoastId).then(setRoast);
-  }, [initialRoastId]);
+  const initialRoast = useQuery({
+    ...roastQueries.detail(initialRoastId ?? ""),
+    enabled: !!initialRoastId,
+  });
+  const roast = picked ?? initialRoast.data ?? null;
 
-  // Prefill the recipe from your last brew of this roast + method
+  // Prefill the recipe from your last brew of this roast + method (once per choice, so a
+  // background refresh of the roast doesn't overwrite what you've typed)
+  const roastId = roast?.id;
   useEffect(() => {
-    if (!roast || !method) return;
-    fetchLastRecipe(bro.id, roast.id, method).then((last) => {
+    if (!roastId || !method) return;
+    queryClient.fetchQuery(brewQueries.lastRecipe(bro.id, roastId, method)).then((last) => {
       if (!last) return;
       const { dose, grindSize, grinder, temp, tempUnit } = brewDraft(last);
       setDraft((d) => ({ ...d, dose, grindSize, grinder, temp, tempUnit }));
     });
-  }, [bro.id, roast, method]);
+  }, [bro.id, roastId, method]);
 
   async function start() {
     if (!roast || !method) return;
-    setBusy(true);
-    await startBrew({
+    await startBrew.mutateAsync({
       bro_id: bro.id,
       roast_id: roast.id,
       method,
@@ -61,8 +68,8 @@ export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
     return (
       <RoastPickerSheet
         onClose={onClose}
-        onPick={(picked) => {
-          setRoast(picked);
+        onPick={(choice) => {
+          setPicked(choice);
           setPicking(false);
         }}
       />
@@ -82,11 +89,11 @@ export function StartBrewSheet({ initialRoastId, onClose, onStarted }: Props) {
       <RecipeFields
         value={draft}
         onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))}
-        grinders={history.data?.grinders}
+        grinders={grinders}
       />
 
-      <Button onClick={start} disabled={!roast || !method || busy}>
-        {busy ? "Starting…" : "Start brewing"}
+      <Button onClick={start} disabled={!roast || !method || startBrew.isPending}>
+        {startBrew.isPending ? "Starting…" : "Start brewing"}
       </Button>
     </Sheet>
   );

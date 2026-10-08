@@ -69,7 +69,7 @@ export const brewQueries = {
 };
 
 /** Brews feed the rankings and events views, so those refresh too. */
-function invalidateBrews() {
+export function invalidateBrews() {
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: brewKeys.all }),
     queryClient.invalidateQueries({ queryKey: rankingKeys.all }),

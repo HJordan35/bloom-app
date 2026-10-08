@@ -1,3 +1,2 @@
-// Fetching moved to src/api; re-exported until Brew (Q3) and Bros (Q4) migrate (docs/query/PLAN.md)
+// Fetching moved to src/api; re-exported until Bros (Q4) migrates (docs/query/PLAN.md)
 export { fetchRoastRankings } from "../../api/rankings/rankings.service";
-export { fetchRoast } from "../../api/roasts/roasts.service";

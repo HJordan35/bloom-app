@@ -3,10 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { brewQueries } from "../../api/brews/brews.queries";
-import {
-  endorsementQueries,
-  invalidateEndorsements,
-} from "../../api/endorsements/endorsements.queries";
+import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
 import { byRoastId, rankingQueries } from "../../api/rankings/rankings.queries";
 import { invalidateRoasts, roastMutations, roastQueries } from "../../api/roasts/roasts.queries";
 import { Button } from "../../components/Button";
@@ -119,7 +116,7 @@ export function RoastPage() {
       {endorsements.length > 0 && (
         <Section label="Endorsements">
           {endorsements.map((e) => (
-            <EndorsementRow key={e.id} endorsement={e} onChanged={invalidateEndorsements} />
+            <EndorsementRow key={e.id} endorsement={e} />
           ))}
         </Section>
       )}
@@ -130,10 +127,7 @@ export function RoastPage() {
         <EndorsementSheet
           roast={roast}
           onClose={() => setEndorsing(false)}
-          onSaved={() => {
-            setEndorsing(false);
-            invalidateEndorsements();
-          }}
+          onSaved={() => setEndorsing(false)}
         />
       )}
     </div>

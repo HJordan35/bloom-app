@@ -1,17 +1,17 @@
 import * as stylex from "@stylexjs/stylex";
-import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { brewMutations, brewQueries, invalidateBrews } from "../../api/brews/brews.queries";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { greeting } from "../../lib/format";
-import { supabase } from "../../lib/supabase";
 import type { BrewWithRoast } from "../../lib/types";
-import { useData } from "../../lib/useData";
+import { useLive } from "../../lib/useLive";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { ActiveBrewCard } from "./ActiveBrewCard";
-import { discardBrew, fetchLiveBrews, fetchMyOpenBrew, fetchRecentBrews } from "./api";
 import { BrewResultsSheet } from "./BrewResultsSheet";
 import { BrewRow, LiveBrewRow } from "./BrewRows";
 import { FinishBrewSheet } from "./FinishBrewSheet";
@@ -26,28 +26,15 @@ export function BrewNowPage() {
     roastParam || params.has("start") ? "start" : null,
   );
 
-  const mine = useData(() => fetchMyOpenBrew(bro.id), [bro.id]);
-  const live = useData(() => fetchLiveBrews(bro.id), [bro.id]);
-  const recent = useData(() => fetchRecentBrews(bro.id), [bro.id]);
-  const { reload: reloadMine } = mine;
-  const { reload: reloadLive } = live;
-  const { reload: reloadRecent } = recent;
+  const mine = useQuery(brewQueries.myOpen(bro.id));
+  const live = useQuery(brewQueries.live(bro.id));
+  const recent = useQuery(brewQueries.recent(bro.id));
+  const discardBrew = useMutation(brewMutations.discard());
 
   // Any brew change by any bro refreshes the page
-  useEffect(() => {
-    const channel = supabase
-      .channel(`brews-${crypto.randomUUID()}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "brews" }, () => {
-        reloadMine();
-        reloadLive();
-        reloadRecent();
-      })
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [reloadMine, reloadLive, reloadRecent]);
+  useLive(["brews"], invalidateBrews);
 
+  // The brew mutations refresh the cached brews themselves
   function closeSheet() {
     setSheet(null);
     if (params.size > 0) setParams({}, { replace: true });
@@ -56,16 +43,9 @@ export function BrewNowPage() {
   // After finishing, keep the brew around for the "How was it?" follow-up
   const [followUp, setFollowUp] = useState<BrewWithRoast | null>(null);
 
-  function refresh() {
-    closeSheet();
-    reloadMine();
-    reloadRecent();
-  }
-
-  async function discard() {
+  function discard() {
     if (!mine.data || !confirm("Discard this brew?")) return;
-    await discardBrew(mine.data.id);
-    reloadMine();
+    discardBrew.mutate(mine.data.id);
   }
 
   return (
@@ -98,15 +78,15 @@ export function BrewNowPage() {
       </Section>
 
       {sheet === "start" && (
-        <StartBrewSheet initialRoastId={roastParam} onClose={closeSheet} onStarted={refresh} />
+        <StartBrewSheet initialRoastId={roastParam} onClose={closeSheet} onStarted={closeSheet} />
       )}
       {sheet === "finish" && mine.data && (
         <FinishBrewSheet
           brew={mine.data}
           onClose={closeSheet}
-          onFinished={() => {
-            setFollowUp(mine.data ?? null);
-            refresh();
+          onFinished={(brew) => {
+            setFollowUp(brew);
+            closeSheet();
           }}
         />
       )}
@@ -114,10 +94,7 @@ export function BrewNowPage() {
         <BrewResultsSheet
           brew={followUp}
           onClose={() => setFollowUp(null)}
-          onSaved={() => {
-            setFollowUp(null);
-            reloadRecent();
-          }}
+          onSaved={() => setFollowUp(null)}
         />
       )}
     </div>

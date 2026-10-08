@@ -1,6 +1,6 @@
 # Phase Q2 — Library
 
-**Status:** ✅ Done
+**Status:** ✅ Done (569a302)
 
 ## Goal
 Library pages read from the query cache instead of loading everything up front. Moving between the Library, a roaster and a roast reuses the cached lists instead of fetching them again.

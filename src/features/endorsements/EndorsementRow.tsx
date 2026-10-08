@@ -10,8 +10,8 @@ import { EndorsementSheet } from "./EndorsementSheet";
 type Props = {
   endorsement: EndorsementWithRoast;
   showRoast?: boolean;
-  /** Called after the owner edits it, so the page can reload. */
-  onChanged: () => void;
+  /** After the owner edits it. Cached queries refresh themselves; only `useData` pages need it. */
+  onChanged?: () => void;
 };
 
 export function EndorsementRow({ endorsement: e, showRoast = false, onChanged }: Props) {
@@ -44,7 +44,7 @@ export function EndorsementRow({ endorsement: e, showRoast = false, onChanged }:
           onClose={() => setEditing(false)}
           onSaved={() => {
             setEditing(false);
-            onChanged();
+            onChanged?.();
           }}
         />
       )}

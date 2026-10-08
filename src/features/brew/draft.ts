@@ -1,6 +1,6 @@
+import type { BrewOutcome, BrewProcess, Recipe } from "../../api/brews/brews.types";
 import { toNumber, toSeconds } from "../../lib/format";
 import type { Brew, TempUnit } from "../../lib/types";
-import type { BrewOutcome, BrewProcess, Recipe } from "./api";
 
 /** Form state for every brew field, shared by the start, finish, follow-up (and edit) sheets. */
 export type BrewDraft = {

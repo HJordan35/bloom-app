@@ -16,8 +16,8 @@ This plan stands on its own. `docs/PLAN.md`, `docs/gallery/PLAN.md` and `docs/pu
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
 | Q1 | Foundation: `src/api/` per-entity types, services, queries; QueryClient + provider | ✅ Done (2a8447e) | [phase-q1.md](phase-q1.md) |
-| Q2 | Library: `LibraryBrowser`, `RoasterPage`, `RoastPage`, add roaster / roast forms | ✅ Done | [phase-q2.md](phase-q2.md) |
-| Q3 | Brew: `BrewNowPage`, `BrewDetailPage`, start / edit / finish / results sheets | ⏳ | — |
+| Q2 | Library: `LibraryBrowser`, `RoasterPage`, `RoastPage`, add roaster / roast forms | ✅ Done (569a302) | [phase-q2.md](phase-q2.md) |
+| Q3 | Brew: `BrewNowPage`, `BrewDetailPage`, start / edit / finish / results sheets | ✅ Done | [phase-q3.md](phase-q3.md) |
 | Q4 | Bros: `BrosBoardPage`, `BroProfilePage`, endorsement sheet | ⏳ | — |
 | Q5 | Realtime + cleanup: `useLive` invalidates query keys; delete `useData` and the re-export shims | ⏳ | — |
 
