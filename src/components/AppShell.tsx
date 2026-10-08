@@ -93,10 +93,13 @@ export function AppShell() {
 const styles = stylex.create({
   // The frame is exactly the screen and never scrolls; only <main> does. On mobile, a
   // scrolling document drags fixed bars along with its overscroll bounce and toolbar.
+  // Pinned to the edges rather than 100dvh tall: in the installed iOS app (translucent
+  // status bar) dvh comes up a status bar short, leaving a gap under the tab bar.
   frame: {
+    position: "fixed",
+    inset: 0,
     maxWidth: layout.maxWidth,
     marginInline: "auto",
-    height: "100dvh",
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",

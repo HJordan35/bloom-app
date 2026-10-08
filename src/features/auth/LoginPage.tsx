@@ -59,9 +59,11 @@ export function LoginPage() {
 
 const styles = stylex.create({
   page: {
+    // Its own scroll area, as the page itself never scrolls (theme/global.css); pinned to
+    // the screen edges for the same iOS reason as the app shell's frame
+    position: "fixed",
+    inset: 0,
     maxWidth: 400,
-    // Its own scroll area, as the page itself never scrolls (theme/global.css)
-    height: "100dvh",
     overflowY: "auto",
     marginInline: "auto",
     paddingInline: space.lg,
