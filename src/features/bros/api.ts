@@ -1,29 +1,12 @@
-import { fetchBros } from "../../lib/bros";
-import { supabase } from "../../lib/supabase";
-import type { BloomEvent, BrewWithRoast } from "../../lib/types";
-import { unwrap } from "../../lib/unwrap";
-import { BREW_SELECT, fetchBrewingNow } from "../brew/api";
-import { fetchRoasters, fetchRoasts } from "../library/api";
+import { fetchBrewingNow } from "../../api/brews/brews.service";
+import { fetchBros } from "../../api/bros/bros.service";
+import { fetchEvents } from "../../api/events/events.service";
+import { fetchRoasters } from "../../api/roasters/roasters.service";
+import { fetchRoasts } from "../../api/roasts/roasts.service";
 
-export async function fetchEvents(limit = 60) {
-  return unwrap<BloomEvent[]>(
-    await supabase
-      .from("events")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(limit),
-  );
-}
-
-export async function fetchBroBrews(broId: string) {
-  return unwrap<BrewWithRoast[]>(
-    await supabase
-      .from("brews")
-      .select(BREW_SELECT)
-      .eq("bro_id", broId)
-      .order("started_at", { ascending: false }),
-  );
-}
+// Fetching moved to src/api; re-exported until every caller migrates (docs/query/PLAN.md)
+export { fetchBroBrews } from "../../api/brews/brews.service";
+export { fetchEvents } from "../../api/events/events.service";
 
 /** Everything the board needs, with lookup maps to turn event ids into names. */
 export async function fetchBoard() {

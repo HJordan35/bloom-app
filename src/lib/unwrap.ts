@@ -1,5 +1,2 @@
-/** Return Supabase data or throw its error (MVP: happy path only). */
-export function unwrap<T>({ data, error }: { data: unknown; error: unknown }) {
-  if (error) throw error;
-  return data as T;
-}
+// Moved to src/api; kept until every caller migrates (docs/query/PLAN.md)
+export { unwrap } from "../api/api.utils";

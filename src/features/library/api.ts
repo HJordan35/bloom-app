@@ -1,85 +1,19 @@
+import { fetchMyBrewHistory } from "../../api/brews/brews.service";
+import { fetchRoasterRankings, fetchRoastRankings } from "../../api/rankings/rankings.service";
+import { fetchRoasters } from "../../api/roasters/roasters.service";
+import { fetchRoasts } from "../../api/roasts/roasts.service";
 import { fetchBrosById } from "../../lib/bros";
-import { supabase } from "../../lib/supabase";
-import type {
-  BrewWithRoast,
-  Roaster,
-  RoasterRanking,
-  RoastLevel,
-  RoastRanking,
-  RoastWithRoaster,
-} from "../../lib/types";
-import { unwrap } from "../../lib/unwrap";
-import { BREW_SELECT, fetchMyBrewHistory } from "../brew/api";
 
-export const ROAST_SELECT = "*, roaster:roasters(*)";
-
-export async function fetchRoasts() {
-  return unwrap<RoastWithRoaster[]>(
-    await supabase.from("roasts").select(ROAST_SELECT).order("name"),
-  );
-}
-
-export async function fetchRoasters() {
-  return unwrap<Roaster[]>(await supabase.from("roasters").select("*").order("name"));
-}
-
-export async function createRoaster(input: {
-  name: string;
-  location: string | null;
-  created_by: string;
-}) {
-  return unwrap<Roaster>(await supabase.from("roasters").insert(input).select().single());
-}
-
-export async function createRoast(input: {
-  roaster_id: string;
-  name: string;
-  roast_level: RoastLevel;
-  region: string | null;
-  created_by: string;
-}) {
-  return unwrap<RoastWithRoaster>(
-    await supabase.from("roasts").insert(input).select(ROAST_SELECT).single(),
-  );
-}
-
-export async function fetchRoaster(id: string) {
-  return unwrap<Roaster>(await supabase.from("roasters").select("*").eq("id", id).single());
-}
-
-export async function fetchRoast(id: string) {
-  return unwrap<RoastWithRoaster>(
-    await supabase.from("roasts").select(ROAST_SELECT).eq("id", id).single(),
-  );
-}
-
-export async function fetchRoastRankings() {
-  return unwrap<RoastRanking[]>(await supabase.from("roast_rankings").select("*"));
-}
-
-export async function fetchRoasterRankings() {
-  return unwrap<RoasterRanking[]>(await supabase.from("roaster_rankings").select("*"));
-}
-
-export async function fetchBrewsForRoast(roastId: string) {
-  return unwrap<BrewWithRoast[]>(
-    await supabase
-      .from("brews")
-      .select(BREW_SELECT)
-      .eq("roast_id", roastId)
-      .order("started_at", { ascending: false }),
-  );
-}
-
-export async function fetchBrewsForRoaster(roasterId: string) {
-  return unwrap<BrewWithRoast[]>(
-    await supabase
-      .from("brews")
-      .select(BREW_SELECT.replace("roast:roasts(", "roast:roasts!inner("))
-      .eq("roast.roaster_id", roasterId)
-      .order("started_at", { ascending: false }),
-  );
-}
+// Fetching moved to src/api; re-exported until every caller migrates (docs/query/PLAN.md)
+export { fetchBrewsForRoast, fetchBrewsForRoaster } from "../../api/brews/brews.service";
+export { fetchRoasterRankings, fetchRoastRankings } from "../../api/rankings/rankings.service";
+export { createRoaster, fetchRoaster, fetchRoasters } from "../../api/roasters/roasters.service";
+export {
+  createRoast,
+  fetchRoast,
+  fetchRoasts,
+  ROAST_SELECT,
+} from "../../api/roasts/roasts.service";
 
 /** Everything the Library page needs, in one round of requests. */
 export async function fetchLibrary(broId: string) {

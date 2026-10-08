@@ -1,96 +1,10 @@
-export type RoastLevel = "light" | "medium" | "dark";
-export type TempUnit = "C" | "F";
+// Types live with their entity in src/api; this barrel stays until every caller migrates
+// (docs/query/PLAN.md).
 
-export type Bro = {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-};
-
-export type Roaster = {
-  id: string;
-  name: string;
-  location: string | null;
-  created_by: string;
-  created_at: string;
-};
-
-export type Roast = {
-  id: string;
-  roaster_id: string;
-  name: string;
-  roast_level: RoastLevel;
-  region: string | null;
-  /** Storage path of the bag photo as uploaded, in the roast-photos bucket. */
-  photo_original_path: string | null;
-  /** The studio version, made from the original by the studio-photo Edge Function. */
-  photo_path: string | null;
-  photo_status: "processing" | "ready" | "failed" | null;
-  created_by: string;
-  created_at: string;
-};
-
-export type Brew = {
-  id: string;
-  bro_id: string;
-  roast_id: string;
-  method: string;
-  dose_g: number | null;
-  grind_size: string | null;
-  grinder: string | null;
-  temp: number | null;
-  temp_unit: TempUnit;
-  brew_time_s: number | null;
-  volume_ml: number | null;
-  brew_notes: string | null;
-  brew_results: string | null;
-  dialed_in: boolean;
-  started_at: string;
-  finished_at: string | null;
-  created_at: string;
-};
-
-export type Endorsement = {
-  id: string;
-  bro_id: string;
-  roast_id: string;
-  brew_id: string | null;
-  method: string | null;
-  rating: number | null;
-  note: string | null;
-  created_at: string;
-};
-
-export type Ranking = {
-  brew_count: number;
-  avg_rating: number | null;
-  rating_count: number;
-  score: number;
-  /** Ids of every bro who has brewed it. */
-  brewed_by: string[];
-};
-
-export type RoastRanking = Ranking & { roast_id: string; roaster_id: string };
-export type RoasterRanking = Ranking & { roaster_id: string };
-
-export type EndorsementWithRoast = Endorsement & { bro: Bro; roast: RoastWithRoaster };
-
-export type BloomEvent = {
-  type: "brew" | "roaster" | "roast" | "endorsement";
-  ref_id: string;
-  bro_id: string;
-  roast_id: string | null;
-  roaster_id: string | null;
-  method: string | null;
-  rating: number | null;
-  note: string | null;
-  created_at: string;
-};
-
-export type RoastWithRoaster = Roast & { roaster: Roaster };
-
-export type BrewWithRoast = Brew & {
-  roast: RoastWithRoaster;
-  bro: Bro;
-};
+export type { Brew, BrewWithRoast, TempUnit } from "../api/brews/brews.types";
+export type { Bro } from "../api/bros/bros.types";
+export type { Endorsement, EndorsementWithRoast } from "../api/endorsements/endorsements.types";
+export type { BloomEvent } from "../api/events/events.types";
+export type { Ranking, RoasterRanking, RoastRanking } from "../api/rankings/rankings.types";
+export type { Roaster } from "../api/roasters/roasters.types";
+export type { Roast, RoastLevel, RoastWithRoaster } from "../api/roasts/roasts.types";
