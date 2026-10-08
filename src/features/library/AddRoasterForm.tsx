@@ -1,12 +1,13 @@
 import * as stylex from "@stylexjs/stylex";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import { roasterMutations } from "../../api/roasters/roasters.queries";
 import { Button } from "../../components/Button";
 import { Card } from "../../components/Card";
 import { Field } from "../../components/Field";
 import { useCurrentBro } from "../../lib/auth";
 import type { Roaster } from "../../lib/types";
 import { space } from "../../theme/tokens.stylex";
-import { createRoaster } from "./api";
 
 type Props = {
   onCreated: (roaster: Roaster) => void;
@@ -17,11 +18,10 @@ export function AddRoasterForm({ onCreated, onCancel }: Props) {
   const bro = useCurrentBro();
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
-  const [busy, setBusy] = useState(false);
+  const create = useMutation(roasterMutations.create());
 
   async function save() {
-    setBusy(true);
-    const roaster = await createRoaster({
+    const roaster = await create.mutateAsync({
       name: name.trim(),
       location: location.trim() || null,
       created_by: bro.id,
@@ -43,7 +43,7 @@ export function AddRoasterForm({ onCreated, onCancel }: Props) {
           <Button variant="ghost" onClick={onCancel}>
             Cancel
           </Button>
-          <Button onClick={save} disabled={!name.trim() || busy}>
+          <Button onClick={save} disabled={!name.trim() || create.isPending}>
             Add roaster
           </Button>
         </div>

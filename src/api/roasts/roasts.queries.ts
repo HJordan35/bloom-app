@@ -16,6 +16,11 @@ export const roastQueries = {
     queryOptions({ queryKey: roastKeys.detail(id), queryFn: () => fetchRoast(id) }),
 };
 
+/** Refresh every roast query, e.g. when Realtime reports a studio photo finished. */
+export function invalidateRoasts() {
+  return queryClient.invalidateQueries({ queryKey: roastKeys.all });
+}
+
 export const roastMutations = {
   create: () =>
     mutationOptions({
@@ -31,6 +36,6 @@ export const roastMutations = {
     mutationOptions({
       mutationFn: ({ roastId, file }: { roastId: string; file: File }) =>
         uploadRoastPhoto(roastId, file),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: roastKeys.all }),
+      onSuccess: invalidateRoasts,
     }),
 };

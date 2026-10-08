@@ -1,6 +1,6 @@
 # Phase Q1 — Foundation
 
-**Status:** 🔨 Built — no view uses it yet
+**Status:** ✅ Done (2a8447e)
 
 ## Goal
 Set up a reusable TanStack Query layer for every entity, without changing what any view does.

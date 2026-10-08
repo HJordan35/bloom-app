@@ -19,7 +19,7 @@ export const endorsementQueries = {
 };
 
 /** Ratings feed the rankings and events views, so those refresh too. */
-function invalidateEndorsements() {
+export function invalidateEndorsements() {
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: endorsementKeys.all }),
     queryClient.invalidateQueries({ queryKey: rankingKeys.all }),

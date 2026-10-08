@@ -2,9 +2,6 @@ import { PHOTO_BUCKET } from "../../api/roasts/roasts.service";
 import type { Roast } from "../../api/roasts/roasts.types";
 import { supabase } from "../../lib/supabase";
 
-// Upload moved to src/api/roasts; re-exported until every caller migrates (docs/query/PLAN.md)
-export { uploadRoastPhoto } from "../../api/roasts/roasts.service";
-
 /** The photo to show: the studio version once it's ready, otherwise the original. */
 export function roastPhoto(
   roast: Pick<Roast, "photo_original_path" | "photo_path" | "photo_status">,
