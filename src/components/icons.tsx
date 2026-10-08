@@ -56,3 +56,22 @@ export function BrosIcon() {
     </Icon>
   );
 }
+
+export function HistoryIcon() {
+  return (
+    <Icon width="14" height="14" strokeWidth={1.5}>
+      <path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" />
+      <path d="M4.5 4v3.5H8" />
+      <path d="M12 8v4l2.75 1.75" />
+    </Icon>
+  );
+}
+
+export function PencilIcon() {
+  return (
+    <Icon width="14" height="14" strokeWidth={1.5}>
+      <path d="M15.5 4.5l4 4L8 20H4v-4L15.5 4.5Z" />
+      <path d="M13 7l4 4" />
+    </Icon>
+  );
+}

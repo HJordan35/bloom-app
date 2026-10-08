@@ -20,10 +20,12 @@ import { StartBrewSheet } from "./StartBrewSheet";
 export function BrewNowPage() {
   const bro = useCurrentBro();
   const [params, setParams] = useSearchParams();
-  // `?roast=<id>` or `?start` (from the Library) opens the start sheet
+  // `?roast=<id>` or `?start` (from the Library), or `?recipe=<brew id>` (from a brew),
+  // opens the start sheet
   const roastParam = params.get("roast");
+  const recipeParam = params.get("recipe");
   const [sheet, setSheet] = useState<"start" | "finish" | null>(
-    roastParam || params.has("start") ? "start" : null,
+    roastParam || recipeParam || params.has("start") ? "start" : null,
   );
 
   const mine = useQuery(brewQueries.myOpen(bro.id));
@@ -78,7 +80,12 @@ export function BrewNowPage() {
       </Section>
 
       {sheet === "start" && (
-        <StartBrewSheet initialRoastId={roastParam} onClose={closeSheet} onStarted={closeSheet} />
+        <StartBrewSheet
+          initialRoastId={roastParam}
+          initialRecipeId={recipeParam}
+          onClose={closeSheet}
+          onStarted={closeSheet}
+        />
       )}
       {sheet === "finish" && mine.data && (
         <FinishBrewSheet

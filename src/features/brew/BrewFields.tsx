@@ -1,4 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
+import type { ReactNode } from "react";
 import { Field, TextAreaField } from "../../components/Field";
 import { Section } from "../../components/Section";
 import { Toggle } from "../../components/Toggle";
@@ -17,9 +18,10 @@ export function RecipeFields({
   value,
   onChange,
   grinders = [],
-}: SectionProps & { grinders?: string[] }) {
+  action,
+}: SectionProps & { grinders?: string[]; action?: ReactNode }) {
   return (
-    <Section label="Recipe">
+    <Section label="Recipe" action={action}>
       <div {...stylex.props(styles.grid)}>
         <Field
           label="Dose (g)"

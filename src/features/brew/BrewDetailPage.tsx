@@ -1,43 +1,44 @@
 import * as stylex from "@stylexjs/stylex";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { brewQueries } from "../../api/brews/brews.queries";
 import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
-import { Button } from "../../components/Button";
 import { FadeIn } from "../../components/FadeIn";
+import { HeaderAction } from "../../components/HeaderAction";
+import { PencilIcon } from "../../components/icons";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
-import { formatTemp, mmss, relativeDate } from "../../lib/format";
+import { relativeDate } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
+import { BrewRecipe } from "./BrewStats";
 import { EditBrewSheet } from "./EditBrewSheet";
 
 export function BrewDetailPage() {
   const { id = "" } = useParams();
   const me = useCurrentBro();
+  const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const { data: brew } = useQuery(brewQueries.detail(id));
   const { data: endorsements } = useQuery(endorsementQueries.list({ brewId: id }));
   if (!brew || !endorsements) return null;
   const mine = brew.bro_id === me.id;
 
-  const stats: [string, string | null][] = [
-    ["Dose", brew.dose_g != null ? `${brew.dose_g} g` : null],
-    ["Grind", brew.grind_size],
-    ["Grinder", brew.grinder],
-    ["Temp", formatTemp(brew)],
-    ["Brew time", brew.brew_time_s != null ? mmss(brew.brew_time_s) : null],
-    ["Volume", brew.volume_ml != null ? `${brew.volume_ml} ml` : null],
-  ];
-
   return (
     <FadeIn xstyle={styles.page}>
       <header {...stylex.props(styles.header)}>
-        <p {...stylex.props(styles.eyebrow)}>
-          {brew.bro.first_name} · {relativeDate(brew.started_at)}
-          {!brew.finished_at && " · brewing"}
-        </p>
+        <div {...stylex.props(styles.top)}>
+          <p {...stylex.props(styles.eyebrow)}>
+            {brew.bro.first_name} · {relativeDate(brew.started_at)}
+            {!brew.finished_at && " · brewing"}
+          </p>
+          {mine && (
+            <HeaderAction icon={<PencilIcon />} onClick={() => setEditing(true)}>
+              Edit
+            </HeaderAction>
+          )}
+        </div>
         <Link to={`/library/roasts/${brew.roast.id}`} {...stylex.props(styles.roast)}>
           {brew.roast.name}
         </Link>
@@ -54,22 +55,7 @@ export function BrewDetailPage() {
         </p>
       </header>
 
-      {mine && (
-        <Button variant="ghost" onClick={() => setEditing(true)}>
-          Edit brew
-        </Button>
-      )}
-
-      <Section label="Recipe">
-        <dl {...stylex.props(styles.stats)}>
-          {stats.map(([label, value]) => (
-            <div key={label} {...stylex.props(styles.stat)}>
-              <dt {...stylex.props(styles.statLabel)}>{label}</dt>
-              <dd {...stylex.props(styles.statValue)}>{value ?? "—"}</dd>
-            </div>
-          ))}
-        </dl>
-      </Section>
+      <BrewRecipe brew={brew} onUse={() => navigate(`/?recipe=${brew.id}`)} />
 
       {brew.brew_notes && (
         <Section label="Brew notes">
@@ -114,6 +100,13 @@ const styles = stylex.create({
     flexDirection: "column",
     gap: space.xs,
   },
+  top: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: space.md,
+  },
+
   eyebrow: {
     fontFamily: fonts.mono,
     fontSize: 10,
@@ -144,25 +137,6 @@ const styles = stylex.create({
   },
   dialed: {
     color: colors.brass,
-  },
-  stats: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    rowGap: space.md,
-    columnGap: space.md,
-    paddingTop: space.sm,
-  },
-  stat: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  statLabel: {
-    fontSize: 11,
-    color: colors.muted,
-  },
-  statValue: {
-    fontFamily: fonts.mono,
-    fontSize: 16,
   },
   notes: {
     whiteSpace: "pre-wrap",

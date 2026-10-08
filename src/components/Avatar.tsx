@@ -9,11 +9,20 @@ type Props = {
   live?: boolean;
   /** The logged-in bro: brass ring and initials, to tell "you" apart in a group. */
   self?: boolean;
+  /** Picked in a filter: the same brass treatment as a selected chip. */
+  selected?: boolean;
 };
 
-export function Avatar({ bro, size = "sm", live = false, self = false }: Props) {
+export function Avatar({ bro, size = "sm", live = false, self = false, selected = false }: Props) {
   return (
-    <span {...stylex.props(styles.avatar, styles[size], self && styles.self, live && styles.live)}>
+    <span
+      {...stylex.props(
+        styles.avatar,
+        styles[size],
+        (self || selected) && styles.self,
+        live && styles.live,
+      )}
+    >
       {bro.first_name[0]}
       {bro.last_name[0]}
       {live && size === "lg" && (
