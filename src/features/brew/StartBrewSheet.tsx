@@ -13,8 +13,8 @@ import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
 import { BREW_METHODS } from "../../lib/constants";
-import { RecipeFields } from "./BrewFields";
-import { brewDraft, recipeFromDraft } from "./draft";
+import { BrewNotesField, RecipeFields } from "./BrewFields";
+import { brewDraft, notesFromDraft, recipeFromDraft } from "./draft";
 import { RecipeHistorySheet } from "./RecipeHistorySheet";
 import { RoastPickerSheet, SelectedRoast } from "./RoastChoice";
 
@@ -72,12 +72,12 @@ export function StartBrewSheet({ initialRoastId, initialRecipeId, onClose, onSta
     prefill(roast?.id, choice);
   }
 
-  /** Borrow a past brew's method and recipe. */
+  /** Borrow a past brew's method, recipe and notes. */
   function applyRecipe(brew: BrewWithRoast) {
     prefillRequest.current++;
-    const { dose, grindSize, grinder, temp, tempUnit } = brewDraft(brew);
+    const { dose, grindSize, grinder, temp, tempUnit, brewNotes } = brewDraft(brew);
     setMethod(brew.method);
-    setDraft((d) => ({ ...d, dose, grindSize, grinder, temp, tempUnit }));
+    setDraft((d) => ({ ...d, dose, grindSize, grinder, temp, tempUnit, brewNotes }));
     setBrowsing(false);
   }
 
@@ -96,6 +96,7 @@ export function StartBrewSheet({ initialRoastId, initialRecipeId, onClose, onSta
       roast_id: roast.id,
       method,
       ...recipeFromDraft(draft),
+      ...notesFromDraft(draft),
     });
     onStarted();
   }
@@ -126,6 +127,8 @@ export function StartBrewSheet({ initialRoastId, initialRecipeId, onClose, onSta
     );
   }
 
+  const patch = (p: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...p }));
+
   return (
     <Sheet title="Start a brew" onClose={onClose}>
       <SelectedRoast roast={roast} onChange={() => setPicking(true)} />
@@ -136,7 +139,7 @@ export function StartBrewSheet({ initialRoastId, initialRecipeId, onClose, onSta
 
       <RecipeFields
         value={draft}
-        onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))}
+        onChange={patch}
         grinders={grinders}
         action={
           <HeaderAction icon={<HistoryIcon />} onClick={() => setBrowsing(true)}>
@@ -144,6 +147,8 @@ export function StartBrewSheet({ initialRoastId, initialRecipeId, onClose, onSta
           </HeaderAction>
         }
       />
+
+      <BrewNotesField value={draft.brewNotes} onChange={(brewNotes) => patch({ brewNotes })} />
 
       <Button onClick={start} disabled={!roast || !method || startBrew.isPending}>
         {startBrew.isPending ? "Starting…" : "Start brewing"}

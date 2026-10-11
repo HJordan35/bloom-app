@@ -1,4 +1,11 @@
-import type { Brew, BrewOutcome, BrewProcess, Recipe, TempUnit } from "../../api/brews/brews.types";
+import type {
+  Brew,
+  BrewNotes,
+  BrewOutcome,
+  BrewProcess,
+  Recipe,
+  TempUnit,
+} from "../../api/brews/brews.types";
 import { toNumber, toSeconds } from "../../lib/format";
 
 /** Form state for every brew field, shared by the start, finish, follow-up (and edit) sheets. */
@@ -46,11 +53,14 @@ export function recipeFromDraft(d: BrewDraft): Recipe {
   };
 }
 
+export function notesFromDraft(d: BrewDraft): BrewNotes {
+  return { brew_notes: orNull(d.brewNotes) };
+}
+
 export function processFromDraft(d: BrewDraft): BrewProcess {
   return {
     brew_time_s: toSeconds(d.minutes, d.seconds),
     volume_ml: toNumber(d.volume),
-    brew_notes: orNull(d.brewNotes),
   };
 }
 

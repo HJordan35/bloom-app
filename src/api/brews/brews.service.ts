@@ -3,6 +3,7 @@ import { unwrap } from "../api.utils";
 import type {
   Brew,
   BrewHistory,
+  BrewNotes,
   BrewProcess,
   BrewUpdate,
   BrewWithRoast,
@@ -127,7 +128,7 @@ export async function updateBrew(id: string, fields: BrewUpdate) {
   unwrap(await supabase.from("brews").update(fields).eq("id", id));
 }
 
-export async function finishBrew(id: string, process: BrewProcess) {
+export async function finishBrew(id: string, process: BrewProcess & BrewNotes) {
   await updateBrew(id, { ...process, finished_at: new Date().toISOString() });
 }
 

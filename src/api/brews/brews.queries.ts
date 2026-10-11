@@ -17,7 +17,7 @@ import {
   startBrew,
   updateBrew,
 } from "./brews.service";
-import type { BrewProcess, BrewUpdate } from "./brews.types";
+import type { BrewNotes, BrewProcess, BrewUpdate } from "./brews.types";
 
 export const brewKeys = {
   all: ["brews"] as const,
@@ -86,7 +86,7 @@ export const brewMutations = {
     }),
   finish: () =>
     mutationOptions({
-      mutationFn: ({ id, process }: { id: string; process: BrewProcess }) =>
+      mutationFn: ({ id, process }: { id: string; process: BrewProcess & BrewNotes }) =>
         finishBrew(id, process),
       onSuccess: invalidateBrews,
     }),

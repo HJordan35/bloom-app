@@ -5,14 +5,18 @@ import { LiveDot } from "../../components/LiveDot";
 import { elapsed, recipeLine } from "../../lib/format";
 import { useNow } from "../../lib/useNow";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
+import { BrewNotesField } from "./BrewFields";
 
 type Props = {
   brew: BrewWithRoast;
+  /** Kept as you brew; saved when you finish. */
+  notes: string;
+  onNotesChange: (notes: string) => void;
   onFinish: () => void;
   onDiscard: () => void;
 };
 
-export function ActiveBrewCard({ brew, onFinish, onDiscard }: Props) {
+export function ActiveBrewCard({ brew, notes, onNotesChange, onFinish, onDiscard }: Props) {
   const now = useNow();
   const recipe = recipeLine(brew);
 
@@ -29,6 +33,7 @@ export function ActiveBrewCard({ brew, onFinish, onDiscard }: Props) {
         <p {...stylex.props(styles.meta)}>{brew.roast.roaster.name}</p>
       </div>
       {recipe && <p {...stylex.props(styles.recipe)}>{recipe}</p>}
+      <BrewNotesField value={notes} onChange={onNotesChange} />
       <div {...stylex.props(styles.actions)}>
         <Button variant="ghost" onClick={onDiscard}>
           Discard

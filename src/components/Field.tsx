@@ -32,10 +32,15 @@ export function Field({ label, suffix, ...props }: FieldProps) {
 
 export function TextAreaField({
   label,
+  action,
   ...props
-}: TextareaHTMLAttributes<HTMLTextAreaElement> & Labelled) {
+}: TextareaHTMLAttributes<HTMLTextAreaElement> &
+  Labelled & {
+    /** Shown at the right end of the label row, e.g. a clear button. */
+    action?: ReactNode;
+  }) {
   return (
-    <Label text={label}>
+    <Label text={label} action={action}>
       <textarea rows={3} {...props} {...stylex.props(styles.input, styles.textarea)} />
     </Label>
   );
@@ -55,11 +60,26 @@ export function SelectField({
   );
 }
 
-function Label({ text, children }: { text: string; children: ReactNode }) {
+function Label({
+  text,
+  action,
+  children,
+}: {
+  text: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: the control is passed in as children
     <label {...stylex.props(styles.field)}>
-      <span {...stylex.props(styles.label)}>{text}</span>
+      {action ? (
+        <span {...stylex.props(styles.labelRow)}>
+          <span {...stylex.props(styles.label)}>{text}</span>
+          {action}
+        </span>
+      ) : (
+        <span {...stylex.props(styles.label)}>{text}</span>
+      )}
       {children}
     </label>
   );
@@ -71,6 +91,12 @@ const styles = stylex.create({
     flexDirection: "column",
     gap: space.xs,
     minWidth: 0,
+  },
+  labelRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: space.md,
   },
   label: {
     fontFamily: fonts.mono,

@@ -1,6 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import type { ReactNode } from "react";
 import { Field, TextAreaField } from "../../components/Field";
+import { HeaderAction } from "../../components/HeaderAction";
 import { Section } from "../../components/Section";
 import { Toggle } from "../../components/Toggle";
 import { UnitToggle } from "../../components/UnitToggle";
@@ -93,13 +94,27 @@ export function ProcessFields({ value, onChange }: SectionProps) {
           onChange={(e) => onChange({ volume: e.target.value })}
         />
       </div>
-      <TextAreaField
-        label="Brew notes"
-        placeholder="Pours, WDT, swirl…"
-        value={value.brewNotes}
-        onChange={(e) => onChange({ brewNotes: e.target.value })}
-      />
+      <BrewNotesField value={value.brewNotes} onChange={(brewNotes) => onChange({ brewNotes })} />
     </Section>
+  );
+}
+
+/** Process notes, from starting a brew through finishing it, with a quick way to start fresh. */
+export function BrewNotesField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <TextAreaField
+      label="Brew notes"
+      placeholder="Pours, WDT, swirl…"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      action={value && <HeaderAction onClick={() => onChange("")}>Clear</HeaderAction>}
+    />
   );
 }
 

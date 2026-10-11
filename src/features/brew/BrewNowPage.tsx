@@ -39,6 +39,13 @@ export function BrewNowPage() {
     if (params.size > 0) setParams({}, { replace: true });
   }
 
+  // Notes typed on the brewing card, keyed to that brew; saved with Finish
+  const [notesDraft, setNotesDraft] = useState<{ brewId: string; text: string } | null>(null);
+  const notes =
+    mine.data && notesDraft?.brewId === mine.data.id
+      ? notesDraft.text
+      : (mine.data?.brew_notes ?? "");
+
   // After finishing, keep the brew around for the "How was it?" follow-up
   const [followUp, setFollowUp] = useState<BrewWithRoast | null>(null);
 
@@ -57,7 +64,13 @@ export function BrewNowPage() {
       </p>
 
       {mine.data ? (
-        <ActiveBrewCard brew={mine.data} onFinish={() => setSheet("finish")} onDiscard={discard} />
+        <ActiveBrewCard
+          brew={mine.data}
+          notes={notes}
+          onNotesChange={(text) => mine.data && setNotesDraft({ brewId: mine.data.id, text })}
+          onFinish={() => setSheet("finish")}
+          onDiscard={discard}
+        />
       ) : (
         mine.data === null && <Button onClick={() => setSheet("start")}>Start a brew</Button>
       )}
@@ -90,6 +103,7 @@ export function BrewNowPage() {
       {sheet === "finish" && mine.data && (
         <FinishBrewSheet
           brew={mine.data}
+          notes={notes}
           onClose={closeSheet}
           onFinished={(brew) => {
             setFollowUp(brew);

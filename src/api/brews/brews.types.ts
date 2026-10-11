@@ -30,11 +30,13 @@ export type BrewWithRoast = Brew & {
 
 export type Recipe = Pick<Brew, "dose_g" | "grind_size" | "grinder" | "temp" | "temp_unit">;
 /** Captured when finishing: how it was brewed. */
-export type BrewProcess = Pick<Brew, "brew_time_s" | "volume_ml" | "brew_notes">;
+export type BrewProcess = Pick<Brew, "brew_time_s" | "volume_ml">;
+/** Written when starting and again when finishing, so kept apart from recipe and process. */
+export type BrewNotes = Pick<Brew, "brew_notes">;
 /** Captured in the follow-up (or later): how it turned out. */
 export type BrewOutcome = Pick<Brew, "brew_results" | "dialed_in">;
 
-export type NewBrew = Recipe & Pick<Brew, "bro_id" | "roast_id" | "method">;
+export type NewBrew = Recipe & BrewNotes & Pick<Brew, "bro_id" | "roast_id" | "method">;
 export type BrewUpdate = Partial<Omit<Brew, "id" | "bro_id">>;
 
 /** Roast ids and grinders from a bro's recent brews, most recent first. */

@@ -12,7 +12,13 @@ import { BREW_METHODS } from "../../lib/constants";
 import { type EndorsementDraft, endorsementDraft, saveEndorsement } from "../endorsements/draft";
 import { EndorsementFields } from "../endorsements/EndorsementFields";
 import { OutcomeFields, ProcessFields, RecipeFields } from "./BrewFields";
-import { brewDraft, outcomeFromDraft, processFromDraft, recipeFromDraft } from "./draft";
+import {
+  brewDraft,
+  notesFromDraft,
+  outcomeFromDraft,
+  processFromDraft,
+  recipeFromDraft,
+} from "./draft";
 import { RoastPickerSheet, SelectedRoast } from "./RoastChoice";
 
 type Props = {
@@ -51,6 +57,7 @@ export function EditBrewSheet({ brew, endorsement, onClose, onSaved }: Props) {
         method,
         ...recipeFromDraft(draft),
         ...processFromDraft(draft),
+        ...notesFromDraft(draft),
         ...outcomeFromDraft(draft),
       },
     });
