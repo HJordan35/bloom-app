@@ -5,7 +5,7 @@ import { Sheet } from "../../components/Sheet";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { LibraryBrowser } from "../library/LibraryBrowser";
 
-/** The chosen roast with a "Change" action (start and edit sheets). */
+/** The chosen roast with a "Change" action (method chooser and edit sheet). */
 export function SelectedRoast({
   roast,
   onChange,
