@@ -8,7 +8,7 @@ import type {
 } from "../../api/brews/brews.types";
 import { toNumber, toSeconds } from "../../lib/format";
 
-/** Form state for every brew field, shared by the start, finish, follow-up (and edit) sheets. */
+/** Form state for every brew field, shared by the brewing card and the finish, follow-up and edit sheets. */
 export type BrewDraft = {
   dose: string;
   grindSize: string;

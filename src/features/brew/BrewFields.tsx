@@ -65,7 +65,7 @@ export function RecipeFields({
   );
 }
 
-/** How it was brewed: time, volume, process notes. */
+/** How it was brewed: time and volume. */
 export function ProcessFields({ value, onChange }: SectionProps) {
   return (
     <Section label="Brew">
@@ -94,7 +94,6 @@ export function ProcessFields({ value, onChange }: SectionProps) {
           onChange={(e) => onChange({ volume: e.target.value })}
         />
       </div>
-      <BrewNotesField value={value.brewNotes} onChange={(brewNotes) => onChange({ brewNotes })} />
     </Section>
   );
 }

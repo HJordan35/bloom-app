@@ -1,6 +1,6 @@
 import * as stylex from "@stylexjs/stylex";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { brewMutations, brewQueries } from "../../api/brews/brews.queries";
 import type { BrewWithRoast } from "../../api/brews/brews.types";
@@ -12,16 +12,16 @@ import { useCurrentBro } from "../../lib/auth";
 import { greeting } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { ActiveBrewCard } from "./ActiveBrewCard";
+import { BrewLauncher } from "./BrewLauncher";
 import { BrewResultsSheet } from "./BrewResultsSheet";
 import { BrewRow, LiveBrewRow } from "./BrewRows";
 import { FinishBrewSheet } from "./FinishBrewSheet";
-import { StartBrewSheet } from "./StartBrewSheet";
 
 export function BrewNowPage() {
   const bro = useCurrentBro();
   const [params, setParams] = useSearchParams();
   // `?roast=<id>` or `?start` (from the Library), or `?recipe=<brew id>` (from a brew),
-  // opens the start sheet
+  // starts a brew
   const roastParam = params.get("roast");
   const recipeParam = params.get("recipe");
   const [sheet, setSheet] = useState<"start" | "finish" | null>(
@@ -39,12 +39,13 @@ export function BrewNowPage() {
     if (params.size > 0) setParams({}, { replace: true });
   }
 
-  // Notes typed on the brewing card, keyed to that brew; saved with Finish
-  const [notesDraft, setNotesDraft] = useState<{ brewId: string; text: string } | null>(null);
-  const notes =
-    mine.data && notesDraft?.brewId === mine.data.id
-      ? notesDraft.text
-      : (mine.data?.brew_notes ?? "");
+  // Already brewing: "Brew now" just lands on your open brew
+  const brewing = !!mine.data;
+  useEffect(() => {
+    if (!brewing || sheet !== "start") return;
+    setSheet(null);
+    setParams({}, { replace: true });
+  }, [brewing, sheet, setParams]);
 
   // After finishing, keep the brew around for the "How was it?" follow-up
   const [followUp, setFollowUp] = useState<BrewWithRoast | null>(null);
@@ -65,9 +66,8 @@ export function BrewNowPage() {
 
       {mine.data ? (
         <ActiveBrewCard
+          key={mine.data.id}
           brew={mine.data}
-          notes={notes}
-          onNotesChange={(text) => mine.data && setNotesDraft({ brewId: mine.data.id, text })}
           onFinish={() => setSheet("finish")}
           onDiscard={discard}
         />
@@ -92,8 +92,8 @@ export function BrewNowPage() {
         )}
       </Section>
 
-      {sheet === "start" && (
-        <StartBrewSheet
+      {sheet === "start" && mine.data === null && (
+        <BrewLauncher
           initialRoastId={roastParam}
           initialRecipeId={recipeParam}
           onClose={closeSheet}
@@ -103,7 +103,6 @@ export function BrewNowPage() {
       {sheet === "finish" && mine.data && (
         <FinishBrewSheet
           brew={mine.data}
-          notes={notes}
           onClose={closeSheet}
           onFinished={(brew) => {
             setFollowUp(brew);

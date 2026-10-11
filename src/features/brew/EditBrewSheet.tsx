@@ -11,7 +11,7 @@ import { useCurrentBro } from "../../lib/auth";
 import { BREW_METHODS } from "../../lib/constants";
 import { type EndorsementDraft, endorsementDraft, saveEndorsement } from "../endorsements/draft";
 import { EndorsementFields } from "../endorsements/EndorsementFields";
-import { OutcomeFields, ProcessFields, RecipeFields } from "./BrewFields";
+import { BrewNotesField, OutcomeFields, ProcessFields, RecipeFields } from "./BrewFields";
 import {
   brewDraft,
   notesFromDraft,
@@ -90,6 +90,7 @@ export function EditBrewSheet({ brew, endorsement, onClose, onSaved }: Props) {
       </Section>
       <RecipeFields value={draft} onChange={patch} grinders={grinders} />
       <ProcessFields value={draft} onChange={patch} />
+      <BrewNotesField value={draft.brewNotes} onChange={(brewNotes) => patch({ brewNotes })} />
       <OutcomeFields value={draft} onChange={patch} />
       <EndorsementFields
         value={endorse}
