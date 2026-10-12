@@ -14,8 +14,8 @@ The spec mentions "activity during the week" in one place; this plan treats ever
 
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
-| S1 | Insight agent: data model, prompt, tools, 3 insights per bro saved to the DB, manual trigger | 🔨 Built — awaiting setup and test | [phase-s1.md](phase-s1.md) |
-| S2 | Standard metrics: one SQL function for the month's numbers, overall and per bro | — | — |
+| S1 | Insight agent: data model, prompt, tools, 3 insights per bro saved to the DB, manual trigger | ✅ Done — insights verified (dc6b381) | [phase-s1.md](phase-s1.md) |
+| S2 | Standard metrics: one SQL function for the month's numbers, overall and per bro | 🔨 Built — awaiting setup and test | [phase-s2.md](phase-s2.md) |
 | S3 | Report UI: the newsletter page, with metric tiles and insight cards | — | — |
 | S4 | Monthly trigger and push: cron on the 1st, then a notification that opens the report | — | — |
 
@@ -87,6 +87,7 @@ App (S3): /reports/2026-09 → monthly_stats('2026-09') tiles + latest insights 
   - new roasters
   - new roasts
   - new endorsements
+  - roasts tried (distinct roasts brewed) and first tries (roasts that bro had never brewed before)
   - a ranking of brew methods by count
 - **Live, not snapshotted:** computed when read, so it always reflects edits. The point-in-time snapshot is S4's `monthly_reports.stats`.
 - **Snapshot reuse:** the S1 snapshot already builds a few of these numbers in TypeScript. S2 moves them to the SQL function, and the snapshot can then call it.
@@ -113,6 +114,7 @@ App (S3): /reports/2026-09 → monthly_stats('2026-09') tiles + latest insights 
 - **Proof:** a forced cron run for last month produces the report and the notification on a phone.
 
 ## Follow-ups
+0. **Prompt refinements:** the S1 insights work; tailoring the tone, types and rules is deliberately left until the other phases are built. Bump `PROMPT_VERSION` with each change, so runs can be compared.
 1. **Feedback on insights:** 👍/👎 per insight, to steer prompt tuning (an `insight_reactions` table).
 2. **Regenerate:** an in-app button that reruns one bro's insights.
 3. **Evals:** a fixed set of past months with a grading rubric, to compare prompt versions instead of judging by eye.

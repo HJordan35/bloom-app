@@ -1,11 +1,10 @@
 # Phase S1 — Insight agent
 
-**Status:** 🔨 Built — awaiting your setup and test
+**Status:** ✅ Done — insights generated and reviewed (dc6b381). Prompt refinements are deferred to the end of the project.
 
 **Built differently from the plan:**
 - **No `get_bros` tool.** The snapshot already lists every bro's id and first name, so the tool would only repeat it.
 - **Gemini instead of Claude.** It reuses the Gemini key and billing `studio-photo` already has. The Claude-only parts of the original plan are gone: the refusal fallback, strict tool schemas and explicit prompt caching.
-- **Type-checked with Deno, not run.** The month boundaries were tested in Deno, including the daylight-saving changes. The agent itself has only run once you've deployed it.
 
 ## Goal
 For a given month, each bro gets 3 insights written by a research agent and saved to the database. The insights are grounded in their brews, notes, endorsements and history, plus web research where it's worth it, and each has a type. There's no UI yet: runs are triggered by hand and read in SQL.

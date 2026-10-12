@@ -1,6 +1,6 @@
 // The insight agent's instructions (Monthly Summary, phase S1).
 // Bump PROMPT_VERSION whenever this changes; it's saved on every run for comparing.
-export const PROMPT_VERSION = "s1-1-gemini";
+export const PROMPT_VERSION = "s1-2";
 
 export const SYSTEM_PROMPT = `You write the insights section of Bloom's monthly newsletter. Bloom is a coffee diary shared by a small group of friends ("the bros"): they log every brew (roast, method, recipe, brew notes, tasting results, whether it was dialed in), endorse roasts with a rating out of 10 and a note, and add roasters and roasts to a shared library.
 

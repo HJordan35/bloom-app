@@ -132,77 +132,61 @@ export function brewForAgent(b: BrewRow) {
 /** The first user message: who, which month, everything they did, and how the group compares. */
 export async function buildSnapshot(db: SupabaseClient, broId: string, month: string) {
   const { day, from, to, label } = monthBounds(month);
-  const [bros, brews, endorsements, roasts, roasters, lastInsights] = await Promise.all([
-    db.from("bros").select("id, first_name, created_at").order("first_name"),
+  const [bro, stats, brews, endorsements, roasts, roasters, lastInsights] = await Promise.all([
+    db.from("bros").select("first_name, created_at").eq("id", broId).single(),
+    // The same numbers the report shows, for every bro, so the agent can compare
+    db.rpc("monthly_stats", { p_month: day }),
     db
       .from("brews")
       .select(BREW_SELECT)
+      .eq("bro_id", broId)
       .gte("started_at", from)
       .lt("started_at", to)
       .order("started_at"),
     db
       .from("endorsements")
-      .select(
-        "bro_id, method, rating, note, created_at, roast:roasts(name, roaster:roasters(name))",
-      )
+      .select("method, rating, note, created_at, roast:roasts(name, roaster:roasters(name))")
+      .eq("bro_id", broId)
       .gte("created_at", from)
       .lt("created_at", to),
     db
       .from("roasts")
-      .select("created_by, name, region, roast_level, roaster:roasters(name)")
+      .select("name, region, roast_level, roaster:roasters(name)")
+      .eq("created_by", broId)
       .gte("created_at", from)
       .lt("created_at", to),
     db
       .from("roasters")
-      .select("created_by, name, location")
+      .select("name, location")
+      .eq("created_by", broId)
       .gte("created_at", from)
       .lt("created_at", to),
     lastMonthInsights(db, broId, previousMonth(month)),
   ]);
-  for (const r of [bros, brews, endorsements, roasts, roasters]) if (r.error) throw r.error;
+  for (const r of [bro, stats, brews, endorsements, roasts, roasters]) if (r.error) throw r.error;
 
-  const allBros = bros.data ?? [];
-  const bro = allBros.find((b) => b.id === broId);
-  if (!bro) throw new Error(`No bro ${broId}`);
-
-  const allBrews = (brews.data ?? []) as unknown as BrewRow[];
-  const mine = allBrews.filter((b) => b.bro_id === broId);
-  const myEndorsements = (endorsements.data ?? []).filter((e) => e.bro_id === broId);
-  const myRoasts = (roasts.data ?? []).filter((r) => r.created_by === broId);
-  const myRoasters = (roasters.data ?? []).filter((r) => r.created_by === broId);
-
-  // The month at a glance for every bro, so the agent can compare
-  const glance = allBros.map((b) => {
-    const theirs = allBrews.filter((x) => x.bro_id === b.id);
-    const methods: Record<string, number> = {};
-    for (const x of theirs) methods[x.method] = (methods[x.method] ?? 0) + 1;
-    return {
-      bro: b.first_name,
-      brews: theirs.length,
-      volume_ml: sum(theirs.map((x) => x.volume_ml)),
-      beans_g: sum(theirs.map((x) => x.dose_g)),
-      dialed_in: theirs.filter((x) => x.dialed_in).length,
-      endorsements: (endorsements.data ?? []).filter((e) => e.bro_id === b.id).length,
-      roasts_added: (roasts.data ?? []).filter((r) => r.created_by === b.id).length,
-      roasters_added: (roasters.data ?? []).filter((r) => r.created_by === b.id).length,
-      methods,
-    };
-  });
+  if (!bro.data) throw new Error(`No bro ${broId}`);
+  const name = bro.data.first_name;
+  const mine = (brews.data ?? []) as unknown as BrewRow[];
+  const allBros = (stats.data.bros as { bro_id: string; first_name: string }[]).map((b) => ({
+    id: b.bro_id,
+    first_name: b.first_name,
+  }));
 
   const sections = [
-    `# ${bro.first_name} — ${label}`,
-    `Bro id: ${broId}. Joined Bloom ${localTime(bro.created_at)}. Month: ${label} (${day}), times in ${TIME_ZONE}.`,
+    `# ${name} — ${label}`,
+    `Bro id: ${broId}. Joined Bloom ${localTime(bro.data.created_at)}. Month: ${label} (${day}), times in ${TIME_ZONE}.`,
     mine.length <= 1
-      ? `THIN MONTH: ${bro.first_name} logged ${mine.length} brew${mine.length === 1 ? "" : "s"} this month. Lean on their history (get_brews) — or on the drought itself.`
+      ? `THIN MONTH: ${name} logged ${mine.length} brew${mine.length === 1 ? "" : "s"} this month. Lean on their history (get_brews) — or on the drought itself.`
       : "",
-    `## The month at a glance (every bro)\n${json(glance)}`,
-    `## ${bro.first_name}'s brews this month (${mine.length})\n${json(mine.map(brewForAgent))}`,
-    `## ${bro.first_name}'s endorsements this month (${myEndorsements.length})\n${json(myEndorsements)}`,
-    `## Roasts ${bro.first_name} added this month\n${json(myRoasts)}`,
-    `## Roasters ${bro.first_name} added this month\n${json(myRoasters)}`,
-    `## Other bros (for get_brews / get_endorsements)\n${json(allBros.map(({ id, first_name }) => ({ id, first_name })))}`,
-    `## ${bro.first_name}'s insights last month (don't repeat these)\n${json(lastInsights)}`,
-    `Write ${bro.first_name}'s 3 insights for ${label}, then call submit_insights.`,
+    `## The month's numbers (the group's totals, every bro, brew methods; "first_tries" are roasts brewed for the first time)\n${json(stats.data)}`,
+    `## ${name}'s brews this month (${mine.length})\n${json(mine.map(brewForAgent))}`,
+    `## ${name}'s endorsements this month (${endorsements.data?.length ?? 0})\n${json(endorsements.data)}`,
+    `## Roasts ${name} added this month\n${json(roasts.data)}`,
+    `## Roasters ${name} added this month\n${json(roasters.data)}`,
+    `## Bros (ids for get_brews / get_endorsements)\n${json(allBros)}`,
+    `## ${name}'s insights last month (don't repeat these)\n${json(lastInsights)}`,
+    `Write ${name}'s 3 insights for ${label}, then call submit_insights.`,
   ];
   return { text: sections.filter(Boolean).join("\n\n"), brewCount: mine.length };
 }
@@ -226,7 +210,5 @@ async function lastMonthInsights(db: SupabaseClient, broId: string, month: strin
     .order("position");
   return data ?? [];
 }
-
-const sum = (values: (number | null)[]) => values.reduce<number>((total, v) => total + (v ?? 0), 0);
 
 export const json = (value: unknown) => JSON.stringify(value, null, 1);
