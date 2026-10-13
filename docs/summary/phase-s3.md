@@ -7,6 +7,16 @@
 - **`StatStrip`** (`src/components/StatStrip.tsx`) is taken out of `BroProfilePage`, which now uses it too.
 - **The masthead's bro count** is the bros who brewed that month, not all bros.
 
+## Visual pass (draft)
+A first take on an infographic layout, in its own commit so it can be dropped. Charts use TanStack Charts (`@tanstack/charts`), and the report routes are lazy-loaded so the library stays out of the app's first load.
+- **Masthead:** the month in large display type.
+- **Headline mosaic:** Brews as a hero tile with a 6-month area sparkline, and Volume and New roasts with 6-month bar sparklines (the latest month in brass). Each also gets a "vs last month" delta. The other numbers are plain tiles, one of them in mahogany.
+- **Who did what:** a 100% stacked bar per metric, split by bro in each bro's colour, with the total at the right.
+- **Methods:** bars stacked by bro.
+- **A report card per bro:** a rank caption, 4 small number tiles, and the insights as a swipeable carousel.
+- **Bro colours:** wood tones from the theme, assigned by first name, so a bro keeps the same colour every month (`broColors.ts`).
+- **`/reports/demo`** renders the page from `mock.ts`. Both are deleted once the look is agreed.
+
 ## Goal
 A month's report is a page in the app, laid out like a newsletter:
 - the group's numbers

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/AppShell";
 import { LoginPage } from "./features/auth/LoginPage";
@@ -8,9 +9,18 @@ import { BrosBoardPage } from "./features/bros/BrosBoardPage";
 import { LibraryPage } from "./features/library/LibraryPage";
 import { RoasterPage } from "./features/library/RoasterPage";
 import { RoastPage } from "./features/library/RoastPage";
-import { ReportPage } from "./features/reports/ReportPage";
-import { ReportsPage } from "./features/reports/ReportsPage";
 import { AuthProvider, useAuth } from "./lib/auth";
+
+// The reports carry the charts library, so they load only when opened
+const ReportsPage = lazy(() =>
+  import("./features/reports/ReportsPage").then((m) => ({ default: m.ReportsPage })),
+);
+const ReportPage = lazy(() =>
+  import("./features/reports/ReportPage").then((m) => ({ default: m.ReportPage })),
+);
+const ReportDemoPage = lazy(() =>
+  import("./features/reports/ReportDemoPage").then((m) => ({ default: m.ReportDemoPage })),
+);
 
 export function App() {
   return (
@@ -44,8 +54,30 @@ function AppRoutes() {
         <Route path="/library/roasts/:id" element={<RoastPage />} />
         <Route path="/bros" element={<BrosBoardPage />} />
         <Route path="/bros/:id" element={<BroProfilePage />} />
-        <Route path="/reports" element={<ReportsPage />} />
-        <Route path="/reports/:month" element={<ReportPage />} />
+        <Route
+          path="/reports"
+          element={
+            <Suspense>
+              <ReportsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/reports/demo"
+          element={
+            <Suspense>
+              <ReportDemoPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/reports/:month"
+          element={
+            <Suspense>
+              <ReportPage />
+            </Suspense>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
