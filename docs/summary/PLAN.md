@@ -3,6 +3,9 @@
 On the 1st of each month, every bro gets a notification. It opens a newsletter-style report for the month just ended, with two parts:
 - **The numbers:** the same metrics every month, for the group and for each bro.
 - **Three insights per bro:** written by a research agent that reads more than the numbers. It looks at brew notes, tasting results, endorsement notes and history, and can search the web.
+- **The showcase (B-phases):** one studio photograph of the month's new coffees together, in the same locked studio as the Roast Gallery. Each new coffee also gets a breakdown and an insight.
+
+In the app, the report is called the **Brewsletter**, with three tabs: **Showcase · Stats · Insights** (B4).
 
 **Principles** (same as `docs/push/PLAN.md`):
 - Happy path only, no tests, minimal abstraction.
@@ -16,8 +19,12 @@ The spec mentions "activity during the week" in one place; this plan treats ever
 |---|---|---|---|
 | S1 | Insight agent: data model, prompt, tools, 3 insights per bro saved to the DB, manual trigger | ✅ Done — insights verified (dc6b381) | [phase-s1.md](phase-s1.md) |
 | S2 | Standard metrics: one SQL function for the month's numbers, overall and per bro | ✅ Done (53a1b44) | [phase-s2.md](phase-s2.md) |
-| S3 | Report UI: the newsletter page, with metric tiles and insight cards | 🔨 Built — awaiting setup and test | [phase-s3.md](phase-s3.md) |
-| S4 | Monthly trigger and push: cron on the 1st, then a notification that opens the report | — | — |
+| S3 | Report UI: the newsletter page, with metric tiles and insight cards | ✅ Done (5c70bfa); infographic draft in review (09af766) | [phase-s3.md](phase-s3.md) |
+| B1 | Showcase image: the month's new roasts, photographed together by a `showcase` Edge Function | ✅ Done | [phase-b1.md](phase-b1.md) |
+| B2 | New-coffee breakdown: each new roast's thumbnail, brews, volume and who brewed it | — | — |
+| B3 | One insight per new coffee: an agent pass with Google Search, saved per roast and month | — | — |
+| B4 | Tabs and rename: "Brewsletter", with Showcase · Stats · Insights tabs | — | — |
+| S4 | Monthly trigger and push: cron on the 1st runs `insights` and `showcase`, then a notification that opens the Brewsletter | — | — |
 
 Each phase is planned in `docs/summary/` before it's built, and ends with a checkpoint review.
 
@@ -104,8 +111,31 @@ App (S3): /reports/2026-09 → monthly_stats('2026-09') tiles + latest insights 
 - **Finding it:** a newspaper icon in the top bar, with a badge while the newest report is unread (views stored per bro in `report_views`). It opens a list of every past report.
 - **Proof:** a past month's report renders well on a phone.
 
+### B1 — Showcase image
+- **SQL `month_new_roasts(month date)`:** the roasts the group brewed for the first time this month (the same rule as `monthly_stats`' group `first_tries`), with brews, volume and who brewed them.
+- **Edge Function `showcase`:** sends up to 8 of those roasts' studio photos (most brewed first) plus the studio plate to Gemini, with a group-shot version of the locked studio prompt. It saves the result to `roast-photos/_showcase/{month}/`.
+  - Roasts without a photo are left out of the image.
+- **`showcase_runs`:** every run is kept; the month's image is the latest succeeded run's.
+- **Trigger:** manual curl, with the same secret as `insights`.
+- **Proof:** the image looks like the gallery's studio, and every bag in it is faithful and readable.
+
+### B2 — New-coffee breakdown
+- **For each new roast:** its studio thumbnail, brews, volume and the avatars of who brewed it, from `month_new_roasts`.
+- **Placement:** under the showcase image, on the report page, until B4's tabs exist.
+
+### B3 — One insight per new coffee
+- **An agent pass, like S1's,** over the month's new roasts: one short insight each (origin, roaster, how the group took to it), with Google Search for facts.
+- **Data model:** saved per roast and month.
+
+### B4 — Tabs and rename
+- **"Brewsletter" everywhere:** the top-bar icon label, the list page, the masthead and the page titles.
+- **Tabs with `SegmentedControl`:**
+  - **Showcase:** the image, breakdown and per-coffee insights.
+  - **Stats:** the headline mosaic, share chart and methods.
+  - **Insights:** the per-bro cards.
+
 ### S4 — Monthly trigger and push
-- **Cron:** a `pg_cron` job at 9am Chicago time on the 1st POSTs to `insights` with the previous month. It uses `pg_net` and the secret, which is stored in Vault rather than in git.
+- **Cron:** a `pg_cron` job at 9am Chicago time on the 1st POSTs to `insights` and to `showcase` with the previous month. It uses `pg_net` and the secret, which is stored in Vault rather than in git.
 - **`monthly_reports` table:** one row per month, with a `stats` jsonb snapshot of `monthly_stats` and a `published_at`.
   - The function writes it once every bro's run has succeeded.
   - The report page reads this snapshot rather than live stats.
