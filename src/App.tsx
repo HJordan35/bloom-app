@@ -8,6 +8,8 @@ import { BrosBoardPage } from "./features/bros/BrosBoardPage";
 import { LibraryPage } from "./features/library/LibraryPage";
 import { RoasterPage } from "./features/library/RoasterPage";
 import { RoastPage } from "./features/library/RoastPage";
+import { ReportPage } from "./features/reports/ReportPage";
+import { ReportsPage } from "./features/reports/ReportsPage";
 import { AuthProvider, useAuth } from "./lib/auth";
 
 export function App() {
@@ -42,6 +44,8 @@ function AppRoutes() {
         <Route path="/library/roasts/:id" element={<RoastPage />} />
         <Route path="/bros" element={<BrosBoardPage />} />
         <Route path="/bros/:id" element={<BroProfilePage />} />
+        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/reports/:month" element={<ReportPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

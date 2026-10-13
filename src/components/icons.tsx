@@ -75,3 +75,13 @@ export function PencilIcon() {
     </Icon>
   );
 }
+
+export function NewspaperIcon() {
+  return (
+    <Icon>
+      <path d="M4 5h12.5v13.5A1.5 1.5 0 0 0 18 20H6a2 2 0 0 1-2-2V5Z" />
+      <path d="M16.5 9H20v9.5a1.5 1.5 0 0 1-3 0" />
+      <path d="M7 8.5h6.5M7 12h6.5M7 15.5h4" />
+    </Icon>
+  );
+}

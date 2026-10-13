@@ -15,8 +15,8 @@ The spec mentions "activity during the week" in one place; this plan treats ever
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
 | S1 | Insight agent: data model, prompt, tools, 3 insights per bro saved to the DB, manual trigger | ✅ Done — insights verified (dc6b381) | [phase-s1.md](phase-s1.md) |
-| S2 | Standard metrics: one SQL function for the month's numbers, overall and per bro | 🔨 Built — awaiting setup and test | [phase-s2.md](phase-s2.md) |
-| S3 | Report UI: the newsletter page, with metric tiles and insight cards | — | — |
+| S2 | Standard metrics: one SQL function for the month's numbers, overall and per bro | ✅ Done (53a1b44) | [phase-s2.md](phase-s2.md) |
+| S3 | Report UI: the newsletter page, with metric tiles and insight cards | 🔨 Built — awaiting setup and test | [phase-s3.md](phase-s3.md) |
 | S4 | Monthly trigger and push: cron on the 1st, then a notification that opens the report | — | — |
 
 Each phase is planned in `docs/summary/` before it's built, and ends with a checkpoint review.
@@ -101,7 +101,7 @@ App (S3): /reports/2026-09 → monthly_stats('2026-09') tiles + latest insights 
 - **Queries:**
   - `src/api/reports/` with `reports.service.ts` and `reports.queries.ts`, matching the existing `src/api/*` layout.
   - Two queries: `monthly_stats(month)`, and the latest succeeded run's insights per bro.
-- **Finding it:** a "Monthly reports" entry on the Bros Board listing past months.
+- **Finding it:** a newspaper icon in the top bar, with a badge while the newest report is unread (views stored per bro in `report_views`). It opens a list of every past report.
 - **Proof:** a past month's report renders well on a phone.
 
 ### S4 — Monthly trigger and push

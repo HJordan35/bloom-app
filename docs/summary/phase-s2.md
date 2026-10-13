@@ -1,6 +1,6 @@
 # Phase S2 — Standard metrics
 
-**Status:** 🔨 Built — awaiting your setup and test
+**Status:** ✅ Done (53a1b44)
 
 **Tested before handoff:** the function was run in PGlite (Postgres in WebAssembly) against sample data with hand-worked answers: two active bros and an idle one, a roast brewed before the month, brews minutes either side of midnight on the 1st and on the last day (Chicago time), and an empty month. Every number matched. The snapshot change was type-checked with Deno.
 
