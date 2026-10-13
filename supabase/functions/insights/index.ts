@@ -1,13 +1,28 @@
-// Writes each bro's 3 monthly insights with a research agent (Monthly Summary, phase S1).
+// Writes the monthly insights with a research agent: 3 per bro (Monthly Summary, phase S1) and
+// one per coffee new to the group that month (Brewsletter, phase B3).
 // POST with an x-insights-secret header:
-//   { month: "2026-09" }                          → 202, then runs every bro (one call each)
-//   { month: "2026-09", bro_id }                  → 202, runs that bro and saves the insights
-//   { month: "2026-09", bro_id, dry_run: true }   → runs that bro and returns the insights, saves nothing
+//   { month: "2026-09" }                           → 202, then runs every bro and new coffee (one call each)
+//   { month: "2026-09", scope: "bros" | "roasts" } → 202, runs only that half
+//   { month: "2026-09", bro_id | roast_id }         → 202, runs that one and saves the result
+//   { month, bro_id | roast_id, dry_run: true }     → runs that one and returns the result, saves nothing
 // Deploy: npx supabase functions deploy insights --no-verify-jwt --project-ref <ref>
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { PROMPT_VERSION, SYSTEM_PROMPT } from "./prompt.ts";
-import { buildSnapshot, monthBounds } from "./snapshot.ts";
-import { checkSubmission, cleanSubmission, runTool, TOOLS } from "./tools.ts";
+import {
+  PROMPT_VERSION,
+  ROAST_PROMPT_VERSION,
+  ROAST_SYSTEM_PROMPT,
+  SYSTEM_PROMPT,
+} from "./prompt.ts";
+import { buildRoastSnapshot, buildSnapshot, monthBounds } from "./snapshot.ts";
+import {
+  checkRoastSubmission,
+  checkSubmission,
+  cleanRoastSubmission,
+  cleanSubmission,
+  ROAST_TOOLS,
+  runTool,
+  TOOLS,
+} from "./tools.ts";
 
 declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
 
@@ -24,44 +39,109 @@ const supabase = createClient(
 
 type Trace = { tool: string; input: unknown; error?: string; chars?: number }[];
 
+/** What the agent loop needs for one kind of insight: instructions, tools, and how it finishes. */
+type Job<T> = {
+  system: string;
+  tools: readonly unknown[];
+  snapshot: string;
+  submit: string;
+  check: (args: unknown) => string | null;
+  clean: (args: unknown) => T;
+  nudge: string;
+};
+
+async function broJob(
+  broId: string,
+  month: string,
+): Promise<Job<ReturnType<typeof cleanSubmission>>> {
+  return {
+    system: SYSTEM_PROMPT,
+    tools: TOOLS,
+    snapshot: (await buildSnapshot(supabase, broId, month)).text,
+    submit: "submit_insights",
+    check: checkSubmission,
+    clean: cleanSubmission,
+    nudge: "Hand in the 3 insights with submit_insights.",
+  };
+}
+
+async function roastJob(
+  roastId: string,
+  month: string,
+): Promise<Job<ReturnType<typeof cleanRoastSubmission>>> {
+  return {
+    system: ROAST_SYSTEM_PROMPT,
+    tools: ROAST_TOOLS,
+    snapshot: (await buildRoastSnapshot(supabase, roastId, month)).text,
+    submit: "submit_roast_insight",
+    check: checkRoastSubmission,
+    clean: cleanRoastSubmission,
+    nudge: "Hand in the insight with submit_roast_insight.",
+  };
+}
+
 Deno.serve(async (req) => {
   // Only callers with the secret (the gateway JWT check is off, see the deploy line)
   if (!SECRET || req.headers.get("x-insights-secret") !== SECRET) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { month, bro_id, dry_run } = await req.json();
+  const { month, bro_id, roast_id, scope, dry_run } = await req.json();
   if (!/^\d{4}-\d{2}$/.test(month ?? "")) return json({ error: "month must be YYYY-MM" }, 400);
 
   if (dry_run) {
-    if (!bro_id) return json({ error: "dry_run needs a bro_id" }, 400);
-    return json(await agent(bro_id, month));
+    if (bro_id) {
+      const { result, usage, trace } = await agent(await broJob(bro_id, month));
+      return json({ insights: result, usage, trace });
+    }
+    if (roast_id) {
+      const { result, usage, trace } = await agent(await roastJob(roast_id, month));
+      return json({ insight: result, usage, trace });
+    }
+    return json({ error: "dry_run needs a bro_id or roast_id" }, 400);
   }
 
+  const work = bro_id
+    ? run(bro_id, month)
+    : roast_id
+      ? runRoast(roast_id, month)
+      : fanOut(month, scope);
   EdgeRuntime.waitUntil(
-    (bro_id ? run(bro_id, month) : fanOut(month)).catch((e) =>
-      console.error(`insights failed for ${bro_id ?? "all"} ${month}:`, e),
+    work.catch((e) =>
+      console.error(`insights failed for ${bro_id ?? roast_id ?? "all"} ${month}:`, e),
     ),
   );
   return json({ status: "started" }, 202);
 });
 
-/** One call per bro, so each agent run gets its own time limit. */
-async function fanOut(month: string) {
-  const { data: bros, error } = await supabase.from("bros").select("id");
-  if (error) throw error;
+/** One call per bro and per new coffee, so each agent run gets its own time limit. */
+async function fanOut(month: string, scope?: "bros" | "roasts") {
+  const bodies: Record<string, string>[] = [];
+  if (scope !== "roasts") {
+    const { data: bros, error } = await supabase.from("bros").select("id");
+    if (error) throw error;
+    for (const bro of bros) bodies.push({ month, bro_id: bro.id });
+  }
+  if (scope !== "bros") {
+    const { data: roasts, error } = await supabase.rpc("month_new_roasts", {
+      p_month: monthBounds(month).day,
+    });
+    if (error) throw error;
+    for (const roast of roasts as { roast_id: string }[])
+      bodies.push({ month, roast_id: roast.roast_id });
+  }
   await Promise.all(
-    bros.map((bro) =>
+    bodies.map((body) =>
       fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/insights`, {
         method: "POST",
         headers: { "content-type": "application/json", "x-insights-secret": SECRET ?? "" },
-        body: JSON.stringify({ month, bro_id: bro.id }),
+        body: JSON.stringify(body),
       }),
     ),
   );
 }
 
-/** Record a run, let the agent work, then save its insights (or the failure). */
+/** Record a bro's run, let the agent work, then save its insights (or the failure). */
 async function run(broId: string, month: string) {
   const { data: row, error } = await supabase
     .from("insight_runs")
@@ -76,7 +156,7 @@ async function run(broId: string, month: string) {
   if (error) throw error;
 
   try {
-    const { insights, usage, trace } = await agent(broId, month);
+    const { result: insights, usage, trace } = await agent(await broJob(broId, month));
     const saved = await supabase.from("insights").insert(
       insights.map((insight, i) => ({
         run_id: row.id,
@@ -95,6 +175,37 @@ async function run(broId: string, month: string) {
     await supabase
       .from("insight_runs")
       .update({ status: "failed", error: String(e), finished_at: new Date().toISOString() })
+      .eq("id", row.id);
+    throw e;
+  }
+}
+
+/** Record a new coffee's run; the row holds its one insight once the agent hands it in. */
+async function runRoast(roastId: string, month: string) {
+  const { data: row, error } = await supabase
+    .from("roast_insights")
+    .insert({
+      roast_id: roastId,
+      month: monthBounds(month).day,
+      model: MODEL,
+      prompt_version: ROAST_PROMPT_VERSION,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+
+  const finished_at = () => new Date().toISOString();
+  try {
+    const { result: insight, usage, trace } = await agent(await roastJob(roastId, month));
+    const saved = await supabase
+      .from("roast_insights")
+      .update({ status: "succeeded", ...insight, usage, trace, finished_at: finished_at() })
+      .eq("id", row.id);
+    if (saved.error) throw saved.error;
+  } catch (e) {
+    await supabase
+      .from("roast_insights")
+      .update({ status: "failed", error: String(e), finished_at: finished_at() })
       .eq("id", row.id);
     throw e;
   }
@@ -121,10 +232,9 @@ type FunctionResult = {
   is_error?: boolean;
 };
 
-/** The agent loop: snapshot in, tools until it hands in 3 valid insights. */
-async function agent(broId: string, month: string) {
+/** The agent loop: snapshot in, tools until it hands in a valid submission. */
+async function agent<T>(job: Job<T>) {
   const started = Date.now();
-  const snapshot = await buildSnapshot(supabase, broId, month);
   const usage = {
     input_tokens: 0,
     output_tokens: 0,
@@ -139,10 +249,10 @@ async function agent(broId: string, month: string) {
 
   // Each turn continues the last interaction (Gemini keeps the history), sending only what's new
   let previous: string | undefined;
-  let input: string | FunctionResult[] = snapshot.text;
+  let input: string | FunctionResult[] = job.snapshot;
 
   for (let turn = 1; turn <= MAX_TURNS; turn++) {
-    const interaction = await interact(input, previous);
+    const interaction = await interact(job, input, previous);
     previous = interaction.id;
     usage.turns = turn;
     usage.input_tokens += interaction.usage?.total_input_tokens ?? 0;
@@ -164,18 +274,18 @@ async function agent(broId: string, month: string) {
     const calls = steps.filter((s) => s.type === "function_call" && !handled.has(s.id ?? ""));
     for (const call of calls) handled.add(call.id ?? "");
     if (calls.length === 0) {
-      input = "Hand in the 3 insights with submit_insights.";
+      input = job.nudge;
       continue;
     }
 
     // A valid submission ends the job; an invalid one goes back with the reason
-    const submit = calls.find((c) => c.name === "submit_insights");
-    const problem = submit ? checkSubmission(submit.arguments) : null;
+    const submit = calls.find((c) => c.name === job.submit);
+    const problem = submit ? job.check(submit.arguments) : null;
     if (submit)
-      trace.push({ tool: "submit_insights", input: submit.arguments, error: problem ?? undefined });
+      trace.push({ tool: job.submit, input: submit.arguments, error: problem ?? undefined });
     if (submit && !problem) {
       usage.ms = Date.now() - started;
-      return { insights: cleanSubmission(submit.arguments), usage, trace };
+      return { result: job.clean(submit.arguments), usage, trace };
     }
 
     input = await Promise.all(
@@ -201,8 +311,8 @@ async function agent(broId: string, month: string) {
   throw new Error(`No valid submission after ${MAX_TURNS} turns`);
 }
 
-/** One Gemini Interactions API call. The system prompt and tools are sent every turn. */
-async function interact(input: string | FunctionResult[], previous?: string) {
+/** One Gemini Interactions API call. The job's system prompt and tools are sent every turn. */
+async function interact(job: Job<unknown>, input: string | FunctionResult[], previous?: string) {
   const res = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
     method: "POST",
     headers: {
@@ -211,8 +321,8 @@ async function interact(input: string | FunctionResult[], previous?: string) {
     },
     body: JSON.stringify({
       model: MODEL,
-      system_instruction: SYSTEM_PROMPT,
-      tools: TOOLS,
+      system_instruction: job.system,
+      tools: job.tools,
       input,
       previous_interaction_id: previous,
       generation_config: { thinking_level: THINKING_LEVEL },

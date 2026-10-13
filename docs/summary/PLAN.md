@@ -21,8 +21,8 @@ The spec mentions "activity during the week" in one place; this plan treats ever
 | S2 | Standard metrics: one SQL function for the month's numbers, overall and per bro | ✅ Done (53a1b44) | [phase-s2.md](phase-s2.md) |
 | S3 | Report UI: the newsletter page, with metric tiles and insight cards | ✅ Done (5c70bfa); infographic draft in review (09af766) | [phase-s3.md](phase-s3.md) |
 | B1 | Showcase image: the month's new roasts, photographed together by a `showcase` Edge Function | ✅ Done | [phase-b1.md](phase-b1.md) |
-| B2 | New-coffee breakdown: each new roast's thumbnail, brews, volume and who brewed it | — | — |
-| B3 | One insight per new coffee: an agent pass with Google Search, saved per roast and month | — | — |
+| B2 | New-coffee breakdown: each new roast's thumbnail, brews, volume and who brewed it | ✅ Done | [phase-b2.md](phase-b2.md) |
+| B3 | One insight per new coffee: an agent pass with Google Search, saved per roast and month | ✅ Done | [phase-b3.md](phase-b3.md) |
 | B4 | Tabs and rename: "Brewsletter", with Showcase · Stats · Insights tabs | — | — |
 | S4 | Monthly trigger and push: cron on the 1st runs `insights` and `showcase`, then a notification that opens the Brewsletter | — | — |
 

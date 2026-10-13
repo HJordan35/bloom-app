@@ -11,26 +11,27 @@ const LABELS: Record<InsightType, string> = {
   jab: "Jab",
 };
 
-export function InsightCard({ insight }: { insight: Insight }) {
-  return (
-    <Card>
-      <div {...stylex.props(styles.body)}>
-        <span {...stylex.props(styles.type)}>{LABELS[insight.type]}</span>
-        <p {...stylex.props(styles.content)}>{insight.content}</p>
-        {insight.sources.map((source) => (
-          <a
-            key={source.url}
-            href={source.url}
-            target="_blank"
-            rel="noreferrer"
-            {...stylex.props(styles.source)}
-          >
-            ↗ {source.title}
-          </a>
-        ))}
-      </div>
-    </Card>
+/** An insight: its type as a brass label, the text, then any sources. `compact` drops the card
+ * and sets smaller text, for an insight that sits under something else (a new coffee's row). */
+export function InsightCard({ insight, compact = false }: { insight: Insight; compact?: boolean }) {
+  const body = (
+    <div {...stylex.props(styles.body)}>
+      <span {...stylex.props(styles.type)}>{LABELS[insight.type]}</span>
+      <p {...stylex.props(styles.content, compact && styles.compactContent)}>{insight.content}</p>
+      {insight.sources.map((source) => (
+        <a
+          key={source.url}
+          href={source.url}
+          target="_blank"
+          rel="noreferrer"
+          {...stylex.props(styles.source)}
+        >
+          ↗ {source.title}
+        </a>
+      ))}
+    </div>
   );
+  return compact ? body : <Card>{body}</Card>;
 }
 
 const styles = stylex.create({
@@ -49,6 +50,10 @@ const styles = stylex.create({
   content: {
     fontSize: 15,
     lineHeight: 1.5,
+  },
+  compactContent: {
+    fontSize: 13,
+    color: colors.muted,
   },
   source: {
     overflow: "hidden",

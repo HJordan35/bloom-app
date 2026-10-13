@@ -1,7 +1,12 @@
 import * as stylex from "@stylexjs/stylex";
 import { useMemo } from "react";
 import type { Bro } from "../../api/bros/bros.types";
-import type { Insight, MonthlyStats, MonthNumbers } from "../../api/reports/reports.types";
+import type {
+  Insight,
+  MonthlyStats,
+  MonthNumbers,
+  NewRoast,
+} from "../../api/reports/reports.types";
 import { Avatar } from "../../components/Avatar";
 import { FadeIn } from "../../components/FadeIn";
 import { Section } from "../../components/Section";
@@ -10,6 +15,7 @@ import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { BroCard } from "./BroCard";
 import { broColors, LEATHER } from "./broColors";
 import { HeadlineMosaic } from "./HeadlineMosaic";
+import { Showcase } from "./Showcase";
 import { StackedBars, type StackedRow } from "./StackedBars";
 
 type Props = {
@@ -19,6 +25,10 @@ type Props = {
   /** Oldest first, ending with `stats`; trends start where brewing did. */
   history: MonthlyStats[];
   insights: Map<string, Insight[]>;
+  /** The month's new coffees, and their showcase image (null before one is made). */
+  newRoasts: NewRoast[];
+  roastInsights: Map<string, Insight>;
+  showcase: string | null;
   /** Every bro, for avatars and their colours. */
   bros: Bro[];
   meId: string;
@@ -33,7 +43,17 @@ const SHARES: [label: string, key: keyof MonthNumbers, format: (n: number) => st
 ];
 
 /** The monthly report: headline tiles, who did what, methods, then a card per bro. */
-export function ReportView({ month, stats, history, insights, bros, meId }: Props) {
+export function ReportView({
+  month,
+  stats,
+  history,
+  insights,
+  newRoasts,
+  roastInsights,
+  showcase,
+  bros,
+  meId,
+}: Props) {
   const colorOf = useMemo(() => broColors(bros), [bros]);
   const byId = useMemo(() => new Map(bros.map((b) => [b.id, b])), [bros]);
   const brewers = stats.bros.filter((b) => b.brews > 0);
@@ -72,6 +92,17 @@ export function ReportView({ month, stats, history, insights, bros, meId }: Prop
           {brewers.length} of {stats.bros.length} bros brewing
         </span>
       </header>
+
+      {/* Until B4's tabs, the showcase leads the report */}
+      {newRoasts.length > 0 && (
+        <Showcase
+          image={showcase}
+          roasts={newRoasts}
+          insights={roastInsights}
+          bros={byId}
+          meId={meId}
+        />
+      )}
 
       <HeadlineMosaic stats={stats} history={history} />
 

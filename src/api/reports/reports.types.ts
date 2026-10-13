@@ -27,3 +27,15 @@ export type Insight = {
   content: string;
   sources: { title: string; url: string }[];
 };
+
+/** A roast the group brewed for the first time this month (see month_new_roasts). */
+export type NewRoast = {
+  roast_id: string;
+  name: string;
+  roaster: string;
+  /** Its studio photo in the roast-photos bucket, if it has one. */
+  photo_path: string | null;
+  brews: number;
+  volume_ml: number;
+  bro_ids: string[];
+};

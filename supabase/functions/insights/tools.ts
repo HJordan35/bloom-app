@@ -1,5 +1,5 @@
 // The agent's tools (Gemini Interactions API format): three read-only lookups, Google Search,
-// and submit_insights to finish.
+// and a submit tool to finish — submit_insights for a bro, submit_roast_insight for a new coffee.
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { BREW_SELECT, type BrewRow, brewForAgent, json } from "./snapshot.ts";
 
@@ -10,6 +10,15 @@ export type Insight = {
   content: string;
   sources: { title: string; url: string }[];
 };
+
+const SOURCES = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: { title: { type: "string" }, url: { type: "string" } },
+    required: ["title", "url"],
+  },
+} as const;
 
 const range = {
   from: { type: "string", description: "Inclusive start date, YYYY-MM-DD" },
@@ -75,20 +84,33 @@ export const TOOLS = [
             properties: {
               type: { type: "string", enum: [...INSIGHT_TYPES] },
               content: { type: "string" },
-              sources: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: { title: { type: "string" }, url: { type: "string" } },
-                  required: ["title", "url"],
-                },
-              },
+              sources: SOURCES,
             },
             required: ["type", "content", "sources"],
           },
         },
       },
       required: ["insights"],
+    },
+  },
+] as const;
+
+/** The roast job's tools: the same lookups and search, with a single-insight submission. */
+export const ROAST_TOOLS = [
+  ...TOOLS.filter((tool) => !("name" in tool) || tool.name !== "submit_insights"),
+  {
+    type: "function",
+    name: "submit_roast_insight",
+    description:
+      "Hand in the coffee's one insight. Call this once, when it's final; it ends the job. Under 500 characters. List the web pages a fact relies on in sources (empty when it relies only on Bloom data).",
+    parameters: {
+      type: "object",
+      properties: {
+        type: { type: "string", enum: [...INSIGHT_TYPES] },
+        content: { type: "string" },
+        sources: SOURCES,
+      },
+      required: ["type", "content", "sources"],
     },
   },
 ] as const;
@@ -158,16 +180,8 @@ export function checkSubmission(input: unknown): string | null {
   if (!Array.isArray(insights)) return "Pass { insights: [...] }.";
   if (insights.length !== 3) return `Submit exactly 3 insights, not ${insights.length}.`;
   for (const [i, insight] of (insights as Insight[]).entries()) {
-    if (!(INSIGHT_TYPES as readonly string[]).includes(insight?.type)) {
-      return `Insight ${i + 1} has type "${insight?.type}"; use one of ${INSIGHT_TYPES.join(", ")}.`;
-    }
-    if (typeof insight.content !== "string" || !insight.content.trim()) {
-      return `Insight ${i + 1} needs content.`;
-    }
-    if (insight.content.length > 600) {
-      return `Insight ${i + 1} is ${insight.content.length} characters; keep each under 500.`;
-    }
-    if (!Array.isArray(insight.sources ?? [])) return `Insight ${i + 1}: sources must be a list.`;
+    const problem = checkInsight(insight, `Insight ${i + 1}`);
+    if (problem) return problem;
   }
   const types = (insights as Insight[]).map((i) => i.type);
   if (new Set(types).size < 2) return "Use at least 2 different types.";
@@ -175,11 +189,39 @@ export function checkSubmission(input: unknown): string | null {
   return null;
 }
 
+/** The reason a submit_roast_insight call breaks the rules, or null when it's good. */
+export function checkRoastSubmission(input: unknown): string | null {
+  return checkInsight(input as Insight, "The insight");
+}
+
+/** One insight's shape and length (Gemini doesn't enforce the schema). */
+function checkInsight(insight: Insight | undefined, label: string): string | null {
+  if (!(INSIGHT_TYPES as readonly string[]).includes(insight?.type ?? "")) {
+    return `${label} has type "${insight?.type}"; use one of ${INSIGHT_TYPES.join(", ")}.`;
+  }
+  if (typeof insight?.content !== "string" || !insight.content.trim()) {
+    return `${label} needs content.`;
+  }
+  if (insight.content.length > 600) {
+    return `${label} is ${insight.content.length} characters; keep it under 500.`;
+  }
+  if (!Array.isArray(insight.sources ?? [])) return `${label}: sources must be a list.`;
+  return null;
+}
+
 /** A checked submission with sources defaulted, ready to save. */
 export function cleanSubmission(input: unknown): Insight[] {
-  return (input as { insights: Insight[] }).insights.map(({ type, content, sources }) => ({
+  return (input as { insights: Insight[] }).insights.map(cleanInsight);
+}
+
+export function cleanRoastSubmission(input: unknown): Insight {
+  return cleanInsight(input as Insight);
+}
+
+function cleanInsight({ type, content, sources }: Insight): Insight {
+  return {
     type,
     content: content.trim(),
     sources: (sources ?? []).map(({ title, url }) => ({ title, url })),
-  }));
+  };
 }

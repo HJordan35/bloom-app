@@ -26,6 +26,9 @@ export function ReportPage() {
     queries: trailingMonths(month, TREND_MONTHS).map((m) => reportQueries.stats(m)),
   });
   const { data: insights } = useQuery(reportQueries.insights(month));
+  const { data: newRoasts } = useQuery(reportQueries.newRoasts(month));
+  const { data: showcase } = useQuery(reportQueries.showcase(month));
+  const { data: roastInsights } = useQuery(reportQueries.roastInsights(month));
   const { data: bros } = useQuery(broQueries.list());
 
   // Opening the report marks it read, which clears the top bar's badge
@@ -33,7 +36,15 @@ export function ReportPage() {
   useEffect(() => markViewed({ broId: me.id, month }), [markViewed, me.id, month]);
 
   const months = history.map((q) => q.data);
-  if (!months.every((m) => m != null) || !insights || !bros) return null;
+  if (
+    !months.every((m) => m != null) ||
+    !insights ||
+    !newRoasts ||
+    !roastInsights ||
+    showcase === undefined ||
+    !bros
+  )
+    return null;
   const stats = months[months.length - 1];
 
   if (stats.totals.brews === 0 && insights.size === 0) {
@@ -49,6 +60,9 @@ export function ReportPage() {
       stats={stats}
       history={months.slice(Math.max(0, first))}
       insights={insights}
+      newRoasts={newRoasts}
+      roastInsights={roastInsights}
+      showcase={showcase}
       bros={bros}
       meId={me.id}
     />

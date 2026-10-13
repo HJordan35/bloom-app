@@ -191,6 +191,59 @@ export async function buildSnapshot(db: SupabaseClient, broId: string, month: st
   return { text: sections.filter(Boolean).join("\n\n"), brewCount: mine.length };
 }
 
+/** The roast job's first message: one new coffee, everything the group did with it this month. */
+export async function buildRoastSnapshot(db: SupabaseClient, roastId: string, month: string) {
+  const { day, from, to, label } = monthBounds(month);
+  const [roast, ranking, brews, endorsements, newRoasts] = await Promise.all([
+    db
+      .from("roasts")
+      .select(
+        "id, name, region, roast_level, created_at, added_by:bros(first_name), roaster:roasters(name, location)",
+      )
+      .eq("id", roastId)
+      .single(),
+    db
+      .from("roast_rankings")
+      .select("score, avg_rating, rating_count, brew_count")
+      .eq("roast_id", roastId)
+      .maybeSingle(),
+    db
+      .from("brews")
+      .select(BREW_SELECT)
+      .eq("roast_id", roastId)
+      .gte("started_at", from)
+      .lt("started_at", to)
+      .order("started_at"),
+    db
+      .from("endorsements")
+      .select("method, rating, note, created_at, bro:bros(first_name)")
+      .eq("roast_id", roastId)
+      .order("created_at"),
+    // The month's other new coffees, so their insights don't all say the same thing
+    db.rpc("month_new_roasts", { p_month: day }),
+  ]);
+  for (const r of [roast, ranking, brews, endorsements, newRoasts]) if (r.error) throw r.error;
+
+  if (!roast.data) throw new Error(`No roast ${roastId}`);
+  const name = roast.data.name;
+  const rows = (brews.data ?? []) as unknown as BrewRow[];
+  const others = (newRoasts.data as { roast_id: string; name: string; roaster: string }[])
+    .filter((r) => r.roast_id !== roastId)
+    .map((r) => `${r.name} (${r.roaster})`);
+
+  const sections = [
+    `# ${name} — new to the group in ${label}`,
+    `Roast id: ${roastId}. Month: ${label} (${day}), times in ${TIME_ZONE}. Nobody in the group had brewed it before this month.`,
+    `## The coffee\n${json(roast.data)}`,
+    `## Its group ranking (score, average rating out of 10, ratings, brews — all time)\n${json(ranking.data)}`,
+    `## Every brew of it this month, by any bro (${rows.length})\n${json(rows.map(brewForAgent))}`,
+    `## Every endorsement of it (${endorsements.data?.length ?? 0})\n${json(endorsements.data)}`,
+    `## The month's other new coffees (they get their own insights — don't overlap)\n${json(others)}`,
+    `Write the one insight about ${name}, then call submit_roast_insight.`,
+  ];
+  return { text: sections.join("\n\n") };
+}
+
 /** The latest succeeded run's insights for a bro and month. */
 async function lastMonthInsights(db: SupabaseClient, broId: string, month: string) {
   const { data: run } = await db

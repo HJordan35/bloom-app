@@ -1,9 +1,14 @@
 // Draft-only: made-up data for /reports/demo while the report's look is worked out. Delete with
 // ReportDemoPage once the design is agreed.
 import type { Bro } from "../../api/bros/bros.types";
-import type { Insight, MonthlyStats, MonthNumbers } from "../../api/reports/reports.types";
+import type {
+  Insight,
+  MonthlyStats,
+  MonthNumbers,
+  NewRoast,
+} from "../../api/reports/reports.types";
 
-export const MOCK_MONTH = "2026-09";
+export const MOCK_MONTH = "2026-10";
 
 export const MOCK_BROS: Bro[] = [
   { id: "b-alex", first_name: "Alex", last_name: "Reed", email: "" },
@@ -14,10 +19,10 @@ export const MOCK_BROS: Bro[] = [
 
 export const MOCK_ME = "b-alex";
 
-const MONTHS = ["2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"];
+const MONTHS = ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"];
 const METHODS = ["V60", "Espresso", "AeroPress", "Chemex"];
 
-// Brews per bro per month (Apr → Sep). Dan sits September out.
+// Brews per bro per month (May → Oct). Dan sits October out.
 const BREWS: Record<string, number[]> = {
   "b-alex": [9, 12, 10, 14, 13, 18],
   "b-ben": [6, 8, 11, 9, 10, 12],
@@ -166,11 +171,11 @@ export const MOCK_INSIGHTS = new Map<string, Insight[]>([
   [
     "b-dan",
     [
-      insight(1, "jab", "Zero brews in September. Dan's Chemex is now a very elegant vase."),
+      insight(1, "jab", "Zero brews in October. Dan's Chemex is now a very elegant vase."),
       insight(
         2,
         "did_you_know",
-        "Dan's last brew was August 19th. The bag opened that day is still in the library, slowly becoming a historical artefact.",
+        "Dan's last brew was September 19th. The bag opened that day is still in the library, slowly becoming a historical artefact.",
       ),
       insight(
         3,
@@ -178,5 +183,58 @@ export const MOCK_INSIGHTS = new Map<string, Insight[]>([
         "Ease back in with the roast the group rated highest this month — Alex gave it a 9.",
       ),
     ],
+  ],
+]);
+
+// October's new coffees (no photos, so the rows show the thumbnail placeholders)
+export const MOCK_NEW_ROASTS: NewRoast[] = [
+  ["Huila Washed", "Onyx", 9, 2120, ["b-alex", "b-ben"]],
+  ["Yirgacheffe Kochere", "Sey", 6, 1500, ["b-alex", "b-chris"]],
+  ["Gesha Village Lot 4", "Passenger", 3, 740, ["b-chris"]],
+  ["Decaf Sugarcane", "Black & White", 2, 80, ["b-ben"]],
+].map(([name, roaster, brews, volume_ml, bro_ids], i) => ({
+  roast_id: `r-new-${i}`,
+  name: name as string,
+  roaster: roaster as string,
+  photo_path: null,
+  brews: brews as number,
+  volume_ml: volume_ml as number,
+  bro_ids: bro_ids as string[],
+}));
+
+// One insight per new coffee, keyed like MOCK_NEW_ROASTS' ids
+export const MOCK_ROAST_INSIGHTS = new Map<string, Insight>([
+  [
+    "r-new-0",
+    insight(
+      1,
+      "pattern",
+      "Alex and Ben brewed the Huila nine times between them and never once agreed on a grind — 14 to 22 clicks. It still got an 8.5 from both.",
+    ),
+  ],
+  [
+    "r-new-1",
+    insight(
+      1,
+      "fact",
+      "Kochere sits at up to 2,200 m in Yirgacheffe, where the slow ripening packs in the jasmine and bergamot Chris kept writing about.",
+      [{ title: "Yirgacheffe growing regions", url: "https://www.ethiopiancoffee.org" }],
+    ),
+  ],
+  [
+    "r-new-2",
+    insight(
+      1,
+      "jab",
+      "The group's first Gesha, and Chris rationed it like a war-time sugar supply: three brews, each one logged with a paragraph of notes.",
+    ),
+  ],
+  [
+    "r-new-3",
+    insight(
+      1,
+      "recommendation",
+      "Ben's two decaf shots both ran under 20 seconds. Sugarcane decaf grinds soft — go 2 clicks finer and aim for 28.",
+    ),
   ],
 ]);

@@ -3,8 +3,11 @@ import { queryClient } from "../queryClient";
 import {
   fetchInsights,
   fetchMonthlyStats,
+  fetchNewRoasts,
   fetchReportMonths,
   fetchReportViews,
+  fetchRoastInsights,
+  fetchShowcase,
   markReportViewed,
 } from "./reports.service";
 
@@ -14,6 +17,9 @@ export const reportKeys = {
   views: () => [...reportKeys.all, "views"] as const,
   stats: (month: string) => [...reportKeys.all, "stats", month] as const,
   insights: (month: string) => [...reportKeys.all, "insights", month] as const,
+  newRoasts: (month: string) => [...reportKeys.all, "newRoasts", month] as const,
+  showcase: (month: string) => [...reportKeys.all, "showcase", month] as const,
+  roastInsights: (month: string) => [...reportKeys.all, "roastInsights", month] as const,
 };
 
 export const reportQueries = {
@@ -23,6 +29,15 @@ export const reportQueries = {
     queryOptions({ queryKey: reportKeys.stats(month), queryFn: () => fetchMonthlyStats(month) }),
   insights: (month: string) =>
     queryOptions({ queryKey: reportKeys.insights(month), queryFn: () => fetchInsights(month) }),
+  newRoasts: (month: string) =>
+    queryOptions({ queryKey: reportKeys.newRoasts(month), queryFn: () => fetchNewRoasts(month) }),
+  showcase: (month: string) =>
+    queryOptions({ queryKey: reportKeys.showcase(month), queryFn: () => fetchShowcase(month) }),
+  roastInsights: (month: string) =>
+    queryOptions({
+      queryKey: reportKeys.roastInsights(month),
+      queryFn: () => fetchRoastInsights(month),
+    }),
 };
 
 export const reportMutations = {
