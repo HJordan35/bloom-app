@@ -41,7 +41,7 @@ Edge Function `insights`
   │       2. build the bro's month snapshot (code, no LLM)
   │       3. agent loop: Gemini + data tools + Google Search → submit_insights
   │       4. insert 3 insights rows, mark the run succeeded (tokens, searches, time)
-  └─ (S4) when every bro's run is done → monthly_reports row → push "Your September report is in"
+  └─ (S4) when every bro's run and the showcase are done → monthly_reports row → push "Your September report is in"
 
 App (S3): /reports/2026-09 → monthly_stats('2026-09') tiles + latest insights per bro
 ```
@@ -96,7 +96,7 @@ App (S3): /reports/2026-09 → monthly_stats('2026-09') tiles + latest insights 
   - new endorsements
   - roasts tried (distinct roasts brewed) and first tries (roasts that bro had never brewed before)
   - a ranking of brew methods by count
-- **Live, not snapshotted:** computed when read, so it always reflects edits. The point-in-time snapshot is S4's `monthly_reports.stats`.
+- **Live, not snapshotted:** computed when read, so it always reflects edits. That stays true after S4: past months are rarely edited, so small drift between a stored insight and the live numbers is accepted.
 - **Snapshot reuse:** the S1 snapshot already builds a few of these numbers in TypeScript. S2 moves them to the SQL function, and the snapshot can then call it.
 - **Proof:** the numbers for a past month match hand-checked SQL.
 
@@ -136,9 +136,9 @@ App (S3): /reports/2026-09 → monthly_stats('2026-09') tiles + latest insights 
 
 ### S4 — Monthly trigger and push
 - **Cron:** a `pg_cron` job at 9am Chicago time on the 1st POSTs to `insights` and to `showcase` with the previous month. It uses `pg_net` and the secret, which is stored in Vault rather than in git.
-- **`monthly_reports` table:** one row per month, with a `stats` jsonb snapshot of `monthly_stats` and a `published_at`.
-  - The function writes it once every bro's run has succeeded.
-  - The report page reads this snapshot rather than live stats.
+- **`monthly_reports` table:** the publish record, just `month` and `published_at`. No stats snapshot: the numbers stay live (S2).
+  - The function writes it once every bro's run and the showcase have succeeded.
+  - It replaces `insight_runs` as the source of the Brewsletter list and the unread badge (`fetchReportMonths`), so a half-finished month never shows.
 - **Push:** once the report is published, every subscribed device gets "Your September report is in", which opens `/reports/2026-09`. This reuses the send code in `notify`, either through a new message type or a shared helper.
 - **Failed runs:** rerun the bro by hand (the S1 curl), then publish.
 - **Proof:** a forced cron run for last month produces the report and the notification on a phone.
