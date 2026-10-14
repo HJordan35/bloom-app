@@ -1,5 +1,6 @@
 import * as stylex from "@stylexjs/stylex";
 import { useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { Bro } from "../../api/bros/bros.types";
 import type {
   Insight,
@@ -8,8 +9,10 @@ import type {
   NewRoast,
 } from "../../api/reports/reports.types";
 import { Avatar } from "../../components/Avatar";
+import { EmptyState } from "../../components/EmptyState";
 import { FadeIn } from "../../components/FadeIn";
 import { Section } from "../../components/Section";
+import { SegmentedControl } from "../../components/SegmentedControl";
 import { volume, weight } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { BroCard } from "./BroCard";
@@ -42,7 +45,14 @@ const SHARES: [label: string, key: keyof MonthNumbers, format: (n: number) => st
   ["Firsts", "first_tries", (n) => n],
 ];
 
-/** The monthly report: headline tiles, who did what, methods, then a card per bro. */
+const TABS = [
+  { value: "showcase", label: "Showcase" },
+  { value: "stats", label: "Stats" },
+  { value: "insights", label: "Insights" },
+] as const;
+type Tab = (typeof TABS)[number]["value"];
+
+/** The Brewsletter: a masthead over three tabs — the new coffees, the numbers, and each bro's card. */
 export function ReportView({
   month,
   stats,
@@ -77,13 +87,20 @@ export function ReportView({
     [stats],
   );
 
+  // The tab lives in the URL, so a refresh, back-navigation or push link lands on it
+  const [params, setParams] = useSearchParams();
+  const tab: Tab =
+    TABS.find((t) => t.value === params.get("tab"))?.value ??
+    (newRoasts.length > 0 ? "showcase" : "stats");
+  const chooseTab = (next: Tab) => setParams({ tab: next }, { replace: true });
+
   const [year, m] = month.split("-").map(Number);
   const monthName = new Date(year, m - 1).toLocaleDateString([], { month: "long" });
 
   return (
     <FadeIn xstyle={styles.page}>
       <header {...stylex.props(styles.masthead)}>
-        <span {...stylex.props(styles.eyebrow)}>The Bloom Report</span>
+        <span {...stylex.props(styles.eyebrow)}>The Brewsletter</span>
         <h2 {...stylex.props(styles.title)}>
           {monthName}
           <span {...stylex.props(styles.year)}>{year}</span>
@@ -93,59 +110,78 @@ export function ReportView({
         </span>
       </header>
 
-      {/* Until B4's tabs, the showcase leads the report */}
-      {newRoasts.length > 0 && (
-        <Showcase
-          image={showcase}
-          roasts={newRoasts}
-          insights={roastInsights}
-          bros={byId}
-          meId={meId}
-        />
-      )}
+      <SegmentedControl options={[...TABS]} value={tab} onChange={chooseTab} />
 
-      <HeadlineMosaic stats={stats} history={history} />
+      {/* Keyed by tab, so each switch plays the entrance again */}
+      <FadeIn key={tab} xstyle={styles.page}>
+        {tab === "showcase" &&
+          (newRoasts.length > 0 ? (
+            <Showcase
+              image={showcase}
+              roasts={newRoasts}
+              insights={roastInsights}
+              bros={byId}
+              meId={meId}
+            />
+          ) : (
+            <EmptyState title="No new coffees this month." />
+          ))}
 
-      {brewers.length > 0 && (
-        <Section
-          label="Who did what"
-          action={
-            <span {...stylex.props(styles.legend)}>
-              {brewers.map((b) => {
-                const bro = byId.get(b.bro_id);
-                return (
-                  bro && <Avatar key={bro.id} bro={bro} size="xs" ring={colorOf.get(bro.id)} />
-                );
-              })}
-            </span>
-          }
-        >
-          <StackedBars rows={shares} colorOf={colorOf} normalize ariaLabel="Each bro's share" />
-        </Section>
-      )}
+        {tab === "stats" && (
+          <>
+            <HeadlineMosaic stats={stats} history={history} />
 
-      {methods.length > 0 && (
-        <Section label="Methods">
-          <StackedBars rows={methods} colorOf={colorOf} ariaLabel="Brews by method and bro" />
-        </Section>
-      )}
+            {brewers.length > 0 && (
+              <Section
+                label="Who did what"
+                action={
+                  <span {...stylex.props(styles.legend)}>
+                    {brewers.map((b) => {
+                      const bro = byId.get(b.bro_id);
+                      return (
+                        bro && (
+                          <Avatar key={bro.id} bro={bro} size="xs" ring={colorOf.get(bro.id)} />
+                        )
+                      );
+                    })}
+                  </span>
+                }
+              >
+                <StackedBars
+                  rows={shares}
+                  colorOf={colorOf}
+                  normalize
+                  ariaLabel="Each bro's share"
+                />
+              </Section>
+            )}
 
-      {stats.bros.map((numbers) => {
-        const bro = byId.get(numbers.bro_id);
-        if (!bro) return null;
-        const rank = brewers.indexOf(numbers);
-        return (
-          <BroCard
-            key={bro.id}
-            bro={bro}
-            color={colorOf.get(bro.id) ?? LEATHER}
-            self={bro.id === meId}
-            rank={rank >= 0 ? rank : null}
-            numbers={numbers}
-            insights={insights.get(bro.id)}
-          />
-        );
-      })}
+            {methods.length > 0 && (
+              <Section label="Methods">
+                <StackedBars rows={methods} colorOf={colorOf} ariaLabel="Brews by method and bro" />
+              </Section>
+            )}
+          </>
+        )}
+
+        {tab === "insights" &&
+          stats.bros.map((numbers) => {
+            const bro = byId.get(numbers.bro_id);
+            if (!bro) return null;
+            const rank = brewers.indexOf(numbers);
+            return (
+              <BroCard
+                key={bro.id}
+                bro={bro}
+                color={colorOf.get(bro.id) ?? LEATHER}
+                self={bro.id === meId}
+                rank={rank >= 0 ? rank : null}
+                numbers={numbers}
+                insights={insights.get(bro.id)}
+              />
+            );
+          })}
+      </FadeIn>
     </FadeIn>
   );
 }

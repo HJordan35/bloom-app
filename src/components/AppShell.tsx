@@ -27,8 +27,8 @@ const DETAIL_TITLES: [prefix: string, title: string][] = [
   ["/library/roasters/", "Roaster"],
   ["/library/roasts/", "Roast"],
   ["/bros/", "Bro"],
-  ["/reports/", "Report"],
-  ["/reports", "Reports"],
+  ["/reports/", "Brewsletter"],
+  ["/reports", "Brewsletters"],
 ];
 
 export function AppShell() {
@@ -97,7 +97,7 @@ export function AppShell() {
   );
 }
 
-/** Opens the monthly reports, with a dot while the newest one is unread. Hidden until there's one. */
+/** Opens the Brewsletters, with a dot while the newest one is unread. Hidden until there's one. */
 function ReportsLink() {
   const { data: months } = useQuery(reportQueries.months());
   const { data: views } = useQuery(reportQueries.views());
@@ -107,7 +107,7 @@ function ReportsLink() {
   return (
     <Link
       to="/reports"
-      aria-label={unread ? "Monthly reports, new report" : "Monthly reports"}
+      aria-label={unread ? "Brewsletters, a new one is in" : "Brewsletters"}
       {...stylex.props(styles.reports)}
     >
       <NewspaperIcon />

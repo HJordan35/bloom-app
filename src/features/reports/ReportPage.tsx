@@ -48,7 +48,7 @@ export function ReportPage() {
   const stats = months[months.length - 1];
 
   if (stats.totals.brews === 0 && insights.size === 0) {
-    return <EmptyState title={`No report for ${monthTitle(month)}.`} />;
+    return <EmptyState title={`No Brewsletter for ${monthTitle(month)}.`} />;
   }
 
   // Trends start at the first month with any brews, not a run of zeros before the app was used

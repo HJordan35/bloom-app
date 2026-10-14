@@ -7,7 +7,7 @@ import { FadeIn } from "../../components/FadeIn";
 import { monthTitle } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 
-/** Every month's report, newest first; unread ones carry a dot. */
+/** Every month's Brewsletter, newest first; unread ones carry a dot. */
 export function ReportsPage() {
   const { data: months } = useQuery(reportQueries.months());
   const { data: views } = useQuery(reportQueries.views());
@@ -16,7 +16,7 @@ export function ReportsPage() {
   return (
     <FadeIn>
       {months.length === 0 ? (
-        <EmptyState title="No reports yet.">The first lands on the 1st.</EmptyState>
+        <EmptyState title="No Brewsletters yet.">The first lands on the 1st.</EmptyState>
       ) : (
         months.map((month) => (
           <Link key={month} to={`/reports/${month}`} {...stylex.props(styles.row)}>
