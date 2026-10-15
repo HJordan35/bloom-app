@@ -1,5 +1,7 @@
-// Sends a push to every other bro when someone brews, adds a roaster or roast, or endorses (Push, phase P2).
-// Called by Database Webhooks (insert on brews, roasters, roasts, endorsements) with an x-notify-secret header.
+// Sends a push to every other bro when someone brews, adds a roaster or roast, or endorses (Push, phase P2),
+// and to every bro when a month's Brewsletter is published (Monthly Summary, phase S4).
+// Called by Database Webhooks (insert on brews, roasters, roasts, endorsements, monthly_reports) with an
+// x-notify-secret header.
 // Deploy: npx supabase functions deploy notify --no-verify-jwt --project-ref <ref>
 import { createClient } from "npm:@supabase/supabase-js@2";
 // @deno-types="npm:@types/web-push@3"
@@ -8,7 +10,7 @@ import webpush from "npm:web-push@3";
 declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
 
 type Row = Record<string, string | number | null>;
-type Message = { title: string; body: string; url: string };
+type Message = { title: string; body: string; url: string; /** seconds; default an hour */ ttl?: number };
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
@@ -34,25 +36,24 @@ Deno.serve(async (req) => {
   return new Response(null, { status: 202 });
 });
 
-/** Build the message for this insert and send it to every device but the actor's. */
+/** Build the message for this insert and send it to every device but the actor's (all, with no actor). */
 async function notify(table: string, record: Row) {
-  const actorId = String(record.bro_id ?? record.created_by);
-  const actor = await firstName(actorId);
-  const message = await MESSAGES[table](record, actor);
+  const actorId = record.bro_id ?? record.created_by;
+  const actor = actorId ? await firstName(String(actorId)) : "";
+  const { ttl = 3600, ...message } = await MESSAGES[table](record, actor);
 
-  const { data: devices, error } = await supabase
-    .from("push_subscriptions")
-    .select("endpoint, p256dh, auth")
-    .neq("bro_id", actorId);
+  let devices = supabase.from("push_subscriptions").select("endpoint, p256dh, auth");
+  if (actorId) devices = devices.neq("bro_id", actorId);
+  const { data: subscriptions, error } = await devices;
   if (error) throw error;
 
   await Promise.allSettled(
-    devices.map(async ({ endpoint, p256dh, auth }) => {
+    subscriptions.map(async ({ endpoint, p256dh, auth }) => {
       try {
         await webpush.sendNotification(
           { endpoint, keys: { p256dh, auth } },
           JSON.stringify(message),
-          { TTL: 3600, urgency: "high" }, // a stale "is brewing" isn't worth delivering
+          { TTL: ttl, urgency: "high" }, // a stale "is brewing" isn't worth delivering
         );
       } catch (e) {
         const status = (e as { statusCode?: number }).statusCode;
@@ -87,6 +88,16 @@ const MESSAGES: Record<string, (r: Row, actor: string) => Promise<Message>> = {
       title: `${actor} added a roast`,
       body: `${roast.name} — ${roast.roaster}`,
       url: `/library/roasts/${r.id}`,
+    };
+  },
+  monthly_reports: async (r) => {
+    const month = String(r.month).slice(0, 7); // "2026-09-01" → "2026-09"
+    const name = new Date(`${month}-15T12:00:00Z`).toLocaleDateString("en-US", { month: "long" });
+    return {
+      title: `The ${name} Brewsletter is in`,
+      body: "Showcase, stats and everyone's insights",
+      url: `/reports/${month}`,
+      ttl: 86400, // unlike "is brewing", still worth reading tomorrow
     };
   },
   endorsements: async (r, actor) => {

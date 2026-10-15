@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { invalidateBrews } from "./brews/brews.queries";
 import { invalidateEndorsements } from "./endorsements/endorsements.queries";
+import { invalidateReportMonths } from "./reports/reports.queries";
 import { invalidateRoasters } from "./roasters/roasters.queries";
 import { invalidateRoasts } from "./roasts/roasts.queries";
 
@@ -14,6 +15,7 @@ const INVALIDATE_ON_CHANGE: Record<string, () => Promise<unknown>> = {
   roasters: invalidateRoasters,
   roasts: invalidateRoasts, // includes studio photos finishing in the background
   endorsements: invalidateEndorsements,
+  monthly_reports: invalidateReportMonths, // a Brewsletter just published
 };
 
 /** One Realtime subscription for the signed-in app: any bro's change refreshes the cache. */

@@ -71,3 +71,19 @@ export function recipeLine(brew: Pick<Brew, "dose_g" | "grind_size" | "temp" | "
     .filter(Boolean)
     .join(" · ");
 }
+
+/** "2026-09" → "September 2026" */
+export function monthTitle(month: string) {
+  const [year, m] = month.split("-").map(Number);
+  return new Date(year, m - 1).toLocaleDateString([], { month: "long", year: "numeric" });
+}
+
+/** "850 ml", or litres from 1 L: "9.9 L" */
+export function volume(ml: number) {
+  return ml >= 1000 ? `${Number((ml / 1000).toFixed(1))} L` : `${Math.round(ml)} ml`;
+}
+
+/** "702 g", or kilograms from 1 kg: "1.2 kg" */
+export function weight(g: number) {
+  return g >= 1000 ? `${Number((g / 1000).toFixed(1))} kg` : `${Math.round(g)} g`;
+}

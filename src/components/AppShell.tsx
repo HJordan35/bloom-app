@@ -1,11 +1,13 @@
 import * as stylex from "@stylexjs/stylex";
+import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useRealtimeSync } from "../api/realtime";
+import { reportQueries } from "../api/reports/reports.queries";
 import { useCurrentBro } from "../lib/auth";
 import { clearBadge, refreshPush } from "../lib/push";
 import { colors, fonts, layout, space } from "../theme/tokens.stylex";
-import { BrosIcon, CupIcon, LibraryIcon } from "./icons";
+import { BrosIcon, CupIcon, LibraryIcon, NewspaperIcon } from "./icons";
 
 const TABS: { to: string; label: string; icon: ReactNode }[] = [
   { to: "/", label: "Brew", icon: <CupIcon /> },
@@ -25,6 +27,8 @@ const DETAIL_TITLES: [prefix: string, title: string][] = [
   ["/library/roasters/", "Roaster"],
   ["/library/roasts/", "Roast"],
   ["/bros/", "Bro"],
+  ["/reports/", "Brewsletter"],
+  ["/reports", "Brewsletters"],
 ];
 
 export function AppShell() {
@@ -62,7 +66,10 @@ export function AppShell() {
         ) : (
           <span {...stylex.props(styles.mark)}>Bloom</span>
         )}
-        <h1 {...stylex.props(styles.title)}>{title}</h1>
+        <div {...stylex.props(styles.end)}>
+          <h1 {...stylex.props(styles.title)}>{title}</h1>
+          <ReportsLink />
+        </div>
       </header>
 
       {/* Keyed so every path change remounts the view (its FadeIn plays, even roast → roast)
@@ -87,6 +94,25 @@ export function AppShell() {
         ))}
       </nav>
     </div>
+  );
+}
+
+/** Opens the Brewsletters, with a dot while the newest one is unread. Hidden until there's one. */
+function ReportsLink() {
+  const { data: months } = useQuery(reportQueries.months());
+  const { data: views } = useQuery(reportQueries.views());
+  if (!months?.length || !views) return null;
+  const unread = !views.includes(months[0]);
+
+  return (
+    <Link
+      to="/reports"
+      aria-label={unread ? "Brewsletters, a new one is in" : "Brewsletters"}
+      {...stylex.props(styles.reports)}
+    >
+      <NewspaperIcon />
+      {unread && <span {...stylex.props(styles.badge)} />}
+    </Link>
   );
 }
 
@@ -137,6 +163,29 @@ const styles = stylex.create({
     textTransform: "uppercase",
     color: colors.brass,
     cursor: "pointer",
+  },
+  end: {
+    display: "flex",
+    alignItems: "center",
+    gap: space.md,
+  },
+  reports: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    minHeight: 44,
+    marginBlock: -12,
+    color: colors.muted,
+  },
+  badge: {
+    position: "absolute",
+    top: 9,
+    right: -2,
+    width: 8,
+    height: 8,
+    borderRadius: "50%",
+    backgroundColor: colors.ember,
+    boxShadow: `0 0 0 2px ${colors.bg}`,
   },
   title: {
     fontFamily: fonts.display,

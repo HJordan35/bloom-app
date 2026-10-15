@@ -11,9 +11,18 @@ type Props = {
   self?: boolean;
   /** Picked in a filter: the same brass treatment as a selected chip. */
   selected?: boolean;
+  /** A colour ring (e.g. a bro's chart colour in the monthly report). */
+  ring?: string;
 };
 
-export function Avatar({ bro, size = "sm", live = false, self = false, selected = false }: Props) {
+export function Avatar({
+  bro,
+  size = "sm",
+  live = false,
+  self = false,
+  selected = false,
+  ring,
+}: Props) {
   return (
     <span
       {...stylex.props(
@@ -21,6 +30,7 @@ export function Avatar({ bro, size = "sm", live = false, self = false, selected 
         styles[size],
         (self || selected) && styles.self,
         live && styles.live,
+        ring != null && styles.ring(ring),
       )}
     >
       {bro.first_name[0]}
@@ -72,6 +82,10 @@ const styles = stylex.create({
   live: {
     borderColor: colors.ember,
   },
+  ring: (color: string) => ({
+    borderColor: color,
+    borderWidth: 2,
+  }),
   dot: {
     position: "absolute",
     right: 2,

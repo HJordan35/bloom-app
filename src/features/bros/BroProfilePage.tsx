@@ -14,6 +14,7 @@ import { FadeIn } from "../../components/FadeIn";
 import { LiveDot } from "../../components/LiveDot";
 import { Mosaic, Tile } from "../../components/Mosaic";
 import { Section } from "../../components/Section";
+import { StatStrip } from "../../components/StatStrip";
 import { useAuth, useCurrentBro } from "../../lib/auth";
 import { elapsed } from "../../lib/format";
 import { useNow } from "../../lib/useNow";
@@ -82,14 +83,7 @@ export function BroProfilePage() {
         </Link>
       )}
 
-      <dl {...stylex.props(styles.stats)}>
-        {stats.map(([label, value]) => (
-          <div key={label} {...stylex.props(styles.stat)}>
-            <dt {...stylex.props(styles.statLabel)}>{label}</dt>
-            <dd {...stylex.props(styles.statValue)}>{value}</dd>
-          </div>
-        ))}
-      </dl>
+      <StatStrip stats={stats} />
 
       <Section label="Library">
         {library.length === 0 ? (
@@ -190,31 +184,5 @@ const styles = stylex.create({
   timer: {
     fontFamily: fonts.mono,
     fontSize: 14,
-  },
-  stats: {
-    display: "grid",
-    gridTemplateColumns: "repeat(4, 1fr)",
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderInlineWidth: 0,
-    borderStyle: "solid",
-    borderColor: colors.hairline,
-    paddingBlock: space.md,
-  },
-  stat: {
-    display: "flex",
-    flexDirection: "column-reverse", // value above label, dt first in markup
-    alignItems: "center",
-    gap: 2,
-  },
-  statValue: {
-    fontFamily: fonts.mono,
-    fontSize: 22,
-  },
-  statLabel: {
-    fontSize: 10,
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    color: colors.muted,
   },
 });
