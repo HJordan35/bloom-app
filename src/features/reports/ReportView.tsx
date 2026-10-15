@@ -1,5 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
-import { useMemo } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { Bro } from "../../api/bros/bros.types";
 import type {
@@ -11,12 +11,14 @@ import type {
 import { Avatar } from "../../components/Avatar";
 import { EmptyState } from "../../components/EmptyState";
 import { FadeIn } from "../../components/FadeIn";
+import { HeaderAction } from "../../components/HeaderAction";
 import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { volume, weight } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { BroCard } from "./BroCard";
 import { broColors, LEATHER } from "./broColors";
+import { ExportSheet } from "./ExportSheet";
 import { HeadlineMosaic } from "./HeadlineMosaic";
 import { Showcase } from "./Showcase";
 import { StackedBars, type StackedRow } from "./StackedBars";
@@ -97,91 +99,110 @@ export function ReportView({
   const [year, m] = month.split("-").map(Number);
   const monthName = new Date(year, m - 1).toLocaleDateString([], { month: "long" });
 
+  // Export: the whole month, every tab, as one image
+  const [exporting, setExporting] = useState(false);
+  const stopExporting = useCallback(() => setExporting(false), []);
+
+  const masthead = (action?: ReactNode) => (
+    <header {...stylex.props(styles.masthead)}>
+      <span {...stylex.props(styles.mastheadTop)}>
+        <span {...stylex.props(styles.eyebrow)}>The Brewsletter</span>
+        {action}
+      </span>
+      <h2 {...stylex.props(styles.title)}>
+        {monthName}
+        <span {...stylex.props(styles.year)}>{year}</span>
+      </h2>
+      <span {...stylex.props(styles.caption)}>
+        {brewers.length} of {stats.bros.length} bros brewing
+      </span>
+    </header>
+  );
+
+  /** A tab's content; `poster` lays it out for the exported image. */
+  const content = (which: Tab, poster = false) => {
+    if (which === "showcase")
+      return newRoasts.length > 0 ? (
+        <Showcase
+          image={showcase}
+          roasts={newRoasts}
+          insights={roastInsights}
+          bros={byId}
+          meId={meId}
+        />
+      ) : (
+        !poster && <EmptyState title="No new coffees this month." />
+      );
+
+    if (which === "stats")
+      return (
+        <>
+          <HeadlineMosaic stats={stats} history={history} />
+
+          {brewers.length > 0 && (
+            <Section
+              label="Who did what"
+              action={
+                <span {...stylex.props(styles.legend)}>
+                  {brewers.map((b) => {
+                    const bro = byId.get(b.bro_id);
+                    return (
+                      bro && <Avatar key={bro.id} bro={bro} size="xs" ring={colorOf.get(bro.id)} />
+                    );
+                  })}
+                </span>
+              }
+            >
+              <StackedBars rows={shares} colorOf={colorOf} normalize ariaLabel="Each bro's share" />
+            </Section>
+          )}
+
+          {methods.length > 0 && (
+            <Section label="Methods">
+              <StackedBars rows={methods} colorOf={colorOf} ariaLabel="Brews by method and bro" />
+            </Section>
+          )}
+        </>
+      );
+
+    return stats.bros.map((numbers) => {
+      const bro = byId.get(numbers.bro_id);
+      if (!bro) return null;
+      const rank = brewers.indexOf(numbers);
+      return (
+        <BroCard
+          key={bro.id}
+          bro={bro}
+          color={colorOf.get(bro.id) ?? LEATHER}
+          self={bro.id === meId}
+          rank={rank >= 0 ? rank : null}
+          numbers={numbers}
+          insights={insights.get(bro.id)}
+          stacked={poster}
+        />
+      );
+    });
+  };
+
   return (
     <FadeIn xstyle={styles.page}>
-      <header {...stylex.props(styles.masthead)}>
-        <span {...stylex.props(styles.eyebrow)}>The Brewsletter</span>
-        <h2 {...stylex.props(styles.title)}>
-          {monthName}
-          <span {...stylex.props(styles.year)}>{year}</span>
-        </h2>
-        <span {...stylex.props(styles.caption)}>
-          {brewers.length} of {stats.bros.length} bros brewing
-        </span>
-      </header>
+      {masthead(<HeaderAction onClick={() => setExporting(true)}>Export</HeaderAction>)}
 
       <SegmentedControl options={[...TABS]} value={tab} onChange={chooseTab} />
 
       {/* Keyed by tab, so each switch plays the entrance again */}
       <FadeIn key={tab} xstyle={styles.page}>
-        {tab === "showcase" &&
-          (newRoasts.length > 0 ? (
-            <Showcase
-              image={showcase}
-              roasts={newRoasts}
-              insights={roastInsights}
-              bros={byId}
-              meId={meId}
-            />
-          ) : (
-            <EmptyState title="No new coffees this month." />
-          ))}
-
-        {tab === "stats" && (
-          <>
-            <HeadlineMosaic stats={stats} history={history} />
-
-            {brewers.length > 0 && (
-              <Section
-                label="Who did what"
-                action={
-                  <span {...stylex.props(styles.legend)}>
-                    {brewers.map((b) => {
-                      const bro = byId.get(b.bro_id);
-                      return (
-                        bro && (
-                          <Avatar key={bro.id} bro={bro} size="xs" ring={colorOf.get(bro.id)} />
-                        )
-                      );
-                    })}
-                  </span>
-                }
-              >
-                <StackedBars
-                  rows={shares}
-                  colorOf={colorOf}
-                  normalize
-                  ariaLabel="Each bro's share"
-                />
-              </Section>
-            )}
-
-            {methods.length > 0 && (
-              <Section label="Methods">
-                <StackedBars rows={methods} colorOf={colorOf} ariaLabel="Brews by method and bro" />
-              </Section>
-            )}
-          </>
-        )}
-
-        {tab === "insights" &&
-          stats.bros.map((numbers) => {
-            const bro = byId.get(numbers.bro_id);
-            if (!bro) return null;
-            const rank = brewers.indexOf(numbers);
-            return (
-              <BroCard
-                key={bro.id}
-                bro={bro}
-                color={colorOf.get(bro.id) ?? LEATHER}
-                self={bro.id === meId}
-                rank={rank >= 0 ? rank : null}
-                numbers={numbers}
-                insights={insights.get(bro.id)}
-              />
-            );
-          })}
+        {content(tab)}
       </FadeIn>
+
+      {exporting && (
+        <ExportSheet fileName={`brewsletter-${month}.png`} onClose={stopExporting}>
+          {masthead()}
+          {content("showcase", true)}
+          {content("stats", true)}
+          {content("insights", true)}
+        </ExportSheet>
+      )}
     </FadeIn>
   );
 }
@@ -196,6 +217,11 @@ const styles = stylex.create({
     display: "flex",
     flexDirection: "column",
     gap: 2,
+  },
+  mastheadTop: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   eyebrow: {
     fontFamily: fonts.mono,

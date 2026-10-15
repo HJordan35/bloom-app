@@ -19,6 +19,7 @@ export function BroCard({
   rank,
   numbers,
   insights,
+  stacked = false,
 }: {
   bro: Bro;
   color: string;
@@ -27,6 +28,8 @@ export function BroCard({
   rank: number | null;
   numbers: MonthlyStats["bros"][number];
   insights?: Insight[];
+  /** Every insight in a column instead of the carousel (the exported image). */
+  stacked?: boolean;
 }) {
   const sat = numbers.brews === 0;
 
@@ -60,7 +63,13 @@ export function BroCard({
         </dl>
       )}
 
-      {insights?.length ? <Carousel insights={insights} /> : null}
+      {insights?.length ? (
+        stacked ? (
+          insights.map((insight) => <InsightCard key={insight.position} insight={insight} />)
+        ) : (
+          <Carousel insights={insights} />
+        )
+      ) : null}
     </section>
   );
 }
