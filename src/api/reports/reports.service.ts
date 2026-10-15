@@ -32,16 +32,12 @@ export async function fetchInsights(month: string) {
   return byBro;
 }
 
-/** Months with a report, newest first. Until S4, that's any month with a successful run. */
+/** Published months, newest first: a month is listed only once all of it is done (S4). */
 export async function fetchReportMonths() {
-  const runs = unwrap<{ month: string }[]>(
-    await supabase
-      .from("insight_runs")
-      .select("month")
-      .eq("status", "succeeded")
-      .order("month", { ascending: false }),
+  const rows = unwrap<{ month: string }[]>(
+    await supabase.from("monthly_reports").select("month").order("month", { ascending: false }),
   );
-  return [...new Set(runs.map((r) => toMonth(r.month)))];
+  return rows.map((r) => toMonth(r.month));
 }
 
 /** The months this bro has opened (RLS returns only their own). */

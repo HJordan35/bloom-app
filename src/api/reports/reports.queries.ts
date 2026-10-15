@@ -22,6 +22,11 @@ export const reportKeys = {
   roastInsights: (month: string) => [...reportKeys.all, "roastInsights", month] as const,
 };
 
+/** A Brewsletter was published: refresh the list and the unread badge. */
+export function invalidateReportMonths() {
+  return queryClient.invalidateQueries({ queryKey: reportKeys.months() });
+}
+
 export const reportQueries = {
   months: () => queryOptions({ queryKey: reportKeys.months(), queryFn: fetchReportMonths }),
   views: () => queryOptions({ queryKey: reportKeys.views(), queryFn: fetchReportViews }),

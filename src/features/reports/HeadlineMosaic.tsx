@@ -19,8 +19,16 @@ export function HeadlineMosaic({
 }) {
   const { totals } = stats;
   const previous = history.at(-2);
-  const trend = (key: keyof MonthNumbers) =>
-    history.map((h) => ({ month: h.month.slice(0, 7), value: Number(h.totals[key]) }));
+  const trend = (key: keyof MonthNumbers) => {
+    const points = history.map((h) => ({
+      month: h.month.slice(0, 7),
+      value: Number(h.totals[key]),
+    }));
+    // A first month still gets a line: up from zero the month before
+    return points.length === 1
+      ? [{ month: monthBefore(points[0].month), value: 0 }, ...points]
+      : points;
+  };
 
   /** "+12 vs Aug", or nothing without a previous month. */
   const delta = (key: keyof MonthNumbers, format: (n: number) => string | number = Math.round) => {
@@ -208,3 +216,10 @@ const sizes = stylex.create({
     fontSize: 20,
   },
 });
+
+/** "2026-09" → "2026-08". */
+function monthBefore(month: string) {
+  const [year, m] = month.split("-").map(Number);
+  const date = new Date(year, m - 2);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}

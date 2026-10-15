@@ -24,7 +24,7 @@ The spec mentions "activity during the week" in one place; this plan treats ever
 | B2 | New-coffee breakdown: each new roast's thumbnail, brews, volume and who brewed it | ✅ Done | [phase-b2.md](phase-b2.md) |
 | B3 | One insight per new coffee: an agent pass with Google Search, saved per roast and month | ✅ Done | [phase-b3.md](phase-b3.md) |
 | B4 | Tabs and rename: "Brewsletter", with Showcase · Stats · Insights tabs | ✅ Done | [phase-b4.md](phase-b4.md) |
-| S4 | Monthly trigger and push: cron on the 1st runs `insights` and `showcase`, then a notification that opens the Brewsletter | — | — |
+| S4 | Monthly trigger and push: cron on the 1st runs `insights` and `showcase`, then a notification that opens the Brewsletter | 🔨 Built — awaiting review | [phase-s4.md](phase-s4.md) |
 
 Each phase is planned in `docs/summary/` before it's built, and ends with a checkpoint review.
 
@@ -41,7 +41,7 @@ Edge Function `insights`
   │       2. build the bro's month snapshot (code, no LLM)
   │       3. agent loop: Gemini + data tools + Google Search → submit_insights
   │       4. insert 3 insights rows, mark the run succeeded (tokens, searches, time)
-  └─ (S4) when every bro's run and the showcase are done → monthly_reports row → push "Your September report is in"
+  └─ (S4) when every bro, every new coffee and the showcase are done → monthly_reports row → push "The September Brewsletter is in"
 
 App (S3): /reports/2026-09 → monthly_stats('2026-09') tiles + latest insights per bro
 ```

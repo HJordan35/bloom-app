@@ -5,6 +5,7 @@
 //   { month: "2026-09", scope: "bros" | "roasts" } → 202, runs only that half
 //   { month: "2026-09", bro_id | roast_id }         → 202, runs that one and saves the result
 //   { month, bro_id | roast_id, dry_run: true }     → runs that one and returns the result, saves nothing
+// Each saved run that succeeds then tries to publish the month's Brewsletter (phase S4).
 // Deploy: npx supabase functions deploy insights --no-verify-jwt --project-ref <ref>
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
@@ -102,9 +103,9 @@ Deno.serve(async (req) => {
   }
 
   const work = bro_id
-    ? run(bro_id, month)
+    ? run(bro_id, month).then(() => publish(month))
     : roast_id
-      ? runRoast(roast_id, month)
+      ? runRoast(roast_id, month).then(() => publish(month))
       : fanOut(month, scope);
   EdgeRuntime.waitUntil(
     work.catch((e) =>
@@ -139,6 +140,12 @@ async function fanOut(month: string, scope?: "bros" | "roasts") {
       }),
     ),
   );
+}
+
+/** Publishes the month if this run was its last missing piece; the new row's webhook sends the push. */
+async function publish(month: string) {
+  const { error } = await supabase.rpc("publish_report", { p_month: monthBounds(month).day });
+  if (error) throw error;
 }
 
 /** Record a bro's run, let the agent work, then save its insights (or the failure). */

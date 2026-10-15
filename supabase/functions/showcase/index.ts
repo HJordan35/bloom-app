@@ -1,5 +1,6 @@
 // Photographs the month's new coffees together in the locked studio (Brewsletter, phase B1).
-// POST { month: "2026-09" } with an x-insights-secret header → 202, then generates and saves it.
+// POST { month: "2026-09" } with an x-insights-secret header → 202, then generates and saves it,
+// and tries to publish the month's Brewsletter (phase S4).
 // Deploy: npx supabase functions deploy showcase --no-verify-jwt --project-ref <ref>
 import { decodeBase64, encodeBase64 } from "jsr:@std/encoding@1/base64";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -41,9 +42,19 @@ Deno.serve(async (req) => {
   const { month } = await req.json();
   if (!/^\d{4}-\d{2}$/.test(month ?? "")) return json({ error: "month must be YYYY-MM" }, 400);
 
-  EdgeRuntime.waitUntil(run(month).catch((e) => console.error(`showcase failed for ${month}:`, e)));
+  EdgeRuntime.waitUntil(
+    run(month)
+      .then(() => publish(month))
+      .catch((e) => console.error(`showcase failed for ${month}:`, e)),
+  );
   return json({ status: "started" }, 202);
 });
+
+/** Publishes the month if the showcase was its last missing piece; the new row's webhook sends the push. */
+async function publish(month: string) {
+  const { error } = await supabase.rpc("publish_report", { p_month: `${month}-01` });
+  if (error) throw error;
+}
 
 /** Record a run, photograph the new roasts that have studio photos, and save the image. */
 async function run(month: string) {
