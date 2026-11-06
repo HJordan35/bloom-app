@@ -5,7 +5,6 @@ import { useSearchParams } from "react-router-dom";
 import { preferredQueries } from "../../api/preferred/preferred.queries";
 import type { PreferredRecipeWithRoast } from "../../api/preferred/preferred.types";
 import { roastQueries } from "../../api/roasts/roasts.queries";
-import { Chips } from "../../components/Chips";
 import { EmptyState } from "../../components/EmptyState";
 import { FadeIn } from "../../components/FadeIn";
 import { HeaderAction } from "../../components/HeaderAction";
@@ -16,10 +15,10 @@ import { TextToggle } from "../../components/TextToggle";
 import { useCurrentBro } from "../../lib/auth";
 import { colors, space } from "../../theme/tokens.stylex";
 import { RoastPickerSheet } from "../brew/RoastChoice";
+import { MethodFilterSheet } from "./MethodFilterSheet";
 import { PreferredRecipeSheet, type PreferredStart } from "./PreferredRecipeSheet";
 import { PreferredRow, PreferredSummary } from "./PreferredRow";
 
-const ALL = "All";
 type Who = "mine" | "all";
 const WHO: { value: Who; label: string }[] = [
   { value: "mine", label: "Mine" },
@@ -31,7 +30,8 @@ type Open =
   | { kind: "view"; recipe: PreferredRecipeWithRoast }
   | { kind: "edit"; recipe: PreferredRecipeWithRoast }
   | { kind: "new"; from: PreferredStart }
-  | { kind: "filter" };
+  | { kind: "roasts" }
+  | { kind: "methods" };
 
 /** Every preferred recipe, yours or everyone's, by roast. Filters live in the URL. */
 export function RecipesPage() {
@@ -46,11 +46,11 @@ export function RecipesPage() {
     enabled: !!roastId,
   });
 
-  function setParam(key: string, value: string | null) {
+  function setParam(key: string, value: string | string[] | null) {
     setParams(
       (p) => {
-        if (value) p.set(key, value);
-        else p.delete(key);
+        p.delete(key);
+        for (const v of [value ?? []].flat()) p.append(key, v);
         return p;
       },
       { replace: true },
@@ -64,9 +64,13 @@ export function RecipesPage() {
     .filter((r) => !roastId || r.roast_id === roastId)
     // Newest first already; yours lead, and the sort is stable
     .sort((a, b) => Number(b.bro_id === me.id) - Number(a.bro_id === me.id));
-  const methods = [...new Set(listed.map((r) => r.method))];
-  const method = methods.find((m) => m === params.get("method")) ?? ALL;
-  const shown = listed.filter((r) => method === ALL || r.method === method);
+  const methods = [...new Set(listed.map((r) => r.method))].map((method) => ({
+    method,
+    count: listed.filter((r) => r.method === method).length,
+  }));
+  // Ticked methods with nothing left to show (after Mine or a roast) fall away
+  const picked = params.getAll("method").filter((m) => methods.some((x) => x.method === m));
+  const shown = listed.filter((r) => picked.length === 0 || picked.includes(r.method));
   const byRoast = new Map<string, PreferredRecipeWithRoast[]>();
   for (const r of shown) byRoast.set(r.roast_id, [...(byRoast.get(r.roast_id) ?? []), r]);
 
@@ -87,32 +91,24 @@ export function RecipesPage() {
       </div>
 
       <div {...stylex.props(styles.filters)}>
-        <div {...stylex.props(styles.roastFilter)}>
-          <button
-            type="button"
-            onClick={() => setOpen({ kind: "filter" })}
-            {...stylex.props(styles.filter, !!roastId && styles.filterOn)}
-          >
-            {roastId ? (roast?.name ?? "…") : "All roasts"} ▾
-          </button>
-          {roastId && (
-            <button
-              type="button"
-              aria-label="All roasts"
-              onClick={() => setParam("roast", null)}
-              {...stylex.props(styles.filter)}
-            >
-              ×
-            </button>
-          )}
-        </div>
-        {methods.length > 1 && (
-          <Chips
-            options={[ALL, ...methods]}
-            value={method}
-            onChange={(m) => setParam("method", m === ALL ? null : m)}
-          />
-        )}
+        <FilterLink
+          label={roastId ? (roast?.name ?? "…") : "All roasts"}
+          clearLabel="All roasts"
+          onOpen={() => setOpen({ kind: "roasts" })}
+          onClear={roastId ? () => setParam("roast", null) : undefined}
+        />
+        <FilterLink
+          label={
+            picked.length === 0
+              ? "All methods"
+              : picked.length <= 2
+                ? picked.join(", ")
+                : `${picked.length} methods`
+          }
+          clearLabel="All methods"
+          onOpen={() => setOpen({ kind: "methods" })}
+          onClear={picked.length > 0 ? () => setParam("method", null) : undefined}
+        />
       </div>
 
       {shown.length === 0 ? (
@@ -183,7 +179,15 @@ export function RecipesPage() {
           onSaved={() => setOpen(null)}
         />
       )}
-      {open?.kind === "filter" && (
+      {open?.kind === "methods" && (
+        <MethodFilterSheet
+          methods={methods}
+          selected={picked}
+          onChange={(m) => setParam("method", m)}
+          onClose={() => setOpen(null)}
+        />
+      )}
+      {open?.kind === "roasts" && (
         <RoastPickerSheet
           onClose={() => setOpen(null)}
           onPick={(picked) => {
@@ -193,6 +197,42 @@ export function RecipesPage() {
         />
       )}
     </FadeIn>
+  );
+}
+
+/** A quiet "All roasts ▾" filter: opens its picker, with an × once something is chosen. */
+function FilterLink({
+  label,
+  clearLabel,
+  onOpen,
+  onClear,
+}: {
+  label: string;
+  /** Read out for the ×: what clearing goes back to. */
+  clearLabel: string;
+  onOpen: () => void;
+  onClear?: () => void;
+}) {
+  return (
+    <div {...stylex.props(styles.filter)}>
+      <button
+        type="button"
+        onClick={onOpen}
+        {...stylex.props(styles.filterButton, !!onClear && styles.filterOn)}
+      >
+        {label} ▾
+      </button>
+      {onClear && (
+        <button
+          type="button"
+          aria-label={clearLabel}
+          onClick={onClear}
+          {...stylex.props(styles.filterButton)}
+        >
+          ×
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -210,15 +250,16 @@ const styles = stylex.create({
   },
   filters: {
     display: "flex",
-    flexDirection: "column",
-    gap: space.sm,
+    flexWrap: "wrap",
+    columnGap: space.lg,
   },
-  roastFilter: {
+  filter: {
+    minWidth: 0,
     display: "flex",
     alignItems: "center",
     gap: space.sm,
   },
-  filter: {
+  filterButton: {
     minHeight: 44,
     marginBlock: -10,
     paddingInline: 0,

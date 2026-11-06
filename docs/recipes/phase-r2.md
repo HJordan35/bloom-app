@@ -29,10 +29,11 @@ Save, edit and delete preferred recipes, from scratch or from any brew, and brow
 - **`PreferredSummary`:** the label and method, `BrewStats` (time and volume are the estimates), and notes.
 - **Recipes tab** (`/recipes`, 4th tab):
   - a top row with `Mine · All` and "+ New";
-  - one filter line: "All roasts ▾", or the roast's name with ×;
-  - method chips, shown only when 2+ methods are listed;
+  - one quiet filter line with two text filters of the same design, "All roasts ▾" and "All methods ▾". Once set, each shows its choice and an ×:
+    - roast: opens the roast picker and shows the roast's name;
+    - methods: opens a short sheet listing the methods that have recipes, each with a ✓ and its count. You can tick several, and the list filters as you tick. It shows "V60, AeroPress", or "3 methods" past two;
   - rows grouped by roast;
-  - filters kept in the URL (`?who=all&roast=…&method=…`).
+  - filters kept in the URL (`?who=all&roast=…&method=V60&method=AeroPress`).
 
   Tapping a row opens a summary sheet: **Edit** for yours, **Save as mine** for a bro's.
 - **Brew detail:** a **Bookmark** action in the top row, beside Edit, on anyone's brew. It opens the form prefilled with a copy. Saving the same brew twice goes through Replace / Keep both.
