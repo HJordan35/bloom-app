@@ -13,6 +13,7 @@ import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
 import { TextToggle } from "../../components/TextToggle";
 import { useCurrentBro } from "../../lib/auth";
+import { BREW_METHODS } from "../../lib/constants";
 import { colors, space } from "../../theme/tokens.stylex";
 import { RoastPickerSheet } from "../brew/RoastChoice";
 import { MethodFilterSheet } from "./MethodFilterSheet";
@@ -64,12 +65,10 @@ export function RecipesPage() {
     .filter((r) => !roastId || r.roast_id === roastId)
     // Newest first already; yours lead, and the sort is stable
     .sort((a, b) => Number(b.bro_id === me.id) - Number(a.bro_id === me.id));
-  const methods = [...new Set(listed.map((r) => r.method))].map((method) => ({
-    method,
-    count: listed.filter((r) => r.method === method).length,
-  }));
+  // In the usual method order, like every other method picker
+  const methods: string[] = BREW_METHODS.filter((m) => listed.some((r) => r.method === m));
   // Ticked methods with nothing left to show (after Mine or a roast) fall away
-  const picked = params.getAll("method").filter((m) => methods.some((x) => x.method === m));
+  const picked = params.getAll("method").filter((m) => methods.includes(m));
   const shown = listed.filter((r) => picked.length === 0 || picked.includes(r.method));
   const byRoast = new Map<string, PreferredRecipeWithRoast[]>();
   for (const r of shown) byRoast.set(r.roast_id, [...(byRoast.get(r.roast_id) ?? []), r]);

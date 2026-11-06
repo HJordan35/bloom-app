@@ -31,7 +31,7 @@ Save, edit and delete preferred recipes, from scratch or from any brew, and brow
   - a top row with `Mine · All` and "+ New";
   - one quiet filter line with two text filters of the same design, "All roasts ▾" and "All methods ▾". Once set, each shows its choice and an ×:
     - roast: opens the roast picker and shows the roast's name;
-    - methods: opens a short sheet listing the methods that have recipes, each with a ✓ and its count. You can tick several, and the list filters as you tick. It shows "V60, AeroPress", or "3 methods" past two;
+    - methods: opens a short sheet with the usual method `Chips` (boxes). It lists only methods that have recipes, in `BREW_METHODS` order. You can tick several (`Chips` now also takes an array value), Clear is in the section header, and the list filters as you tick. It shows "V60, AeroPress", or "3 methods" past two;
   - rows grouped by roast;
   - filters kept in the URL (`?who=all&roast=…&method=V60&method=AeroPress`).
 

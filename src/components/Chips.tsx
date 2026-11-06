@@ -3,19 +3,24 @@ import { colors, radius, space } from "../theme/tokens.stylex";
 
 type Props = {
   options: readonly string[];
-  value: string | null;
+  /** One choice, or several (multi-select: the caller toggles the tapped option). */
+  value: string | null | readonly string[];
+  /** Called with the tapped option. */
   onChange: (value: string) => void;
 };
 
 export function Chips({ options, value, onChange }: Props) {
+  const selected = (option: string) =>
+    Array.isArray(value) ? value.includes(option) : option === value;
   return (
     <div {...stylex.props(styles.row)}>
       {options.map((option) => (
         <button
           key={option}
           type="button"
+          aria-pressed={selected(option)}
           onClick={() => onChange(option)}
-          {...stylex.props(styles.chip, option === value && styles.selected)}
+          {...stylex.props(styles.chip, selected(option) && styles.selected)}
         >
           {option}
         </button>
