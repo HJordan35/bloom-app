@@ -44,15 +44,10 @@ export function SelectRecipeSheet({ roast, method, onUse, onClose }: Props) {
     return (
       <Sheet title="Recipe" tall onClose={onClose}>
         {viewing.kind === "brew" ? (
-          <BrewSummary
-            brew={viewing.brew}
-            you={viewing.brew.bro_id === me.id}
-            onUse={() => onUse(viewing.brew, null)}
-          />
+          <BrewSummary brew={viewing.brew} onUse={() => onUse(viewing.brew, null)} />
         ) : (
           <PreferredSummary
             recipe={viewing.recipe}
-            you={viewing.recipe.bro_id === me.id}
             onUse={() => onUse(viewing.recipe, viewing.recipe.id)}
           />
         )}

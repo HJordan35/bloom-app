@@ -17,6 +17,7 @@ import { PhotoPicker } from "../../components/PhotoPicker";
 import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
+import { broLabel, youFirst } from "../../lib/bros";
 import { rankPositions } from "../../lib/ranking";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
@@ -42,12 +43,7 @@ function summarizeByMethod(
     return {
       method,
       brewCount: brews.filter((b) => b.method === method).length,
-      bookmarkedBy: [...bros.values()]
-        .sort(
-          (a, b) =>
-            Number(b.id === me) - Number(a.id === me) || a.first_name.localeCompare(b.first_name),
-        )
-        .map((b) => (b.id === me ? "You" : b.first_name)),
+      bookmarkedBy: [...bros.values()].sort(youFirst(me)).map((b) => broLabel(b, me)),
     };
   });
 }

@@ -14,6 +14,7 @@ import { PlusIcon } from "../../components/icons";
 import { Section } from "../../components/Section";
 import { TextToggle } from "../../components/TextToggle";
 import { useCurrentBro } from "../../lib/auth";
+import { broLabel, youFirst } from "../../lib/bros";
 import { BREW_METHODS } from "../../lib/constants";
 import { colors, space } from "../../theme/tokens.stylex";
 import { BrewRow } from "../brew/BrewRows";
@@ -75,15 +76,12 @@ export function BrowseList({
   // Every bro, you first: the bro filter's options (not looked up from the results)
   const { data: bros = [] } = useQuery({
     ...broQueries.list(),
-    select: (all) =>
-      [...all].sort(
-        (a, b) =>
-          Number(b.id === me.id) - Number(a.id === me.id) ||
-          a.first_name.localeCompare(b.first_name),
-      ),
+    select: (all) => [...all].sort(youFirst(me.id)),
   });
-  const broName = (id: string) =>
-    id === me.id ? "You" : (bros.find((b) => b.id === id)?.first_name ?? "…");
+  const broName = (id: string) => {
+    const bro = bros.find((b) => b.id === id);
+    return bro ? broLabel(bro, me.id) : "…";
+  };
   const filtered = filter.broIds.length > 0 || !!filter.roastId || filter.methods.length > 0;
   // Bro names on brew rows, unless they're all yours
   const onlyYou = filter.broIds.length === 1 && filter.broIds[0] === me.id;
@@ -222,7 +220,7 @@ function RecipeResults({
     <Section key={group[0].roast_id} label={group[0].roast.name}>
       <div>
         {group.map((r) => (
-          <PreferredRow key={r.id} recipe={r} you={r.bro_id === me.id} onClick={() => onOpen(r)} />
+          <PreferredRow key={r.id} recipe={r} onClick={() => onOpen(r)} />
         ))}
       </div>
     </Section>
@@ -318,7 +316,7 @@ const styles = stylex.create({
     // A faint brass rule under the filters, so the rows read as below them
     borderBottomWidth: 1,
     borderBottomStyle: "solid",
-    borderBottomColor: "rgba(184, 147, 90, 0.28)", // colors.brass at 28%
+    borderBottomColor: colors.brassFaint,
   },
   // Sticky stops inside the scroller's padding, so it pins at minus that padding to sit flush
   // under the header. It also starts there, pulled up over that padding, so it never scrolls

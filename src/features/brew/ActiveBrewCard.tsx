@@ -43,10 +43,14 @@ export function ActiveBrewCard({ brew, onFinish, onDiscard }: Props) {
   const [draft, setDraft] = useState(() => brewDraft(brew));
   // The preferred recipe it's brewed from, if any: its estimates are the target
   const [preferredId, setPreferredId] = useState(brew.preferred_recipe_id);
-  const { data: target } = useQuery({
+  const { data: target, isError: targetGone } = useQuery({
     ...preferredQueries.detail(preferredId ?? ""),
     enabled: !!preferredId,
   });
+  // Its recipe was deleted: the database already unlinked the brew, so stop saving the old id
+  useEffect(() => {
+    if (targetGone) setPreferredId(null);
+  }, [targetGone]);
   const [browsing, setBrowsing] = useState(false);
   const patch = (p: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...p }));
 

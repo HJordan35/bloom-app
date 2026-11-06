@@ -4,7 +4,10 @@ import type {
   PreferredRecipe,
   PreferredRecipeWithRoast,
 } from "../../api/preferred/preferred.types";
-import { Section } from "../../components/Section";
+import { SummaryHeader } from "../../components/SummaryHeader";
+import { TextSection } from "../../components/TextSection";
+import { useCurrentBro } from "../../lib/auth";
+import { broLabel } from "../../lib/bros";
 import { mmss, recipeLine } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { NotesLine } from "../brew/BrewRows";
@@ -28,18 +31,17 @@ export function recipeName(recipe: PreferredRecipe) {
 
 export function PreferredRow({
   recipe,
-  you,
   onClick,
 }: {
   recipe: PreferredRecipeWithRoast;
-  you: boolean;
   onClick: () => void;
 }) {
+  const me = useCurrentBro();
   const line = preferredLine(recipe);
   return (
     <button type="button" onClick={onClick} {...stylex.props(styles.row)}>
       <span>
-        {you ? "You" : recipe.bro.first_name} · {recipe.method}
+        {broLabel(recipe.bro, me.id)} · {recipe.method}
         {recipe.label && <span {...stylex.props(styles.label)}> · {recipe.label}</span>}
       </span>
       {line && <span {...stylex.props(styles.meta)}>{line}</span>}
@@ -54,37 +56,25 @@ export function PreferredRow({
  */
 export function PreferredSummary({
   recipe,
-  you,
   action,
   onUse,
 }: {
   recipe: PreferredRecipeWithRoast;
-  you: boolean;
   action?: ReactNode;
   onUse?: () => void;
 }) {
+  const me = useCurrentBro();
   return (
     <>
-      <header {...stylex.props(styles.header)}>
-        <div {...stylex.props(styles.top)}>
-          <p {...stylex.props(styles.eyebrow)}>
-            {you ? "You" : recipe.bro.first_name} · {recipe.roast.name}
-          </p>
-          {action}
-        </div>
-        <p {...stylex.props(styles.title)}>
-          {recipe.method}
-          {recipe.label && <span {...stylex.props(styles.label)}>{recipe.label}</span>}
-        </p>
-      </header>
-
+      <SummaryHeader
+        eyebrow={`${broLabel(recipe.bro, me.id)} · ${recipe.roast.name}`}
+        action={action}
+      >
+        {recipe.method}
+        {recipe.label && <span {...stylex.props(styles.label)}>{recipe.label}</span>}
+      </SummaryHeader>
       <BrewRecipe brew={recipe} onUse={onUse} />
-
-      {recipe.brew_notes && (
-        <Section label="Brew notes">
-          <p {...stylex.props(styles.notes)}>{recipe.brew_notes}</p>
-        </Section>
-      )}
+      <TextSection label="Brew notes" text={recipe.brew_notes} />
     </>
   );
 }
@@ -117,33 +107,5 @@ const styles = stylex.create({
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-  },
-  header: {
-    display: "flex",
-    flexDirection: "column",
-    gap: space.xs,
-  },
-  top: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: space.md,
-  },
-  eyebrow: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: "0.2em",
-    textTransform: "uppercase",
-    color: colors.brass,
-  },
-  title: {
-    display: "flex",
-    gap: space.md,
-    alignItems: "baseline",
-    fontFamily: fonts.display,
-    fontSize: 22,
-  },
-  notes: {
-    whiteSpace: "pre-wrap",
   },
 });

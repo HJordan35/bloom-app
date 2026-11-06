@@ -8,7 +8,7 @@ type Props<T extends string> = {
   onChange: (value: T) => void;
 };
 
-/** A light inline switch, "Mine · All": the chosen option in full text, the rest muted. */
+/** A light inline switch, "Recipes · Brews": the chosen option in full text, the rest muted. */
 export function TextToggle<T extends string>({ options, value, onChange }: Props<T>) {
   return (
     <div {...stylex.props(styles.row)}>

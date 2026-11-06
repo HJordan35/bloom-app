@@ -29,8 +29,9 @@ type Props = {
 };
 
 /**
- * Starts a brew as soon as there's a roast and a method: straight away from a past brew's
- * recipe, otherwise after picking what's missing. Everything else is edited on the brewing card.
+ * Starts a brew: straight away from a past brew or a preferred recipe (its roast and method
+ * come with it), otherwise once there's a roast, then Start fresh (with a method) or From
+ * recipe. Everything else is edited on the brewing card.
  */
 export function BrewLauncher({
   initialRoastId,
@@ -47,7 +48,7 @@ export function BrewLauncher({
   const [picking, setPicking] = useState(!initialRoastId && !startsAtOnce);
   // Set on the first tap, so a second tap can't start a second brew
   const [chosen, setChosen] = useState<string | null>(null);
-  // The method tapped, then how to start it: Select recipe or from scratch
+  // The method tapped, if any: Start fresh needs it; From recipe starts filtered to it
   const [method, setMethod] = useState<string | null>(null);
   const [browsing, setBrowsing] = useState(false);
 

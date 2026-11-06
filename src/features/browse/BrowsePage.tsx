@@ -55,7 +55,6 @@ export function BrowsePage({ defaultKind }: { defaultKind: BrowseKind }) {
         <Sheet title="Preferred recipe" tall onClose={() => setOpen(null)}>
           <PreferredSummary
             recipe={open.recipe}
-            you={open.recipe.bro_id === me.id}
             onUse={() => navigate(`/?preferred=${open.recipe.id}`)}
             action={
               open.recipe.bro_id === me.id ? (

@@ -8,6 +8,7 @@ import { FadeIn } from "../../components/FadeIn";
 import { HeaderAction } from "../../components/HeaderAction";
 import { BookmarkIcon, PencilIcon } from "../../components/icons";
 import { Section } from "../../components/Section";
+import { TextSection } from "../../components/TextSection";
 import { useCurrentBro } from "../../lib/auth";
 import { relativeDate } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
@@ -65,17 +66,8 @@ export function BrewDetailPage() {
 
       <BrewRecipe brew={brew} onUse={() => navigate(`/?recipe=${brew.id}`)} />
 
-      {brew.brew_notes && (
-        <Section label="Brew notes">
-          <p {...stylex.props(styles.notes)}>{brew.brew_notes}</p>
-        </Section>
-      )}
-
-      {brew.brew_results && (
-        <Section label="Results">
-          <p {...stylex.props(styles.notes)}>{brew.brew_results}</p>
-        </Section>
-      )}
+      <TextSection label="Brew notes" text={brew.brew_notes} />
+      <TextSection label="Results" text={brew.brew_results} />
 
       {endorsements.length > 0 && (
         <Section label="Endorsement">
@@ -157,8 +149,5 @@ const styles = stylex.create({
   },
   dialed: {
     color: colors.brass,
-  },
-  notes: {
-    whiteSpace: "pre-wrap",
   },
 });
