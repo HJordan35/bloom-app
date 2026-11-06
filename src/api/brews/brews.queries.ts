@@ -11,7 +11,9 @@ import {
   fetchBrewsForRoast,
   fetchBrewsForRoaster,
   fetchBroBrews,
+  fetchDayBrews,
   fetchLastRecipe,
+  fetchMonthBrews,
   fetchMyBrewHistory,
   fetchMyOpenBrew,
   fetchRecentBrews,
@@ -34,6 +36,8 @@ export const brewKeys = {
     [...brewKeys.all, "lastRecipe", broId, roastId, method] as const,
   history: (broId: string) => [...brewKeys.all, "history", broId] as const,
   browse: (filter: BrewFilter) => [...brewKeys.all, "browse", filter] as const,
+  month: (broId: string, month: string) => [...brewKeys.all, "month", broId, month] as const,
+  day: (broId: string, day: string) => [...brewKeys.all, "day", broId, day] as const,
 };
 
 export const brewQueries = {
@@ -69,6 +73,15 @@ export const brewQueries = {
     }),
   history: (broId: string) =>
     queryOptions({ queryKey: brewKeys.history(broId), queryFn: () => fetchMyBrewHistory(broId) }),
+  /** Your finished brews' times and dialed-in flags for a "yyyy-MM" month: the calendar. */
+  month: (broId: string, month: string) =>
+    queryOptions({
+      queryKey: brewKeys.month(broId, month),
+      queryFn: () => fetchMonthBrews(broId, month),
+    }),
+  /** Your brews finished on a "yyyy-MM-dd" day. */
+  day: (broId: string, day: string) =>
+    queryOptions({ queryKey: brewKeys.day(broId, day), queryFn: () => fetchDayBrews(broId, day) }),
   /** Finished brews matching `filter`, a page at a time. */
   browse: (filter: BrewFilter) =>
     infiniteQueryOptions({

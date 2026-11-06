@@ -1,3 +1,4 @@
+import { addDays, addMonths, parseISO } from "date-fns";
 import { supabase } from "../../lib/supabase";
 import { unwrap } from "../api.utils";
 import type {
@@ -88,6 +89,40 @@ export async function fetchBroBrews(broId: string) {
       .select(BREW_SELECT)
       .eq("bro_id", broId)
       .order("started_at", { ascending: false }),
+  );
+}
+
+/** Local [start, end) of a "yyyy-MM" month or "yyyy-MM-dd" day, as ISO bounds for a query. */
+function localBounds(period: string) {
+  const start = parseISO(period);
+  const end = period.length === 7 ? addMonths(start, 1) : addDays(start, 1);
+  return [start.toISOString(), end.toISOString()] as const;
+}
+
+/** When and whether dialed in, for each brew you finished in a "yyyy-MM" month. */
+export async function fetchMonthBrews(broId: string, month: string) {
+  const [from, to] = localBounds(month);
+  return unwrap<Pick<Brew, "finished_at" | "dialed_in">[]>(
+    await supabase
+      .from("brews")
+      .select("finished_at, dialed_in")
+      .eq("bro_id", broId)
+      .gte("finished_at", from)
+      .lt("finished_at", to),
+  );
+}
+
+/** The brews you finished on a "yyyy-MM-dd" day, newest first. */
+export async function fetchDayBrews(broId: string, day: string) {
+  const [from, to] = localBounds(day);
+  return unwrap<BrewWithRoast[]>(
+    await supabase
+      .from("brews")
+      .select(BREW_SELECT)
+      .eq("bro_id", broId)
+      .gte("finished_at", from)
+      .lt("finished_at", to)
+      .order("finished_at", { ascending: false }),
   );
 }
 
