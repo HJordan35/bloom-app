@@ -66,9 +66,7 @@ export function RecipesPage() {
     // Newest first already; yours lead, and the sort is stable
     .sort((a, b) => Number(b.bro_id === me.id) - Number(a.bro_id === me.id));
   // In the usual method order, like every other method picker
-  const methods: string[] = BREW_METHODS.filter((m) => listed.some((r) => r.method === m));
-  // Ticked methods with nothing left to show (after Mine or a roast) fall away
-  const picked = params.getAll("method").filter((m) => methods.includes(m));
+  const picked = params.getAll("method");
   const shown = listed.filter((r) => picked.length === 0 || picked.includes(r.method));
   const byRoast = new Map<string, PreferredRecipeWithRoast[]>();
   for (const r of shown) byRoast.set(r.roast_id, [...(byRoast.get(r.roast_id) ?? []), r]);
@@ -111,9 +109,13 @@ export function RecipesPage() {
       </div>
 
       {shown.length === 0 ? (
-        <EmptyState title="No preferred recipes yet.">
-          Save one from any brew's recipe, or tap New.
-        </EmptyState>
+        roastId || picked.length > 0 ? (
+          <EmptyState title="No recipes found.">Try other filters.</EmptyState>
+        ) : (
+          <EmptyState title="No preferred recipes yet.">
+            Bookmark one from any brew, or tap New.
+          </EmptyState>
+        )
       ) : (
         [...byRoast.values()].map((group) => (
           <Section key={group[0].roast_id} label={group[0].roast.name}>
@@ -180,7 +182,7 @@ export function RecipesPage() {
       )}
       {open?.kind === "methods" && (
         <MethodFilterSheet
-          methods={methods}
+          methods={BREW_METHODS}
           selected={picked}
           onChange={(m) => setParam("method", m)}
           onClose={() => setOpen(null)}

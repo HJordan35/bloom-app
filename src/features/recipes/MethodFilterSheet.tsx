@@ -4,7 +4,6 @@ import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
 
 type Props = {
-  /** The methods that have recipes. */
   methods: readonly string[];
   selected: string[];
   onChange: (selected: string[]) => void;
