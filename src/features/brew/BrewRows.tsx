@@ -1,7 +1,9 @@
 import * as stylex from "@stylexjs/stylex";
 import { Link } from "react-router-dom";
 import type { BrewWithRoast } from "../../api/brews/brews.types";
+import { Avatar } from "../../components/Avatar";
 import { LiveDot } from "../../components/LiveDot";
+import { useCurrentBro } from "../../lib/auth";
 import { elapsed, relativeDate } from "../../lib/format";
 import { useNow } from "../../lib/useNow";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
@@ -31,8 +33,8 @@ export function NotesLine({ notes }: { notes: string | null }) {
 }
 
 /**
- * A finished brew, linking to its page. `showBro` swaps the roaster for the bro's name
- * (for shared lists); `notes` adds a line of its brew notes (browsing); `onClick` makes it a
+ * A finished brew, linking to its page. `showBro` leads with the bro's avatar (for shared
+ * lists); `notes` adds a line of its brew notes (browsing); `onClick` makes it a
  * button instead (picking a brew in a sheet).
  */
 export function BrewRow({
@@ -46,15 +48,17 @@ export function BrewRow({
   notes?: boolean;
   onClick?: () => void;
 }) {
+  const me = useCurrentBro();
   const content = (
     <>
+      {showBro && <Avatar bro={brew.bro} size="xs" self={brew.bro_id === me.id} />}
       <div {...stylex.props(styles.main)}>
         <span>
           {brew.roast.name}
           {brew.dialed_in && <span {...stylex.props(styles.dialed)}> ✦</span>}
         </span>
         <span {...stylex.props(styles.meta)}>
-          {showBro ? brew.bro.first_name : brew.roast.roaster.name} · {brew.method}
+          {brew.roast.roaster.name} · {brew.method}
         </span>
         {notes && <NotesLine notes={brew.brew_notes} />}
         {resultsPending(brew) && <span {...stylex.props(styles.pending)}>Results pending</span>}

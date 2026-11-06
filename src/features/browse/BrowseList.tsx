@@ -83,8 +83,6 @@ export function BrowseList({
     return bro ? broLabel(bro, me.id) : "…";
   };
   const filtered = filter.broIds.length > 0 || !!filter.roastId || filter.methods.length > 0;
-  // Bro names on brew rows, unless they're all yours
-  const onlyYou = filter.broIds.length === 1 && filter.broIds[0] === me.id;
 
   return (
     <>
@@ -138,7 +136,6 @@ export function BrowseList({
             <BrewResults
               brews={brews.data.pages.flat()}
               filtered={filtered}
-              showBro={!onlyYou}
               more={brews.hasNextPage}
               loadingMore={brews.isFetchingNextPage}
               onMore={() => brews.fetchNextPage()}
@@ -231,7 +228,6 @@ function RecipeResults({
 function BrewResults({
   brews,
   filtered,
-  showBro,
   more,
   loadingMore,
   onMore,
@@ -239,7 +235,6 @@ function BrewResults({
 }: {
   brews: BrewWithRoast[];
   filtered: boolean;
-  showBro: boolean;
   more: boolean;
   loadingMore: boolean;
   onMore: () => void;
@@ -256,7 +251,7 @@ function BrewResults({
   return (
     <div>
       {brews.map((brew) => (
-        <BrewRow key={brew.id} brew={brew} showBro={showBro} notes onClick={() => onOpen(brew)} />
+        <BrewRow key={brew.id} brew={brew} showBro notes onClick={() => onOpen(brew)} />
       ))}
       {more && (
         <Button variant="text" onClick={onMore} disabled={loadingMore}>
@@ -285,9 +280,9 @@ function FilterLink({
       <button
         type="button"
         onClick={onOpen}
-        {...stylex.props(styles.filterButton, !!onClear && styles.filterOn)}
+        {...stylex.props(styles.filterButton, styles.filterOpen, !!onClear && styles.filterOn)}
       >
-        {label} ▾
+        <span {...stylex.props(styles.filterLabel)}>{label}</span> ▾
       </button>
       {onClear && (
         <button
@@ -340,9 +335,9 @@ const styles = stylex.create({
     justifyContent: "space-between",
     gap: space.md,
   },
+  // One line: a long choice (a roast's name) truncates rather than wrapping
   filters: {
     display: "flex",
-    flexWrap: "wrap",
     columnGap: space.lg,
   },
   filter: {
@@ -360,6 +355,18 @@ const styles = stylex.create({
     fontSize: 13,
     color: colors.muted,
     cursor: "pointer",
+  },
+  filterOpen: {
+    minWidth: 0,
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    whiteSpace: "nowrap",
+  },
+  filterLabel: {
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   },
   filterOn: {
     color: colors.text,

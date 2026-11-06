@@ -4,6 +4,7 @@ import type {
   PreferredRecipe,
   PreferredRecipeWithRoast,
 } from "../../api/preferred/preferred.types";
+import { Avatar } from "../../components/Avatar";
 import { SummaryHeader } from "../../components/SummaryHeader";
 import { TextSection } from "../../components/TextSection";
 import { useCurrentBro } from "../../lib/auth";
@@ -40,12 +41,15 @@ export function PreferredRow({
   const line = preferredLine(recipe);
   return (
     <button type="button" onClick={onClick} {...stylex.props(styles.row)}>
-      <span>
-        {broLabel(recipe.bro, me.id)} · {recipe.method}
-        {recipe.label && <span {...stylex.props(styles.label)}> · {recipe.label}</span>}
+      <Avatar bro={recipe.bro} size="xs" self={recipe.bro_id === me.id} />
+      <span {...stylex.props(styles.main)}>
+        <span>
+          {recipe.method}
+          {recipe.label && <span {...stylex.props(styles.label)}> · {recipe.label}</span>}
+        </span>
+        {line && <span {...stylex.props(styles.meta)}>{line}</span>}
+        <NotesLine notes={recipe.brew_notes} />
       </span>
-      {line && <span {...stylex.props(styles.meta)}>{line}</span>}
-      <NotesLine notes={recipe.brew_notes} />
     </button>
   );
 }
@@ -84,8 +88,8 @@ const styles = stylex.create({
     width: "100%",
     minHeight: 60,
     display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
+    alignItems: "center",
+    gap: space.md,
     paddingBlock: space.sm,
     paddingInline: 0,
     backgroundColor: "transparent",
@@ -96,6 +100,12 @@ const styles = stylex.create({
     color: colors.text,
     textAlign: "left",
     cursor: "pointer",
+  },
+  main: {
+    flex: 1,
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
   },
   label: {
     color: colors.muted,
