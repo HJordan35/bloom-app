@@ -59,7 +59,11 @@ export function PreferredRecipeSheet({ recipe, from, onClose, onSaved }: Props) 
 
   // Yours for this roast + method, to ask about before adding another
   const { data: existing = [] } = useQuery({
-    ...preferredQueries.list({ broId: me.id, roastId: roast?.id, methods: method ? [method] : [] }),
+    ...preferredQueries.list({
+      broIds: [me.id],
+      roastId: roast?.id,
+      methods: method ? [method] : [],
+    }),
     enabled: !!roast && !!method,
   });
   const yours = existing.filter((r) => r.id !== recipe?.id);

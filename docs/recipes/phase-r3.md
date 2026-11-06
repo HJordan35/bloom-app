@@ -29,7 +29,7 @@ The recipe summary gains **Use recipe** in its Recipe header, the same action as
 - When set, a muted line under the recipe reads "Target 3:30 · 250 ml", taken from the recipe's estimates. Finish still starts blank.
 
 ## Trims
-The ✦ dialed-in marker comes off list rows (`BrewRow`, the history rows), so it doesn't compete with the bookmark. It stays on brew detail and the brew summary.
+The ✦ dialed-in marker came off list rows (`BrewRow`, the history rows), so it wouldn't compete with the bookmark. R4 put it back on `BrewRow`, since it's the only dialed-in signal when browsing brews.
 
 ## Verification
 - `npx tsc --noEmit -p .`, `npx biome check src` and `npm run build` pass.

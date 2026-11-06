@@ -26,6 +26,7 @@ const TITLES: Record<string, string> = {
 // Detail routes get a back button instead of the wordmark
 const DETAIL_TITLES: [prefix: string, title: string][] = [
   ["/brews/", "Brew"],
+  ["/brews", "Brews"],
   ["/library/roasters/", "Roaster"],
   ["/library/roasts/", "Roast"],
   ["/bros/", "Bro"],

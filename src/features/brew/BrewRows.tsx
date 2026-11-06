@@ -23,12 +23,26 @@ export function LiveBrewRow({ brew }: { brew: BrewWithRoast }) {
   );
 }
 
-/** A finished brew. `showBro` swaps the roaster for the bro's name (for shared lists). */
-export function BrewRow({ brew, showBro = false }: { brew: BrewWithRoast; showBro?: boolean }) {
-  return (
-    <Link to={`/brews/${brew.id}`} {...stylex.props(styles.row)}>
+/**
+ * A finished brew, linking to its page. `showBro` swaps the roaster for the bro's name
+ * (for shared lists); `onClick` makes it a button instead (picking a brew in a sheet).
+ */
+export function BrewRow({
+  brew,
+  showBro = false,
+  onClick,
+}: {
+  brew: BrewWithRoast;
+  showBro?: boolean;
+  onClick?: () => void;
+}) {
+  const content = (
+    <>
       <div {...stylex.props(styles.main)}>
-        <span>{brew.roast.name}</span>
+        <span>
+          {brew.roast.name}
+          {brew.dialed_in && <span {...stylex.props(styles.dialed)}> ✦</span>}
+        </span>
         <span {...stylex.props(styles.meta)}>
           {showBro ? brew.bro.first_name : brew.roast.roaster.name} · {brew.method}
         </span>
@@ -37,11 +51,31 @@ export function BrewRow({ brew, showBro = false }: { brew: BrewWithRoast; showBr
       <span {...stylex.props(styles.side)}>
         {relativeDate(brew.finished_at ?? brew.started_at)}
       </span>
+    </>
+  );
+  return onClick ? (
+    <button type="button" onClick={onClick} {...stylex.props(styles.button, styles.row)}>
+      {content}
+    </button>
+  ) : (
+    <Link to={`/brews/${brew.id}`} {...stylex.props(styles.row)}>
+      {content}
     </Link>
   );
 }
 
 const styles = stylex.create({
+  // Undoes the button look; row (applied after) draws the divider
+  button: {
+    width: "100%",
+    paddingInline: 0,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    color: colors.text,
+    font: "inherit",
+    textAlign: "left",
+    cursor: "pointer",
+  },
   row: {
     minHeight: 60,
     display: "flex",
@@ -64,6 +98,9 @@ const styles = stylex.create({
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+  },
+  dialed: {
+    color: colors.brass,
   },
   side: {
     flexShrink: 0,

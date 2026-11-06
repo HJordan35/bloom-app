@@ -17,8 +17,9 @@
 |---|---|---|---|
 | R1 | Data + API: `preferred_recipes` table, RLS, realtime, `brews.preferred_recipe_id`, `src/api/preferred` | ✅ Done (6973006) | [phase-r1.md](phase-r1.md) |
 | R2 | Create and manage: recipe sheet with a replace-or-keep dialog, Recipes tab, "Save as preferred" on a brew | ✅ Done (1568f23 … e2b9677) | [phase-r2.md](phase-r2.md) |
-| R3 | Brew with them: bookmarked methods and inline recipe rows in Brew now, `?preferred=`, `Preferred · History` in Select recipe, target line on the brewing card | ✅ Done | [phase-r3.md](phase-r3.md) |
-| R4 | Roast page: "Preferred by…", every method opens Browse filtered to it | ⏳ | |
+| R3 | Brew with them: bookmarked methods, then Start Brew / Select Recipe in Brew now, `?preferred=`, target line on the brewing card | ✅ Done (c864b19) | [phase-r3.md](phase-r3.md) |
+| R4 | One list for recipes and brews: shared `BrowseList` (always-on `Recipes · Brews` switch) for the Recipes tab, a new Browse brews page and Select recipe; `RecipeHistorySheet` retired | ✅ Done | [phase-r4.md](phase-r4.md) |
+| R5 | Roast page: "Preferred by…", every method opens the list filtered to it | ⏳ | |
 
 ## Decisions
 - **A table of its own, not a flag on `brews`.** Every count reads `brews`: rankings, `brewed_by`, events, Brewing now, `monthly_stats`, insights, profile stats and the "is brewing" push. A recipe made from scratch must never count as a brew.

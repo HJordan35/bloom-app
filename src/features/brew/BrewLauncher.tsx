@@ -14,8 +14,8 @@ import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
 import { BREW_METHODS } from "../../lib/constants";
 import { space } from "../../theme/tokens.stylex";
+import { type RecipeSource, SelectRecipeSheet } from "../browse/SelectRecipeSheet";
 import { brewDraft, notesFromDraft, recipeFromDraft } from "./draft";
-import { RecipeHistorySheet, type RecipeSource } from "./RecipeHistorySheet";
 import { RoastPickerSheet, SelectedRoast } from "./RoastChoice";
 
 type Props = {
@@ -141,9 +141,9 @@ export function BrewLauncher({
 
   if (!roast) return null;
 
-  if (browsing && method) {
+  if (browsing) {
     return (
-      <RecipeHistorySheet
+      <SelectRecipeSheet
         roast={roast}
         method={method}
         onUse={fromRecipe}
@@ -163,16 +163,19 @@ export function BrewLauncher({
           marked={marked}
         />
       </Section>
-      {method && (
-        <div {...stylex.props(styles.actions)}>
-          <Button variant="ghost" onClick={() => fromScratch(method)} disabled={!!chosen}>
-            Start brew
-          </Button>
-          <Button onClick={() => setBrowsing(true)} disabled={!!chosen}>
-            Select recipe
-          </Button>
-        </div>
-      )}
+      <div {...stylex.props(styles.actions)}>
+        {/* A fresh brew needs its method; a recipe brings its own */}
+        <Button
+          variant="ghost"
+          onClick={() => method && fromScratch(method)}
+          disabled={!method || !!chosen}
+        >
+          Start fresh
+        </Button>
+        <Button variant="ghost" onClick={() => setBrowsing(true)} disabled={!!chosen}>
+          From recipe
+        </Button>
+      </div>
     </Sheet>
   );
 }

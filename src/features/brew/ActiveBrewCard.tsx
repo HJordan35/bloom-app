@@ -15,9 +15,9 @@ import { BREW_METHODS } from "../../lib/constants";
 import { elapsed, mmss, volume } from "../../lib/format";
 import { useNow } from "../../lib/useNow";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
+import { type RecipeSource, SelectRecipeSheet } from "../browse/SelectRecipeSheet";
 import { BrewNotesField, RecipeFields } from "./BrewFields";
 import { brewDraft, notesFromDraft, recipeFromDraft } from "./draft";
-import { RecipeHistorySheet, type RecipeSource } from "./RecipeHistorySheet";
 
 // How long typing pauses before an edit is saved
 const SAVE_DELAY_MS = 600;
@@ -141,7 +141,7 @@ export function ActiveBrewCard({ brew, onFinish, onDiscard }: Props) {
         <Button onClick={finish}>Finish</Button>
       </div>
       {browsing && (
-        <RecipeHistorySheet
+        <SelectRecipeSheet
           roast={brew.roast}
           method={method}
           onUse={applyRecipe}

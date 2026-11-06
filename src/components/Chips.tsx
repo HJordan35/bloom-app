@@ -10,9 +10,11 @@ type Props = {
   onChange: (value: string) => void;
   /** Options to flag with a small bookmark (e.g. methods with a preferred recipe). */
   marked?: readonly string[];
+  /** What each option reads as, when it isn't its own label (e.g. a bro id → "You"). */
+  format?: (option: string) => string;
 };
 
-export function Chips({ options, value, onChange, marked }: Props) {
+export function Chips({ options, value, onChange, marked, format = (o) => o }: Props) {
   const selected = (option: string) =>
     Array.isArray(value) ? value.includes(option) : option === value;
   return (
@@ -30,7 +32,7 @@ export function Chips({ options, value, onChange, marked }: Props) {
               <BookmarkIcon />
             </span>
           )}
-          {option}
+          {format(option)}
         </button>
       ))}
     </div>

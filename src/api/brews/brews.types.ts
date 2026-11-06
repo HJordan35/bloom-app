@@ -44,5 +44,14 @@ export type NewBrew = Recipe &
   Partial<Pick<Brew, "preferred_recipe_id">>;
 export type BrewUpdate = Partial<Omit<Brew, "id" | "bro_id">>;
 
+/** Narrows a brews list in the query itself; every part is optional. */
+export type BrewFilter = {
+  /** Any of these bros; empty or missing means every bro. */
+  broIds?: readonly string[];
+  roastId?: string;
+  /** Any of these; empty or missing means every method. */
+  methods?: readonly string[];
+};
+
 /** Roast ids and grinders from a bro's recent brews, most recent first. */
 export type BrewHistory = { roastIds: string[]; grinders: string[] };

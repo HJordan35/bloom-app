@@ -1,12 +1,13 @@
 import * as stylex from "@stylexjs/stylex";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { brewMutations, brewQueries } from "../../api/brews/brews.queries";
 import type { BrewWithRoast } from "../../api/brews/brews.types";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
 import { FadeIn } from "../../components/FadeIn";
+import { HeaderAction } from "../../components/HeaderAction";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { greeting } from "../../lib/format";
@@ -20,6 +21,7 @@ import { FinishBrewSheet } from "./FinishBrewSheet";
 export function BrewNowPage() {
   const bro = useCurrentBro();
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   // `?roast=<id>` or `?start` (from the Library), `?recipe=<brew id>` (from a brew), or
   // `?preferred=<id>` (from a preferred recipe) starts a brew
   const roastParam = params.get("roast");
@@ -84,7 +86,10 @@ export function BrewNowPage() {
         </Section>
       )}
 
-      <Section label="Recent brews">
+      <Section
+        label="Recent brews"
+        action={<HeaderAction onClick={() => navigate("/brews")}>Browse</HeaderAction>}
+      >
         {recent.data?.map((brew) => (
           <BrewRow key={brew.id} brew={brew} />
         ))}

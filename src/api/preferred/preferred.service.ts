@@ -21,7 +21,7 @@ export async function fetchPreferredRecipe(id: string) {
 /** Preferred recipes matching `filter`, newest first. Filtered by the database, not the client. */
 export async function fetchPreferredRecipes(filter: PreferredFilter = {}) {
   let query = supabase.from("preferred_recipes").select(PREFERRED_SELECT);
-  if (filter.broId) query = query.eq("bro_id", filter.broId);
+  if (filter.broIds?.length) query = query.in("bro_id", filter.broIds);
   if (filter.roastId) query = query.eq("roast_id", filter.roastId);
   if (filter.methods?.length) query = query.in("method", filter.methods);
   return unwrap<PreferredRecipeWithRoast[]>(await query.order("created_at", { ascending: false }));
