@@ -20,7 +20,9 @@ Save, edit and delete preferred recipes, from scratch or from any brew, and brow
   - from another bro's recipe ("Save as mine");
   - from your own recipe, to edit it.
 
-  **Replace or keep both:** saving a new recipe when you already have one for the roast and method shows a muted line above Save, then text buttons: **Replace** (one per recipe when there are several) and **Keep both**. Replace updates that row in place.
+  The button reads **Bookmark recipe**, or **Save changes** when editing.
+
+  **Replace or keep both** is a small centred `Dialog` (`src/components/`). It opens when you bookmark a new recipe and already have one for that roast and method. Its buttons are **Replace** (one per recipe when there are several), **Keep both** and **Cancel**. Replace updates that recipe in place.
 
   **Delete** (editing only) takes two taps: "Delete", then "Tap again to delete".
 - **`PreferredRow`:** `You · AeroPress · Comandante`, then the recipe line (recipe, grinder, time). There's no marker in the Recipes list, since everything there is preferred.
