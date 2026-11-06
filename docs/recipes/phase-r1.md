@@ -1,6 +1,6 @@
 # Phase R1 — Data + API
 
-**Status:** 🔨 Built — awaiting your review
+**Status:** ✅ Done (6973006)
 
 ## Goal
 Store preferred recipes and read and write them from the app. There's no UI yet, and nothing visible changes.

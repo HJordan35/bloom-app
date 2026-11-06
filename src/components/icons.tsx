@@ -85,3 +85,11 @@ export function NewspaperIcon() {
     </Icon>
   );
 }
+
+export function RecipeIcon() {
+  return (
+    <Icon>
+      <path d="M6 3.5h12v17l-6-4-6 4v-17Z" />
+    </Icon>
+  );
+}

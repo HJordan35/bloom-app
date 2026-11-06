@@ -26,6 +26,8 @@ export type PreferredRecipe = {
 export type PreferredRecipeWithRoast = PreferredRecipe & {
   roast: RoastWithRoaster;
   bro: Bro;
+  /** The brew it was copied from, for the credit line. */
+  source: { id: string; started_at: string; bro: Pick<Bro, "id" | "first_name"> } | null;
 };
 
 export type NewPreferredRecipe = Recipe &

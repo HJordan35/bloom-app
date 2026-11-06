@@ -1,0 +1,198 @@
+import * as stylex from "@stylexjs/stylex";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { brewQueries } from "../../api/brews/brews.queries";
+import type { Brew } from "../../api/brews/brews.types";
+import { preferredMutations, preferredQueries } from "../../api/preferred/preferred.queries";
+import type {
+  PreferredRecipe,
+  PreferredRecipeWithRoast,
+} from "../../api/preferred/preferred.types";
+import type { RoastWithRoaster } from "../../api/roasts/roasts.types";
+import { Button } from "../../components/Button";
+import { Chips } from "../../components/Chips";
+import { Field } from "../../components/Field";
+import { Section } from "../../components/Section";
+import { Sheet } from "../../components/Sheet";
+import { useCurrentBro } from "../../lib/auth";
+import { BREW_METHODS } from "../../lib/constants";
+import { colors, space } from "../../theme/tokens.stylex";
+import { BrewNotesField, ProcessFields, RecipeFields } from "../brew/BrewFields";
+import { brewDraft, notesFromDraft, processFromDraft, recipeFromDraft } from "../brew/draft";
+import { RoastPickerSheet, SelectedRoast } from "../brew/RoastChoice";
+import { recipeName } from "./PreferredRow";
+
+/** What a new recipe starts from: a brew, a bro's recipe, or just a roast. */
+export type PreferredStart = {
+  roast?: RoastWithRoaster;
+  method?: string;
+  values?: Partial<Brew>;
+  sourceBrewId?: string | null;
+};
+
+type Props = {
+  /** Your recipe to edit; without it, the sheet saves a new one from `from`. */
+  recipe?: PreferredRecipeWithRoast;
+  from?: PreferredStart;
+  onClose: () => void;
+  onSaved: () => void;
+};
+
+/** Create or edit one of your preferred recipes. */
+export function PreferredRecipeSheet({ recipe, from, onClose, onSaved }: Props) {
+  const me = useCurrentBro();
+  const { data: grinders } = useQuery({
+    ...brewQueries.history(me.id),
+    select: (history) => history.grinders,
+  });
+  const create = useMutation(preferredMutations.create());
+  const update = useMutation(preferredMutations.update());
+  const remove = useMutation(preferredMutations.remove());
+
+  const [roast, setRoast] = useState(recipe?.roast ?? from?.roast ?? null);
+  const [picking, setPicking] = useState(!roast);
+  const [method, setMethod] = useState(recipe?.method ?? from?.method ?? null);
+  const [label, setLabel] = useState(recipe?.label ?? "");
+  const [draft, setDraft] = useState(() => brewDraft(recipe ?? from?.values));
+  // Saving a new one beside yours for the same roast + method asks first, inline
+  const [asking, setAsking] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const patch = (p: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...p }));
+
+  const { data: forRoast } = useQuery({
+    ...preferredQueries.forRoast(roast?.id ?? ""),
+    enabled: !!roast,
+  });
+  const yours = (forRoast ?? []).filter(
+    (r) => r.bro_id === me.id && r.method === method && r.id !== recipe?.id,
+  );
+  const busy = create.isPending || update.isPending || remove.isPending;
+
+  if (picking) {
+    return (
+      <RoastPickerSheet
+        onClose={roast ? () => setPicking(false) : onClose}
+        onPick={(picked) => {
+          setRoast(picked);
+          setAsking(false);
+          setPicking(false);
+        }}
+      />
+    );
+  }
+  if (!roast) return null;
+
+  const fields = {
+    roast_id: roast.id,
+    method: method ?? "",
+    label: label.trim() || null,
+    ...recipeFromDraft(draft),
+    ...processFromDraft(draft),
+    ...notesFromDraft(draft),
+  };
+
+  async function save() {
+    if (recipe) {
+      await update.mutateAsync({ id: recipe.id, fields });
+      return onSaved();
+    }
+    if (yours.length > 0 && !asking) return setAsking(true);
+    await keepBoth();
+  }
+
+  async function keepBoth() {
+    await create.mutateAsync({
+      ...fields,
+      bro_id: me.id,
+      source_brew_id: from?.sourceBrewId ?? null,
+    });
+    onSaved();
+  }
+
+  /** Overwrite one of yours in place: same recipe, new values. */
+  async function replace(target: PreferredRecipe) {
+    await update.mutateAsync({
+      id: target.id,
+      fields: { ...fields, source_brew_id: from?.sourceBrewId ?? null },
+    });
+    onSaved();
+  }
+
+  async function confirmDelete() {
+    if (!recipe) return;
+    if (!deleting) return setDeleting(true);
+    await remove.mutateAsync(recipe.id);
+    onSaved();
+  }
+
+  return (
+    <Sheet title={recipe ? "Edit preferred recipe" : "Preferred recipe"} tall onClose={onClose}>
+      <SelectedRoast roast={roast} onChange={() => setPicking(true)} />
+      <Section label="Method">
+        <Chips
+          options={BREW_METHODS}
+          value={method}
+          onChange={(m) => {
+            setMethod(m);
+            setAsking(false);
+          }}
+        />
+      </Section>
+      <Field
+        label="Label"
+        placeholder="Optional, e.g. Comandante or Iced"
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+      />
+      <RecipeFields value={draft} onChange={patch} grinders={grinders} />
+      <ProcessFields value={draft} onChange={patch} label="Estimate" />
+      <BrewNotesField value={draft.brewNotes} onChange={(brewNotes) => patch({ brewNotes })} />
+
+      {asking && yours.length > 0 ? (
+        <div {...stylex.props(styles.ask)}>
+          <p {...stylex.props(styles.askText)}>
+            You already have {yours.length === 1 ? "one" : yours.length} for {method}
+            {yours.length === 1 && `: ${recipeName(yours[0])}`}.
+          </p>
+          <div {...stylex.props(styles.askActions)}>
+            {yours.map((r) => (
+              <Button key={r.id} variant="text" onClick={() => replace(r)} disabled={busy}>
+                Replace{yours.length > 1 && ` ${recipeName(r)}`}
+              </Button>
+            ))}
+            <Button variant="text" onClick={keepBoth} disabled={busy}>
+              {yours.length === 1 ? "Keep both" : "Keep all"}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button onClick={save} disabled={busy || !method}>
+          {busy ? "Saving…" : "Save recipe"}
+        </Button>
+      )}
+
+      {recipe && (
+        <Button variant="text" onClick={confirmDelete} disabled={busy}>
+          {deleting ? "Tap again to delete" : "Delete"}
+        </Button>
+      )}
+    </Sheet>
+  );
+}
+
+const styles = stylex.create({
+  ask: {
+    display: "flex",
+    flexDirection: "column",
+    gap: space.xs,
+  },
+  askText: {
+    fontSize: 13,
+    color: colors.muted,
+  },
+  askActions: {
+    display: "flex",
+    flexWrap: "wrap",
+    columnGap: space.lg,
+  },
+});

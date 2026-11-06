@@ -65,10 +65,14 @@ export function RecipeFields({
   );
 }
 
-/** How it was brewed: time and volume. */
-export function ProcessFields({ value, onChange }: SectionProps) {
+/** How it was brewed: time and volume. A preferred recipe titles them "Estimate". */
+export function ProcessFields({
+  value,
+  onChange,
+  label = "Brew",
+}: SectionProps & { label?: string }) {
   return (
-    <Section label="Brew">
+    <Section label={label}>
       <div {...stylex.props(styles.grid)}>
         <div {...stylex.props(styles.time)}>
           <Field

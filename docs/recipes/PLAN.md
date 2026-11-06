@@ -15,8 +15,8 @@
 
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
-| R1 | Data + API: `preferred_recipes` table, RLS, realtime, `brews.preferred_recipe_id`, `src/api/preferred` | 🔨 Built — awaiting review | [phase-r1.md](phase-r1.md) |
-| R2 | Create and manage: recipe sheet with inline replace-or-keep, Recipes tab, "Save as preferred" on a brew | ⏳ | |
+| R1 | Data + API: `preferred_recipes` table, RLS, realtime, `brews.preferred_recipe_id`, `src/api/preferred` | ✅ Done (6973006) | [phase-r1.md](phase-r1.md) |
+| R2 | Create and manage: recipe sheet with inline replace-or-keep, Recipes tab, "Save as preferred" on a brew | 🔨 Built — awaiting review | [phase-r2.md](phase-r2.md) |
 | R3 | Brew with them: ★ methods and inline recipe rows in Brew now, `?preferred=`, `Preferred · History` in Select recipe, target line on the brewing card | ⏳ | |
 | R4 | Roast page: "Preferred by…", every method opens Browse filtered to it | ⏳ | |
 

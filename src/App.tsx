@@ -9,6 +9,7 @@ import { BrosBoardPage } from "./features/bros/BrosBoardPage";
 import { LibraryPage } from "./features/library/LibraryPage";
 import { RoasterPage } from "./features/library/RoasterPage";
 import { RoastPage } from "./features/library/RoastPage";
+import { RecipesPage } from "./features/recipes/RecipesPage";
 import { AuthProvider, useAuth } from "./lib/auth";
 
 // The reports carry the charts library, so they load only when opened
@@ -52,6 +53,7 @@ function AppRoutes() {
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/library/roasters/:id" element={<RoasterPage />} />
         <Route path="/library/roasts/:id" element={<RoastPage />} />
+        <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/bros" element={<BrosBoardPage />} />
         <Route path="/bros/:id" element={<BroProfilePage />} />
         <Route

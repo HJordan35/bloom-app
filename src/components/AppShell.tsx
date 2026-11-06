@@ -7,17 +7,19 @@ import { reportQueries } from "../api/reports/reports.queries";
 import { useCurrentBro } from "../lib/auth";
 import { clearBadge, refreshPush } from "../lib/push";
 import { colors, fonts, layout, space } from "../theme/tokens.stylex";
-import { BrosIcon, CupIcon, LibraryIcon, NewspaperIcon } from "./icons";
+import { BrosIcon, CupIcon, LibraryIcon, NewspaperIcon, RecipeIcon } from "./icons";
 
 const TABS: { to: string; label: string; icon: ReactNode }[] = [
   { to: "/", label: "Brew", icon: <CupIcon /> },
   { to: "/library", label: "Library", icon: <LibraryIcon /> },
+  { to: "/recipes", label: "Recipes", icon: <RecipeIcon /> },
   { to: "/bros", label: "Bros", icon: <BrosIcon /> },
 ];
 
 const TITLES: Record<string, string> = {
   "/": "Brew Now",
   "/library": "Library",
+  "/recipes": "Recipes",
   "/bros": "Bros Board",
 };
 
@@ -206,7 +208,7 @@ const styles = stylex.create({
   tabBar: {
     flexShrink: 0,
     display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
+    gridTemplateColumns: "repeat(4, 1fr)",
     paddingBottom: "env(safe-area-inset-bottom)",
     backgroundColor: colors.bg,
     borderTopWidth: 1,
