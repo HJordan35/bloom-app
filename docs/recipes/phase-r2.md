@@ -33,9 +33,9 @@ Save, edit and delete preferred recipes, from scratch or from any brew, and brow
   - filters kept in the URL (`?who=all&roast=…&method=…`).
 
   Tapping a row opens a summary sheet: **Edit** for yours, **Save as mine** for a bro's.
-- **Brew detail:** a bookmark **Save** in the top row, beside Edit, on anyone's brew. It opens the form prefilled with a copy. Saving the same brew twice goes through Replace / Keep both.
+- **Brew detail:** a **Bookmark** action in the top row, beside Edit, on anyone's brew. It opens the form prefilled with a copy. Saving the same brew twice goes through Replace / Keep both.
   - There's no "preferred by" indicator on brews and no link from a brew to its recipes ("Use recipe" covers that).
-- **Icons:** the Recipes tab and Save share one bookmark shape (`RecipeIcon` / `BookmarkIcon`).
+- **Icons:** the Recipes tab and Bookmark share one bookmark shape (`RecipeIcon` / `BookmarkIcon`).
 
 ## You provide
 Run `017_drop_recipe_source.sql`.
@@ -46,7 +46,7 @@ Run `017_drop_recipe_source.sql`.
   - Recipes tab: empty state, then "+ New" saves a recipe from scratch;
   - a second recipe for the same roast and method shows the inline Replace / Keep both choice, and both work;
   - edit and delete;
-  - a bro's brew → bookmark Save copies its values. Editing that brew afterwards doesn't change the copy;
+  - a bro's brew → Bookmark copies its values. Editing that brew afterwards doesn't change the copy;
   - `Mine · All`, the roast filter and the method chips filter correctly and survive a reload;
   - a second browser sees new recipes live;
   - brew counts, the Brewsletter and profile stats are unchanged.

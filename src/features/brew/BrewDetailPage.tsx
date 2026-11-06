@@ -38,7 +38,7 @@ export function BrewDetailPage() {
           <span {...stylex.props(styles.actions)}>
             {/* Bookmark the recipe: saves a copy as one of your preferred recipes */}
             <HeaderAction icon={<BookmarkIcon />} onClick={() => setPreferring(true)}>
-              Save
+              Bookmark
             </HeaderAction>
             {mine && (
               <HeaderAction icon={<PencilIcon />} onClick={() => setEditing(true)}>
