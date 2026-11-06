@@ -3,28 +3,25 @@ import { queryClient } from "../queryClient";
 import {
   createPreferredRecipe,
   deletePreferredRecipe,
-  fetchPreferredForRoast,
   fetchPreferredRecipe,
   fetchPreferredRecipes,
   updatePreferredRecipe,
 } from "./preferred.service";
-import type { PreferredRecipeUpdate } from "./preferred.types";
+import type { PreferredFilter, PreferredRecipeUpdate } from "./preferred.types";
 
 export const preferredKeys = {
   all: ["preferred"] as const,
   detail: (id: string) => [...preferredKeys.all, "detail", id] as const,
-  list: () => [...preferredKeys.all, "list"] as const,
-  forRoast: (roastId: string) => [...preferredKeys.all, "forRoast", roastId] as const,
+  list: (filter: PreferredFilter) => [...preferredKeys.all, "list", filter] as const,
 };
 
 export const preferredQueries = {
   detail: (id: string) =>
     queryOptions({ queryKey: preferredKeys.detail(id), queryFn: () => fetchPreferredRecipe(id) }),
-  list: () => queryOptions({ queryKey: preferredKeys.list(), queryFn: fetchPreferredRecipes }),
-  forRoast: (roastId: string) =>
+  list: (filter: PreferredFilter = {}) =>
     queryOptions({
-      queryKey: preferredKeys.forRoast(roastId),
-      queryFn: () => fetchPreferredForRoast(roastId),
+      queryKey: preferredKeys.list(filter),
+      queryFn: () => fetchPreferredRecipes(filter),
     }),
 };
 

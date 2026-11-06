@@ -1,5 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { preferredQueries } from "../../api/preferred/preferred.queries";
@@ -41,7 +41,16 @@ export function RecipesPage() {
   const who: Who = params.get("who") === "all" ? "all" : "mine";
   const roastId = params.get("roast");
   const [open, setOpen] = useState<Open | null>(null);
-  const { data: recipes } = useQuery(preferredQueries.list());
+  const picked = params.getAll("method");
+  const { data: recipes } = useQuery({
+    ...preferredQueries.list({
+      broId: who === "mine" ? me.id : undefined,
+      roastId: roastId ?? undefined,
+      methods: picked,
+    }),
+    // Keep the list up while a new filter loads, rather than blanking the page
+    placeholderData: keepPreviousData,
+  });
   const { data: roast } = useQuery({
     ...roastQueries.detail(roastId ?? ""),
     enabled: !!roastId,
@@ -60,14 +69,10 @@ export function RecipesPage() {
 
   if (!recipes) return null;
 
-  const listed = recipes
-    .filter((r) => who === "all" || r.bro_id === me.id)
-    .filter((r) => !roastId || r.roast_id === roastId)
-    // Newest first already; yours lead, and the sort is stable
-    .sort((a, b) => Number(b.bro_id === me.id) - Number(a.bro_id === me.id));
-  // In the usual method order, like every other method picker
-  const picked = params.getAll("method");
-  const shown = listed.filter((r) => picked.length === 0 || picked.includes(r.method));
+  // Filtered and newest first from the database; yours lead, and the sort is stable
+  const shown = [...recipes].sort(
+    (a, b) => Number(b.bro_id === me.id) - Number(a.bro_id === me.id),
+  );
   const byRoast = new Map<string, PreferredRecipeWithRoast[]>();
   for (const r of shown) byRoast.set(r.roast_id, [...(byRoast.get(r.roast_id) ?? []), r]);
 

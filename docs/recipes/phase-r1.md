@@ -25,9 +25,9 @@ Store preferred recipes and read and write them from the app. There's no UI yet,
   - `PreferredRecipe` (the row) and `PreferredRecipeWithRoast` (adds `roast` and `bro`);
   - `NewPreferredRecipe` (`Recipe & BrewProcess & BrewNotes` plus who, what and where) and `PreferredRecipeUpdate`.
 - **Service:**
-  - `fetchPreferredRecipe(id)`, `fetchPreferredRecipes()` (all, newest first; it's a small group, so filtering happens client-side) and `fetchPreferredForRoast(roastId)`;
+  - `fetchPreferredRecipe(id)` and `fetchPreferredRecipes(filter)`. The filter (`broId`, `roastId`, `methods`) runs in the query, never on the client. R2 folded `fetchPreferredForRoast` into it;
   - `createPreferredRecipe`, `updatePreferredRecipe` (stamps `updated_at`) and `deletePreferredRecipe`.
-- **Queries:** `preferredQueries.detail / list / forRoast` and `preferredMutations.create / update / remove`. Each one invalidates `preferredKeys.all`.
+- **Queries:** `preferredQueries.detail / list(filter)` and `preferredMutations.create / update / remove`. Each one invalidates `preferredKeys.all`.
 - **Realtime:** `preferred_recipes` → `invalidatePreferred`.
 - **`NewBrew`** gains an optional `preferred_recipe_id`.
 

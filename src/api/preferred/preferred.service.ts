@@ -3,6 +3,7 @@ import { unwrap } from "../api.utils";
 import { BREW_SELECT } from "../brews/brews.service";
 import type {
   NewPreferredRecipe,
+  PreferredFilter,
   PreferredRecipe,
   PreferredRecipeUpdate,
   PreferredRecipeWithRoast,
@@ -17,24 +18,13 @@ export async function fetchPreferredRecipe(id: string) {
   );
 }
 
-/** Every bro's preferred recipes, newest first: a small list, filtered on the client. */
-export async function fetchPreferredRecipes() {
-  return unwrap<PreferredRecipeWithRoast[]>(
-    await supabase
-      .from("preferred_recipes")
-      .select(PREFERRED_SELECT)
-      .order("created_at", { ascending: false }),
-  );
-}
-
-export async function fetchPreferredForRoast(roastId: string) {
-  return unwrap<PreferredRecipeWithRoast[]>(
-    await supabase
-      .from("preferred_recipes")
-      .select(PREFERRED_SELECT)
-      .eq("roast_id", roastId)
-      .order("created_at", { ascending: false }),
-  );
+/** Preferred recipes matching `filter`, newest first. Filtered by the database, not the client. */
+export async function fetchPreferredRecipes(filter: PreferredFilter = {}) {
+  let query = supabase.from("preferred_recipes").select(PREFERRED_SELECT);
+  if (filter.broId) query = query.eq("bro_id", filter.broId);
+  if (filter.roastId) query = query.eq("roast_id", filter.roastId);
+  if (filter.methods?.length) query = query.in("method", filter.methods);
+  return unwrap<PreferredRecipeWithRoast[]>(await query.order("created_at", { ascending: false }));
 }
 
 export async function createPreferredRecipe(input: NewPreferredRecipe) {

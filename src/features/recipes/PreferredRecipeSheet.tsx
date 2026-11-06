@@ -57,13 +57,12 @@ export function PreferredRecipeSheet({ recipe, from, onClose, onSaved }: Props) 
   const [deleting, setDeleting] = useState(false);
   const patch = (p: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...p }));
 
-  const { data: forRoast } = useQuery({
-    ...preferredQueries.forRoast(roast?.id ?? ""),
-    enabled: !!roast,
+  // Yours for this roast + method, to ask about before adding another
+  const { data: existing = [] } = useQuery({
+    ...preferredQueries.list({ broId: me.id, roastId: roast?.id, methods: method ? [method] : [] }),
+    enabled: !!roast && !!method,
   });
-  const yours = (forRoast ?? []).filter(
-    (r) => r.bro_id === me.id && r.method === method && r.id !== recipe?.id,
-  );
+  const yours = existing.filter((r) => r.id !== recipe?.id);
   const busy = create.isPending || update.isPending || remove.isPending;
 
   if (picking) {

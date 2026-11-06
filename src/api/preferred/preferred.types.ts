@@ -30,4 +30,12 @@ export type NewPreferredRecipe = Recipe &
   BrewProcess &
   BrewNotes &
   Pick<PreferredRecipe, "bro_id" | "roast_id" | "method" | "label">;
+/** Narrows the list in the query itself; every part is optional. */
+export type PreferredFilter = {
+  broId?: string;
+  roastId?: string;
+  /** Any of these; empty or missing means every method. */
+  methods?: readonly string[];
+};
+
 export type PreferredRecipeUpdate = Partial<Omit<NewPreferredRecipe, "bro_id">>;

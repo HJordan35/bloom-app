@@ -34,6 +34,7 @@ Save, edit and delete preferred recipes, from scratch or from any brew, and brow
     - methods: opens a short sheet with the usual method `Chips` (boxes). It lists every method (`BREW_METHODS`), with no lookup of which ones have recipes. You can tick several (`Chips` now also takes an array value), Clear is in the section header, and the list filters as you tick. It shows "V60, AeroPress", or "3 methods" past two;
   - rows grouped by roast;
   - filters are the bro's to manage: a choice with no matches shows "No recipes found." (Mine with nothing saved shows the bookmark hint);
+  - filters run in the query: `bro_id`, `roast_id` and `method in (…)` go to Postgres, using the 016 indexes. The client only orders and groups the rows it gets. The previous list stays up while a new filter loads;
   - filters kept in the URL (`?who=all&roast=…&method=V60&method=AeroPress`).
 
   Tapping a row opens a summary sheet: **Edit** for yours, **Save as mine** for a bro's.
