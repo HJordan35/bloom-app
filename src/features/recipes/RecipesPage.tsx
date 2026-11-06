@@ -1,7 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { preferredQueries } from "../../api/preferred/preferred.queries";
 import type { PreferredRecipeWithRoast } from "../../api/preferred/preferred.types";
 import { roastQueries } from "../../api/roasts/roasts.queries";
@@ -38,6 +38,7 @@ type Open =
 export function RecipesPage() {
   const me = useCurrentBro();
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const who: Who = params.get("who") === "all" ? "all" : "mine";
   const roastId = params.get("roast");
   const [open, setOpen] = useState<Open | null>(null);
@@ -143,6 +144,7 @@ export function RecipesPage() {
           <PreferredSummary
             recipe={open.recipe}
             you={open.recipe.bro_id === me.id}
+            onUse={() => navigate(`/?preferred=${open.recipe.id}`)}
             action={
               open.recipe.bro_id === me.id ? (
                 <HeaderAction

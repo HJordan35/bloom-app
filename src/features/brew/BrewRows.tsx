@@ -28,10 +28,7 @@ export function BrewRow({ brew, showBro = false }: { brew: BrewWithRoast; showBr
   return (
     <Link to={`/brews/${brew.id}`} {...stylex.props(styles.row)}>
       <div {...stylex.props(styles.main)}>
-        <span>
-          {brew.roast.name}
-          {brew.dialed_in && <span {...stylex.props(styles.dialed)}> ✦</span>}
-        </span>
+        <span>{brew.roast.name}</span>
         <span {...stylex.props(styles.meta)}>
           {showBro ? brew.bro.first_name : brew.roast.roaster.name} · {brew.method}
         </span>
@@ -73,9 +70,6 @@ const styles = stylex.create({
     fontFamily: fonts.mono,
     fontSize: 11,
     color: colors.muted,
-  },
-  dialed: {
-    color: colors.brass,
   },
   pending: {
     fontFamily: fonts.mono,

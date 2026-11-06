@@ -1,8 +1,11 @@
 import * as stylex from "@stylexjs/stylex";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { brewQueries } from "../../api/brews/brews.queries";
-import type { BrewWithRoast } from "../../api/brews/brews.types";
+import type { Brew, BrewWithRoast } from "../../api/brews/brews.types";
+import type { Bro } from "../../api/bros/bros.types";
+import { preferredQueries } from "../../api/preferred/preferred.queries";
+import type { PreferredRecipeWithRoast } from "../../api/preferred/preferred.types";
 import type { RoastWithRoaster } from "../../api/roasts/roasts.types";
 import { Avatar } from "../../components/Avatar";
 import { Button } from "../../components/Button";
@@ -10,52 +13,95 @@ import { Chips } from "../../components/Chips";
 import { EmptyState } from "../../components/EmptyState";
 import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
+import { TextToggle } from "../../components/TextToggle";
 import { useCurrentBro } from "../../lib/auth";
+import { BREW_METHODS } from "../../lib/constants";
 import { recipeLine, relativeDate } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
+import { PreferredRow, PreferredSummary } from "../recipes/PreferredRow";
 import { BrewRecipe } from "./BrewStats";
 
 const ALL = "All";
+type Tab = "preferred" | "history";
+const TABS: { value: Tab; label: string }[] = [
+  { value: "preferred", label: "Preferred" },
+  { value: "history", label: "History" },
+];
+
+/** What a recipe is borrowed from: a past brew or a preferred recipe. */
+export type RecipeSource = Partial<Brew> & Pick<Brew, "method">;
 
 type Props = {
   roast: RoastWithRoaster;
   /** The new brew's method, if chosen: the method filter starts on it. */
   method: string | null;
-  onUse: (brew: BrewWithRoast) => void;
+  /** `preferredId` is set when the source is a preferred recipe. */
+  onUse: (source: RecipeSource, preferredId: string | null) => void;
   onClose: () => void;
 };
 
-/** Every bro's past brews of a roast, dialed in first, to borrow a recipe from. */
+type Viewing =
+  | { kind: "brew"; brew: BrewWithRoast }
+  | { kind: "preferred"; recipe: PreferredRecipeWithRoast };
+
+/**
+ * A roast's preferred recipes and every bro's past brews of it, to borrow a recipe from.
+ * Opens on Preferred when there are any for the method.
+ */
 export function RecipeHistorySheet({ roast, method, onUse, onClose }: Props) {
   const me = useCurrentBro();
-  const { data: brews } = useQuery(brewQueries.forRoast(roast.id));
   const [methodFilter, setMethodFilter] = useState(method ?? ALL);
+  const methods = methodFilter === ALL ? [] : [methodFilter];
+  const { data: preferred } = useQuery({
+    ...preferredQueries.list({ roastId: roast.id, methods }),
+    placeholderData: keepPreviousData,
+  });
+  const { data: brews } = useQuery(brewQueries.forRoast(roast.id));
+  const [chosenTab, setTab] = useState<Tab | null>(null);
   // Track who's switched off, so every bro starts on
   const [hiddenBros, setHiddenBros] = useState<Set<string>>(() => new Set());
-  const [viewing, setViewing] = useState<BrewWithRoast | null>(null);
+  const [viewing, setViewing] = useState<Viewing | null>(null);
 
   if (viewing) {
     return (
       <Sheet title="Recipe" tall onClose={onClose}>
-        <BrewSummary brew={viewing} you={viewing.bro_id === me.id} onUse={() => onUse(viewing)} />
+        {viewing.kind === "brew" ? (
+          <BrewSummary
+            brew={viewing.brew}
+            you={viewing.brew.bro_id === me.id}
+            onUse={() => onUse(viewing.brew, null)}
+          />
+        ) : (
+          <PreferredSummary
+            recipe={viewing.recipe}
+            you={viewing.recipe.bro_id === me.id}
+            onUse={() => onUse(viewing.recipe, viewing.recipe.id)}
+          />
+        )}
         <Button variant="text" onClick={() => setViewing(null)}>
-          ← All brews
+          ← All recipes
         </Button>
       </Sheet>
     );
   }
 
-  const all = brews ?? [];
-  const methods = [...new Set([...(method ? [method] : []), ...all.map((b) => b.method)])];
-  const bros = [...new Map(all.map((b) => [b.bro.id, b.bro])).values()].sort(
+  // Opens on Preferred when the first load finds any; after that, only you switch tabs
+  if (chosenTab === null && preferred) setTab(preferred.length ? "preferred" : "history");
+  const tab = chosenTab ?? "history";
+  const loaded = tab === "preferred" ? preferred : brews;
+  const rows: { bro: Bro; bro_id: string }[] = loaded ?? [];
+  const bros = [...new Map(rows.map((r) => [r.bro.id, r.bro])).values()].sort(
     (a, b) =>
       Number(b.id === me.id) - Number(a.id === me.id) || a.first_name.localeCompare(b.first_name),
   );
-  const shown = all
+  const shownBrews = (brews ?? [])
     .filter((b) => methodFilter === ALL || b.method === methodFilter)
-    .filter((b) => !hiddenBros.has(b.bro_id))
-    // Already newest first, and the sort is stable
-    .sort((a, b) => Number(b.dialed_in) - Number(a.dialed_in));
+    .filter((b) => !hiddenBros.has(b.bro_id));
+  const shownPreferred = (preferred ?? [])
+    .filter((r) => !hiddenBros.has(r.bro_id))
+    // Newest first from the database; yours lead, and the sort is stable
+    .sort((a, b) => Number(b.bro_id === me.id) - Number(a.bro_id === me.id));
+  const shown = tab === "preferred" ? shownPreferred : shownBrews;
 
   function toggleBro(id: string) {
     setHiddenBros((hidden) => {
@@ -66,9 +112,11 @@ export function RecipeHistorySheet({ roast, method, onUse, onClose }: Props) {
   }
 
   return (
-    <Sheet title="Brew history" tall onClose={onClose}>
+    <Sheet title="Select recipe" tall onClose={onClose}>
+      <TextToggle options={TABS} value={tab} onChange={setTab} />
+
       <Section label="Method">
-        <Chips options={[ALL, ...methods]} value={methodFilter} onChange={setMethodFilter} />
+        <Chips options={[ALL, ...BREW_METHODS]} value={methodFilter} onChange={setMethodFilter} />
       </Section>
 
       {bros.length > 1 && (
@@ -94,21 +142,32 @@ export function RecipeHistorySheet({ roast, method, onUse, onClose }: Props) {
         </Section>
       )}
 
-      {brews &&
+      {loaded &&
         (shown.length === 0 ? (
-          all.length === 0 ? (
-            <EmptyState title="Nothing brewed yet.">No one has brewed {roast.name} yet.</EmptyState>
-          ) : (
-            <EmptyState title="No matches.">No brews match these filters.</EmptyState>
-          )
+          <EmptyState title="No recipes found.">
+            {tab === "preferred"
+              ? `No one has bookmarked a recipe for ${roast.name} with these filters.`
+              : `No brews of ${roast.name} match these filters.`}
+          </EmptyState>
+        ) : tab === "preferred" ? (
+          <div>
+            {shownPreferred.map((r) => (
+              <PreferredRow
+                key={r.id}
+                recipe={r}
+                you={r.bro_id === me.id}
+                onClick={() => setViewing({ kind: "preferred", recipe: r })}
+              />
+            ))}
+          </div>
         ) : (
           <div>
-            {shown.map((brew) => (
+            {shownBrews.map((brew) => (
               <HistoryRow
                 key={brew.id}
                 brew={brew}
                 you={brew.bro_id === me.id}
-                onClick={() => setViewing(brew)}
+                onClick={() => setViewing({ kind: "brew", brew })}
               />
             ))}
           </div>
@@ -132,7 +191,6 @@ function HistoryRow({
       <div {...stylex.props(styles.main)}>
         <span>
           {you ? "You" : brew.bro.first_name} · {brew.method}
-          {brew.dialed_in && <span {...stylex.props(styles.dialed)}> ✦</span>}
         </span>
         {recipe && <span {...stylex.props(styles.meta)}>{recipe}</span>}
       </div>

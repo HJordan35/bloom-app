@@ -1,6 +1,6 @@
 # Phase R2 — Create and manage
 
-**Status:** 🔨 Built — awaiting your review
+**Status:** ✅ Done (1568f23 … e2b9677)
 
 ## Goal
 Save, edit and delete preferred recipes, from scratch or from any brew, and browse everyone's in a new **Recipes** tab.

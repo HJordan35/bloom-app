@@ -46,15 +46,20 @@ export function PreferredRow({
   );
 }
 
-/** A preferred recipe in full. `action` sits at the end of the top line (Edit, Save as mine). */
+/**
+ * A preferred recipe in full. `action` sits at the end of the top line (Edit, Save as mine);
+ * `onUse` adds "Use recipe" to the Recipe header, as on a brew.
+ */
 export function PreferredSummary({
   recipe,
   you,
   action,
+  onUse,
 }: {
   recipe: PreferredRecipeWithRoast;
   you: boolean;
   action?: ReactNode;
+  onUse?: () => void;
 }) {
   return (
     <>
@@ -71,7 +76,7 @@ export function PreferredSummary({
         </p>
       </header>
 
-      <BrewRecipe brew={recipe} />
+      <BrewRecipe brew={recipe} onUse={onUse} />
 
       {recipe.brew_notes && (
         <Section label="Brew notes">
