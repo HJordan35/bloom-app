@@ -5,6 +5,7 @@ import { broQueries } from "../../api/bros/bros.queries";
 import type { Ranking } from "../../api/rankings/rankings.types";
 import { AvatarStack } from "../../components/AvatarStack";
 import { useCurrentBro } from "../../lib/auth";
+import { broLabel, youFirst } from "../../lib/bros";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 
 type Props = {
@@ -24,9 +25,9 @@ export function BrewedBy({ ranking, max, labelled = false }: Props) {
   );
   if (!labelled) return stack;
 
-  const names = bros
-    .map((b) => (b.id === me.id ? "You" : b.first_name))
-    .sort((a, b) => Number(b === "You") - Number(a === "You") || a.localeCompare(b))
+  const names = [...bros]
+    .sort(youFirst(me.id))
+    .map((b) => broLabel(b, me.id))
     .join(", ");
 
   return (

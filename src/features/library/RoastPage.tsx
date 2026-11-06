@@ -5,16 +5,19 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { brewQueries } from "../../api/brews/brews.queries";
 import type { BrewWithRoast } from "../../api/brews/brews.types";
 import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
+import { preferredQueries } from "../../api/preferred/preferred.queries";
+import type { PreferredRecipeWithRoast } from "../../api/preferred/preferred.types";
 import { byRoastId, rankingQueries } from "../../api/rankings/rankings.queries";
 import { roastMutations, roastQueries } from "../../api/roasts/roasts.queries";
 import { Button } from "../../components/Button";
 import { DetailHeader } from "../../components/DetailHeader";
 import { FadeIn } from "../../components/FadeIn";
+import { BookmarkIcon } from "../../components/icons";
 import { PhotoPicker } from "../../components/PhotoPicker";
 import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
-import { mmss, recipeLine } from "../../lib/format";
+import { broLabel, youFirst } from "../../lib/bros";
 import { rankPositions } from "../../lib/ranking";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
@@ -23,15 +26,24 @@ import { BrewedBy } from "./BrewedBy";
 import { BrewLists } from "./LibraryRows";
 import { RoastPhoto } from "./RoastPhoto";
 
-/** Brews per method, with a dialed-in recipe if anyone has one. */
-function summarizeByMethod(brews: BrewWithRoast[]) {
-  const methods = new Set(brews.map((b) => b.method));
+/**
+ * Every method with brews or a bookmarked recipe: its brew count, and who bookmarked a recipe
+ * for it (you first, then bros by name).
+ */
+function summarizeByMethod(
+  brews: BrewWithRoast[],
+  bookmarks: PreferredRecipeWithRoast[],
+  me: string,
+) {
+  const methods = new Set([...brews, ...bookmarks].map((b) => b.method));
   return [...methods].map((method) => {
-    const methodBrews = brews.filter((b) => b.method === method);
+    const bros = new Map(
+      bookmarks.filter((r) => r.method === method).map((r) => [r.bro_id, r.bro]),
+    );
     return {
       method,
-      brewCount: methodBrews.length,
-      dialedIn: methodBrews.find((b) => b.dialed_in),
+      brewCount: brews.filter((b) => b.method === method).length,
+      bookmarkedBy: [...bros.values()].sort(youFirst(me)).map((b) => broLabel(b, me)),
     };
   });
 }
@@ -45,6 +57,7 @@ export function RoastPage() {
   const { data: roasts } = useQuery(roastQueries.list());
   const { data: scores } = useQuery({ ...rankingQueries.roasts(), select: byRoastId });
   const { data: brews } = useQuery(brewQueries.forRoast(id));
+  const { data: bookmarks = [] } = useQuery(preferredQueries.list({ roastId: id }));
   const { data: endorsements } = useQuery(endorsementQueries.list({ roastId: id }));
   const uploadPhoto = useMutation(roastMutations.uploadPhoto());
   if (!roast || !roasts || !scores || !brews || !endorsements) return null;
@@ -57,7 +70,9 @@ export function RoastPage() {
   const changePhoto = (file: File) => uploadPhoto.mutate({ roastId: roast.id, file });
 
   const hasPhoto = !!roast.photo_original_path;
-  const methods = summarizeByMethod(brews).sort((a, b) => b.brewCount - a.brewCount);
+  const methods = summarizeByMethod(brews, bookmarks, bro.id).sort(
+    (a, b) => b.brewCount - a.brewCount,
+  );
 
   return (
     <FadeIn xstyle={styles.page}>
@@ -88,26 +103,30 @@ export function RoastPage() {
       {methods.length > 0 && (
         <Section label="By method">
           {methods.map((m) => (
-            <div key={m.method} {...stylex.props(styles.method)}>
+            // The shared list on this roast + method, every bro's: Recipes when there's a
+            // bookmark, else Brews
+            <Link
+              key={m.method}
+              to={`/recipes?${new URLSearchParams({
+                roast: roast.id,
+                method: m.method,
+                bro: "",
+                ...(m.bookmarkedBy.length === 0 && { kind: "brews" }),
+              })}`}
+              {...stylex.props(styles.method)}
+            >
               <div {...stylex.props(styles.methodHead)}>
                 <span>{m.method}</span>
                 <span {...stylex.props(styles.methodStats)}>
                   {m.brewCount} {m.brewCount === 1 ? "brew" : "brews"}
                 </span>
               </div>
-              {m.dialedIn && (
-                <Link to={`/brews/${m.dialedIn.id}`} {...stylex.props(styles.recipe)}>
-                  ✦ {m.dialedIn.bro.first_name}:{" "}
-                  {[
-                    recipeLine(m.dialedIn),
-                    m.dialedIn.grinder,
-                    m.dialedIn.brew_time_s != null && mmss(m.dialedIn.brew_time_s),
-                  ]
-                    .filter(Boolean)
-                    .join(" · ") || "dialed in"}
-                </Link>
+              {m.bookmarkedBy.length > 0 && (
+                <span {...stylex.props(styles.recipe)}>
+                  <BookmarkIcon /> Bookmarked by {m.bookmarkedBy.join(", ")}
+                </span>
               )}
-            </div>
+            </Link>
           ))}
         </Section>
       )}
@@ -165,6 +184,9 @@ const styles = stylex.create({
     color: colors.muted,
   },
   recipe: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
     fontFamily: fonts.mono,
     fontSize: 12,
     color: colors.brass,

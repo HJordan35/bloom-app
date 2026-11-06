@@ -6,6 +6,7 @@ import { BrewDetailPage } from "./features/brew/BrewDetailPage";
 import { BrewNowPage } from "./features/brew/BrewNowPage";
 import { BroProfilePage } from "./features/bros/BroProfilePage";
 import { BrosBoardPage } from "./features/bros/BrosBoardPage";
+import { BrowsePage } from "./features/browse/BrowsePage";
 import { LibraryPage } from "./features/library/LibraryPage";
 import { RoasterPage } from "./features/library/RoasterPage";
 import { RoastPage } from "./features/library/RoastPage";
@@ -48,10 +49,12 @@ function AppRoutes() {
     <Routes>
       <Route element={<AppShell />}>
         <Route path="/" element={<BrewNowPage />} />
+        <Route path="/brews" element={<BrowsePage defaultKind="brews" />} />
         <Route path="/brews/:id" element={<BrewDetailPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/library/roasters/:id" element={<RoasterPage />} />
         <Route path="/library/roasts/:id" element={<RoastPage />} />
+        <Route path="/recipes" element={<BrowsePage defaultKind="recipes" />} />
         <Route path="/bros" element={<BrosBoardPage />} />
         <Route path="/bros/:id" element={<BroProfilePage />} />
         <Route

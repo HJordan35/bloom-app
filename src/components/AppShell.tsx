@@ -7,23 +7,26 @@ import { reportQueries } from "../api/reports/reports.queries";
 import { useCurrentBro } from "../lib/auth";
 import { clearBadge, refreshPush } from "../lib/push";
 import { colors, fonts, layout, space } from "../theme/tokens.stylex";
-import { BrosIcon, CupIcon, LibraryIcon, NewspaperIcon } from "./icons";
+import { BrosIcon, CupIcon, LibraryIcon, NewspaperIcon, RecipeIcon } from "./icons";
 
 const TABS: { to: string; label: string; icon: ReactNode }[] = [
   { to: "/", label: "Brew", icon: <CupIcon /> },
   { to: "/library", label: "Library", icon: <LibraryIcon /> },
+  { to: "/recipes", label: "Recipes", icon: <RecipeIcon /> },
   { to: "/bros", label: "Bros", icon: <BrosIcon /> },
 ];
 
 const TITLES: Record<string, string> = {
   "/": "Brew Now",
   "/library": "Library",
+  "/recipes": "Browse",
   "/bros": "Bros Board",
 };
 
 // Detail routes get a back button instead of the wordmark
 const DETAIL_TITLES: [prefix: string, title: string][] = [
   ["/brews/", "Brew"],
+  ["/brews", "Browse"],
   ["/library/roasters/", "Roaster"],
   ["/library/roasts/", "Roast"],
   ["/bros/", "Bro"],
@@ -59,17 +62,18 @@ export function AppShell() {
   return (
     <div {...stylex.props(styles.frame)}>
       <header {...stylex.props(styles.topBar)}>
-        {detail ? (
-          <button type="button" onClick={() => navigate(-1)} {...stylex.props(styles.back)}>
-            ← Back
-          </button>
-        ) : (
-          <span {...stylex.props(styles.mark)}>Bloom</span>
-        )}
-        <div {...stylex.props(styles.end)}>
+        {/* The wordmark (or Back), with where you are set quietly beside it */}
+        <div {...stylex.props(styles.start)}>
+          {detail ? (
+            <button type="button" onClick={() => navigate(-1)} {...stylex.props(styles.back)}>
+              ← Back
+            </button>
+          ) : (
+            <span {...stylex.props(styles.mark)}>Bloom</span>
+          )}
           <h1 {...stylex.props(styles.title)}>{title}</h1>
-          <ReportsLink />
         </div>
+        <ReportsLink />
       </header>
 
       {/* Keyed so every path change remounts the view (its FadeIn plays, even roast → roast)
@@ -110,8 +114,11 @@ function ReportsLink() {
       aria-label={unread ? "Brewsletters, a new one is in" : "Brewsletters"}
       {...stylex.props(styles.reports)}
     >
-      <NewspaperIcon />
-      {unread && <span {...stylex.props(styles.badge)} />}
+      <span {...stylex.props(styles.caption)}>Newsletter</span>
+      <span {...stylex.props(styles.icon)}>
+        <NewspaperIcon />
+        {unread && <span {...stylex.props(styles.badge)} />}
+      </span>
     </Link>
   );
 }
@@ -134,7 +141,8 @@ const styles = stylex.create({
   topBar: {
     flexShrink: 0,
     display: "flex",
-    alignItems: "baseline",
+    // Everything in the bar on one centre line
+    alignItems: "center",
     justifyContent: "space-between",
     gap: space.md,
     paddingInline: space.md,
@@ -146,6 +154,7 @@ const styles = stylex.create({
     borderBottomColor: colors.hairline,
   },
   mark: {
+    lineHeight: 1,
     fontFamily: fonts.mono,
     fontSize: 10,
     letterSpacing: "0.3em",
@@ -155,6 +164,7 @@ const styles = stylex.create({
   back: {
     minHeight: 44,
     marginBlock: -12,
+    lineHeight: 1,
     backgroundColor: "transparent",
     borderWidth: 0,
     fontFamily: fonts.mono,
@@ -164,34 +174,55 @@ const styles = stylex.create({
     color: colors.brass,
     cursor: "pointer",
   },
-  end: {
+  // Wordmark and title share a baseline (two fonts never look centred on each other); the
+  // group itself is centred in the bar
+  start: {
+    minWidth: 0,
     display: "flex",
-    alignItems: "center",
+    alignItems: "baseline",
     gap: space.md,
   },
   reports: {
-    position: "relative",
     display: "flex",
     alignItems: "center",
+    gap: 6,
     minHeight: 44,
     marginBlock: -12,
     color: colors.muted,
   },
+  icon: {
+    position: "relative",
+    display: "flex",
+  },
+  caption: {
+    lineHeight: 1,
+    fontFamily: fonts.mono,
+    fontSize: 9,
+    letterSpacing: "0.18em",
+    textTransform: "uppercase",
+  },
+  // On the icon's top-right corner
   badge: {
     position: "absolute",
-    top: 9,
-    right: -2,
+    top: -2,
+    right: -3,
     width: 8,
     height: 8,
     borderRadius: "50%",
     backgroundColor: colors.ember,
     boxShadow: `0 0 0 2px ${colors.bg}`,
   },
+  // Quiet beside the wordmark: smaller than a page heading, muted
   title: {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
     fontFamily: fonts.display,
     fontWeight: 500,
-    fontSize: 22,
+    fontSize: 14,
+    lineHeight: 1,
     letterSpacing: "0.01em",
+    color: colors.muted,
   },
   content: {
     flex: 1,
@@ -206,7 +237,7 @@ const styles = stylex.create({
   tabBar: {
     flexShrink: 0,
     display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
+    gridTemplateColumns: "repeat(4, 1fr)",
     paddingBottom: "env(safe-area-inset-bottom)",
     backgroundColor: colors.bg,
     borderTopWidth: 1,

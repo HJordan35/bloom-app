@@ -6,12 +6,14 @@ import { brewQueries } from "../../api/brews/brews.queries";
 import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
 import { FadeIn } from "../../components/FadeIn";
 import { HeaderAction } from "../../components/HeaderAction";
-import { PencilIcon } from "../../components/icons";
+import { BookmarkIcon, PencilIcon } from "../../components/icons";
 import { Section } from "../../components/Section";
+import { TextSection } from "../../components/TextSection";
 import { useCurrentBro } from "../../lib/auth";
 import { relativeDate } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
+import { PreferredRecipeSheet } from "../recipes/PreferredRecipeSheet";
 import { BrewRecipe } from "./BrewStats";
 import { EditBrewSheet } from "./EditBrewSheet";
 
@@ -20,6 +22,7 @@ export function BrewDetailPage() {
   const me = useCurrentBro();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+  const [preferring, setPreferring] = useState(false);
   const { data: brew } = useQuery(brewQueries.detail(id));
   const { data: endorsements } = useQuery(endorsementQueries.list({ brewId: id }));
   if (!brew || !endorsements) return null;
@@ -33,11 +36,17 @@ export function BrewDetailPage() {
             {brew.bro.first_name} · {relativeDate(brew.started_at)}
             {!brew.finished_at && " · brewing"}
           </p>
-          {mine && (
-            <HeaderAction icon={<PencilIcon />} onClick={() => setEditing(true)}>
-              Edit
+          <span {...stylex.props(styles.actions)}>
+            {/* Bookmark the recipe: saves a copy as one of your preferred recipes */}
+            <HeaderAction icon={<BookmarkIcon />} onClick={() => setPreferring(true)}>
+              Bookmark
             </HeaderAction>
-          )}
+            {mine && (
+              <HeaderAction icon={<PencilIcon />} onClick={() => setEditing(true)}>
+                Edit
+              </HeaderAction>
+            )}
+          </span>
         </div>
         <Link to={`/library/roasts/${brew.roast.id}`} {...stylex.props(styles.roast)}>
           {brew.roast.name}
@@ -57,17 +66,8 @@ export function BrewDetailPage() {
 
       <BrewRecipe brew={brew} onUse={() => navigate(`/?recipe=${brew.id}`)} />
 
-      {brew.brew_notes && (
-        <Section label="Brew notes">
-          <p {...stylex.props(styles.notes)}>{brew.brew_notes}</p>
-        </Section>
-      )}
-
-      {brew.brew_results && (
-        <Section label="Results">
-          <p {...stylex.props(styles.notes)}>{brew.brew_results}</p>
-        </Section>
-      )}
+      <TextSection label="Brew notes" text={brew.brew_notes} />
+      <TextSection label="Results" text={brew.brew_results} />
 
       {endorsements.length > 0 && (
         <Section label="Endorsement">
@@ -75,6 +75,14 @@ export function BrewDetailPage() {
             <EndorsementRow key={e.id} endorsement={e} />
           ))}
         </Section>
+      )}
+
+      {preferring && (
+        <PreferredRecipeSheet
+          from={{ roast: brew.roast, method: brew.method, values: brew }}
+          onClose={() => setPreferring(false)}
+          onSaved={() => setPreferring(false)}
+        />
       )}
 
       {editing && (
@@ -104,6 +112,10 @@ const styles = stylex.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: space.md,
+  },
+  actions: {
+    display: "flex",
     gap: space.md,
   },
 
@@ -137,8 +149,5 @@ const styles = stylex.create({
   },
   dialed: {
     color: colors.brass,
-  },
-  notes: {
-    whiteSpace: "pre-wrap",
   },
 });

@@ -9,6 +9,8 @@ export const colors = stylex.defineVars({
   muted: "#8A7D70",
   faint: "#5A4F46",
   brass: "#B8935A",
+  /** Brass at 28%: a faint gold rule (under the Browse filters). */
+  brassFaint: "rgba(184, 147, 90, 0.28)",
   leather: "#6F4428",
   ember: "#C8642F",
   danger: "#B5533C",

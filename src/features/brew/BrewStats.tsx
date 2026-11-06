@@ -1,12 +1,15 @@
 import * as stylex from "@stylexjs/stylex";
-import type { Brew } from "../../api/brews/brews.types";
+import type { BrewProcess, Recipe } from "../../api/brews/brews.types";
 import { HeaderAction } from "../../components/HeaderAction";
 import { Section } from "../../components/Section";
 import { formatTemp, mmss } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 
+/** The numbers a brew and a preferred recipe share. */
+type RecipeNumbers = Recipe & BrewProcess;
+
 /** The Recipe section, with a quiet "Use recipe" in its header when `onUse` is given. */
-export function BrewRecipe({ brew, onUse }: { brew: Brew; onUse?: () => void }) {
+export function BrewRecipe({ brew, onUse }: { brew: RecipeNumbers; onUse?: () => void }) {
   return (
     <Section
       label="Recipe"
@@ -18,7 +21,7 @@ export function BrewRecipe({ brew, onUse }: { brew: Brew; onUse?: () => void }) 
 }
 
 /** The recipe and process numbers as a two-column grid. */
-export function BrewStats({ brew }: { brew: Brew }) {
+export function BrewStats({ brew }: { brew: RecipeNumbers }) {
   const stats: [string, string | null][] = [
     ["Dose", brew.dose_g != null ? `${brew.dose_g} g` : null],
     ["Grind", brew.grind_size],

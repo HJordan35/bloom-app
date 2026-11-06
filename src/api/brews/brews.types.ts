@@ -18,6 +18,8 @@ export type Brew = {
   brew_notes: string | null;
   brew_results: string | null;
   dialed_in: boolean;
+  /** The preferred recipe it was started from, for its target time and volume. */
+  preferred_recipe_id: string | null;
   started_at: string;
   finished_at: string | null;
   created_at: string;
@@ -36,8 +38,20 @@ export type BrewNotes = Pick<Brew, "brew_notes">;
 /** Captured in the follow-up (or later): how it turned out. */
 export type BrewOutcome = Pick<Brew, "brew_results" | "dialed_in">;
 
-export type NewBrew = Recipe & BrewNotes & Pick<Brew, "bro_id" | "roast_id" | "method">;
+export type NewBrew = Recipe &
+  BrewNotes &
+  Pick<Brew, "bro_id" | "roast_id" | "method"> &
+  Partial<Pick<Brew, "preferred_recipe_id">>;
 export type BrewUpdate = Partial<Omit<Brew, "id" | "bro_id">>;
+
+/** Narrows a brews list in the query itself; every part is optional. */
+export type BrewFilter = {
+  /** Any of these bros; empty or missing means every bro. */
+  broIds?: readonly string[];
+  roastId?: string;
+  /** Any of these; empty or missing means every method. */
+  methods?: readonly string[];
+};
 
 /** Roast ids and grinders from a bro's recent brews, most recent first. */
 export type BrewHistory = { roastIds: string[]; grinders: string[] };

@@ -2,6 +2,7 @@ import { supabase } from "../../lib/supabase";
 import { unwrap } from "../api.utils";
 import type {
   Brew,
+  BrewFilter,
   BrewHistory,
   BrewNotes,
   BrewProcess,
@@ -14,6 +15,7 @@ import type {
 export const BREW_SELECT =
   "*, roast:roasts(*, roaster:roasters(*)), bro:bros(id, first_name, last_name, email)";
 export const LIVE_WINDOW_MS = 2 * 60 * 60 * 1000;
+export const BROWSE_PAGE_SIZE = 30;
 
 export async function fetchBrew(id: string) {
   return unwrap<BrewWithRoast>(
@@ -86,6 +88,18 @@ export async function fetchBroBrews(broId: string) {
       .select(BREW_SELECT)
       .eq("bro_id", broId)
       .order("started_at", { ascending: false }),
+  );
+}
+
+/** One page of finished brews matching `filter`, newest first. Filtered by the database. */
+export async function fetchBrewPage(filter: BrewFilter, page: number) {
+  let query = supabase.from("brews").select(BREW_SELECT).not("finished_at", "is", null);
+  if (filter.broIds?.length) query = query.in("bro_id", filter.broIds);
+  if (filter.roastId) query = query.eq("roast_id", filter.roastId);
+  if (filter.methods?.length) query = query.in("method", filter.methods);
+  const from = page * BROWSE_PAGE_SIZE;
+  return unwrap<BrewWithRoast[]>(
+    await query.order("started_at", { ascending: false }).range(from, from + BROWSE_PAGE_SIZE - 1),
   );
 }
 

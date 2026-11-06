@@ -1,11 +1,13 @@
-import { mutationOptions, queryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, mutationOptions, queryOptions } from "@tanstack/react-query";
 import { eventKeys } from "../events/events.queries";
 import { queryClient } from "../queryClient";
 import { rankingKeys } from "../rankings/rankings.queries";
 import {
+  BROWSE_PAGE_SIZE,
   discardBrew,
   fetchBrew,
   fetchBrewingNow,
+  fetchBrewPage,
   fetchBrewsForRoast,
   fetchBrewsForRoaster,
   fetchBroBrews,
@@ -17,7 +19,7 @@ import {
   startBrew,
   updateBrew,
 } from "./brews.service";
-import type { BrewNotes, BrewProcess, BrewUpdate } from "./brews.types";
+import type { BrewFilter, BrewNotes, BrewProcess, BrewUpdate } from "./brews.types";
 
 export const brewKeys = {
   all: ["brews"] as const,
@@ -31,6 +33,7 @@ export const brewKeys = {
   lastRecipe: (broId: string, roastId: string, method: string) =>
     [...brewKeys.all, "lastRecipe", broId, roastId, method] as const,
   history: (broId: string) => [...brewKeys.all, "history", broId] as const,
+  browse: (filter: BrewFilter) => [...brewKeys.all, "browse", filter] as const,
 };
 
 export const brewQueries = {
@@ -66,6 +69,16 @@ export const brewQueries = {
     }),
   history: (broId: string) =>
     queryOptions({ queryKey: brewKeys.history(broId), queryFn: () => fetchMyBrewHistory(broId) }),
+  /** Finished brews matching `filter`, a page at a time. */
+  browse: (filter: BrewFilter) =>
+    infiniteQueryOptions({
+      queryKey: brewKeys.browse(filter),
+      queryFn: ({ pageParam }) => fetchBrewPage(filter, pageParam),
+      initialPageParam: 0,
+      // A full page might have more behind it
+      getNextPageParam: (last, pages) =>
+        last.length === BROWSE_PAGE_SIZE ? pages.length : undefined,
+    }),
 };
 
 /** Brews feed the rankings and events views, so those refresh too. */

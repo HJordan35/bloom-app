@@ -23,10 +23,31 @@ export function LiveBrewRow({ brew }: { brew: BrewWithRoast }) {
   );
 }
 
-/** A finished brew. `showBro` swaps the roaster for the bro's name (for shared lists). */
-export function BrewRow({ brew, showBro = false }: { brew: BrewWithRoast; showBro?: boolean }) {
-  return (
-    <Link to={`/brews/${brew.id}`} {...stylex.props(styles.row)}>
+/** The start of a brew's or recipe's notes on one quiet line, to tell rows apart. */
+export function NotesLine({ notes }: { notes: string | null }) {
+  // Line breaks would only be cut off; read it as one run of text
+  const text = notes?.replace(/\s+/g, " ").trim();
+  return <span {...stylex.props(styles.notes)}>{text || "No notes"}</span>;
+}
+
+/**
+ * A finished brew, linking to its page. `showBro` swaps the roaster for the bro's name
+ * (for shared lists); `notes` adds a line of its brew notes (browsing); `onClick` makes it a
+ * button instead (picking a brew in a sheet).
+ */
+export function BrewRow({
+  brew,
+  showBro = false,
+  notes = false,
+  onClick,
+}: {
+  brew: BrewWithRoast;
+  showBro?: boolean;
+  notes?: boolean;
+  onClick?: () => void;
+}) {
+  const content = (
+    <>
       <div {...stylex.props(styles.main)}>
         <span>
           {brew.roast.name}
@@ -35,16 +56,37 @@ export function BrewRow({ brew, showBro = false }: { brew: BrewWithRoast; showBr
         <span {...stylex.props(styles.meta)}>
           {showBro ? brew.bro.first_name : brew.roast.roaster.name} · {brew.method}
         </span>
+        {notes && <NotesLine notes={brew.brew_notes} />}
         {resultsPending(brew) && <span {...stylex.props(styles.pending)}>Results pending</span>}
       </div>
       <span {...stylex.props(styles.side)}>
         {relativeDate(brew.finished_at ?? brew.started_at)}
       </span>
+    </>
+  );
+  return onClick ? (
+    <button type="button" onClick={onClick} {...stylex.props(styles.button, styles.row)}>
+      {content}
+    </button>
+  ) : (
+    <Link to={`/brews/${brew.id}`} {...stylex.props(styles.row)}>
+      {content}
     </Link>
   );
 }
 
 const styles = stylex.create({
+  // Undoes the button look; row (applied after) draws the divider
+  button: {
+    width: "100%",
+    paddingInline: 0,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    color: colors.text,
+    font: "inherit",
+    textAlign: "left",
+    cursor: "pointer",
+  },
   row: {
     minHeight: 60,
     display: "flex",
@@ -68,14 +110,22 @@ const styles = stylex.create({
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
+  dialed: {
+    color: colors.brass,
+  },
+  notes: {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    fontSize: 12,
+    fontStyle: "italic",
+    color: colors.muted,
+  },
   side: {
     flexShrink: 0,
     fontFamily: fonts.mono,
     fontSize: 11,
     color: colors.muted,
-  },
-  dialed: {
-    color: colors.brass,
   },
   pending: {
     fontFamily: fonts.mono,

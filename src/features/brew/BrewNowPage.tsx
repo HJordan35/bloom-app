@@ -1,12 +1,13 @@
 import * as stylex from "@stylexjs/stylex";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { brewMutations, brewQueries } from "../../api/brews/brews.queries";
 import type { BrewWithRoast } from "../../api/brews/brews.types";
 import { Button } from "../../components/Button";
 import { EmptyState } from "../../components/EmptyState";
 import { FadeIn } from "../../components/FadeIn";
+import { HeaderAction } from "../../components/HeaderAction";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { greeting } from "../../lib/format";
@@ -20,12 +21,14 @@ import { FinishBrewSheet } from "./FinishBrewSheet";
 export function BrewNowPage() {
   const bro = useCurrentBro();
   const [params, setParams] = useSearchParams();
-  // `?roast=<id>` or `?start` (from the Library), or `?recipe=<brew id>` (from a brew),
-  // starts a brew
+  const navigate = useNavigate();
+  // `?roast=<id>` or `?start` (from the Library), `?recipe=<brew id>` (from a brew), or
+  // `?preferred=<id>` (from a preferred recipe) starts a brew
   const roastParam = params.get("roast");
   const recipeParam = params.get("recipe");
+  const preferredParam = params.get("preferred");
   const [sheet, setSheet] = useState<"start" | "finish" | null>(
-    roastParam || recipeParam || params.has("start") ? "start" : null,
+    roastParam || recipeParam || preferredParam || params.has("start") ? "start" : null,
   );
 
   const mine = useQuery(brewQueries.myOpen(bro.id));
@@ -83,9 +86,12 @@ export function BrewNowPage() {
         </Section>
       )}
 
-      <Section label="Recent brews">
+      <Section
+        label="Recent brews"
+        action={<HeaderAction onClick={() => navigate("/brews")}>Browse</HeaderAction>}
+      >
         {recent.data?.map((brew) => (
-          <BrewRow key={brew.id} brew={brew} />
+          <BrewRow key={brew.id} brew={brew} notes />
         ))}
         {recent.data?.length === 0 && (
           <EmptyState title="No brews yet.">Your finished brews will gather here.</EmptyState>
@@ -96,6 +102,7 @@ export function BrewNowPage() {
         <BrewLauncher
           initialRoastId={roastParam}
           initialRecipeId={recipeParam}
+          initialPreferredId={preferredParam}
           onClose={closeSheet}
           onStarted={closeSheet}
         />

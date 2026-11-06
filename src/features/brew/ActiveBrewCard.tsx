@@ -3,20 +3,21 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { brewMutations, brewQueries } from "../../api/brews/brews.queries";
 import type { BrewWithRoast } from "../../api/brews/brews.types";
+import { preferredQueries } from "../../api/preferred/preferred.queries";
 import { Button } from "../../components/Button";
 import { Chips } from "../../components/Chips";
 import { HeaderAction } from "../../components/HeaderAction";
-import { HistoryIcon } from "../../components/icons";
+import { BookmarkIcon, HistoryIcon } from "../../components/icons";
 import { LiveDot } from "../../components/LiveDot";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { BREW_METHODS } from "../../lib/constants";
-import { elapsed } from "../../lib/format";
+import { elapsed, mmss, volume } from "../../lib/format";
 import { useNow } from "../../lib/useNow";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
+import { type RecipeSource, SelectRecipeSheet } from "../browse/SelectRecipeSheet";
 import { BrewNotesField, RecipeFields } from "./BrewFields";
 import { brewDraft, notesFromDraft, recipeFromDraft } from "./draft";
-import { RecipeHistorySheet } from "./RecipeHistorySheet";
 
 // How long typing pauses before an edit is saved
 const SAVE_DELAY_MS = 600;
@@ -40,11 +41,26 @@ export function ActiveBrewCard({ brew, onFinish, onDiscard }: Props) {
   const { mutateAsync: updateBrew } = useMutation(brewMutations.update());
   const [method, setMethod] = useState(brew.method);
   const [draft, setDraft] = useState(() => brewDraft(brew));
+  // The preferred recipe it's brewed from, if any: its estimates are the target
+  const [preferredId, setPreferredId] = useState(brew.preferred_recipe_id);
+  const { data: target, isError: targetGone } = useQuery({
+    ...preferredQueries.detail(preferredId ?? ""),
+    enabled: !!preferredId,
+  });
+  // Its recipe was deleted: the database already unlinked the brew, so stop saving the old id
+  useEffect(() => {
+    if (targetGone) setPreferredId(null);
+  }, [targetGone]);
   const [browsing, setBrowsing] = useState(false);
   const patch = (p: Partial<typeof draft>) => setDraft((d) => ({ ...d, ...p }));
 
   // Autosave: the latest fields, and the last version written
-  const fields = { method, ...recipeFromDraft(draft), ...notesFromDraft(draft) };
+  const fields = {
+    method,
+    ...recipeFromDraft(draft),
+    ...notesFromDraft(draft),
+    preferred_recipe_id: preferredId,
+  };
   const key = JSON.stringify(fields);
   const latest = useRef({ key, fields });
   latest.current = { key, fields };
@@ -68,13 +84,23 @@ export function ActiveBrewCard({ brew, onFinish, onDiscard }: Props) {
   // Don't drop an edit still waiting when the card goes away
   useEffect(() => () => void save(), [save]);
 
-  /** Borrow a past brew's method, recipe and notes. */
-  function applyRecipe(source: BrewWithRoast) {
+  /** Borrow a past brew's or a preferred recipe's method, recipe and notes. */
+  function applyRecipe(source: RecipeSource, fromPreferred: string | null) {
     const { dose, grindSize, grinder, temp, tempUnit, brewNotes } = brewDraft(source);
     setMethod(source.method);
     patch({ dose, grindSize, grinder, temp, tempUnit, brewNotes });
+    setPreferredId(fromPreferred);
     setBrowsing(false);
   }
+
+  const targetLine =
+    target &&
+    [
+      target.brew_time_s != null && mmss(target.brew_time_s),
+      target.volume_ml != null && volume(target.volume_ml),
+    ]
+      .filter(Boolean)
+      .join(" · ");
 
   async function finish() {
     await save();
@@ -106,6 +132,11 @@ export function ActiveBrewCard({ brew, onFinish, onDiscard }: Props) {
           </HeaderAction>
         }
       />
+      {targetLine && (
+        <p {...stylex.props(styles.target)}>
+          <BookmarkIcon /> Target {targetLine}
+        </p>
+      )}
       <BrewNotesField value={draft.brewNotes} onChange={(brewNotes) => patch({ brewNotes })} />
       <div {...stylex.props(styles.actions)}>
         <Button variant="ghost" onClick={onDiscard}>
@@ -114,7 +145,7 @@ export function ActiveBrewCard({ brew, onFinish, onDiscard }: Props) {
         <Button onClick={finish}>Finish</Button>
       </div>
       {browsing && (
-        <RecipeHistorySheet
+        <SelectRecipeSheet
           roast={brew.roast}
           method={method}
           onUse={applyRecipe}
@@ -166,6 +197,16 @@ const styles = stylex.create({
   },
   meta: {
     fontSize: 13,
+    color: colors.muted,
+  },
+  // Sits just under the recipe it belongs to
+  target: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    marginTop: `calc(-1 * ${space.sm})`,
+    fontFamily: fonts.mono,
+    fontSize: 12,
     color: colors.muted,
   },
   actions: {
