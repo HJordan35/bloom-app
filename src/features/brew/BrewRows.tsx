@@ -23,17 +23,27 @@ export function LiveBrewRow({ brew }: { brew: BrewWithRoast }) {
   );
 }
 
+/** The start of a brew's or recipe's notes on one quiet line, to tell rows apart. */
+export function NotesLine({ notes }: { notes: string | null }) {
+  // Line breaks would only be cut off; read it as one run of text
+  const text = notes?.replace(/\s+/g, " ").trim();
+  return <span {...stylex.props(styles.notes)}>{text || "No notes"}</span>;
+}
+
 /**
  * A finished brew, linking to its page. `showBro` swaps the roaster for the bro's name
- * (for shared lists); `onClick` makes it a button instead (picking a brew in a sheet).
+ * (for shared lists); `notes` adds a line of its brew notes (browsing); `onClick` makes it a
+ * button instead (picking a brew in a sheet).
  */
 export function BrewRow({
   brew,
   showBro = false,
+  notes = false,
   onClick,
 }: {
   brew: BrewWithRoast;
   showBro?: boolean;
+  notes?: boolean;
   onClick?: () => void;
 }) {
   const content = (
@@ -46,6 +56,7 @@ export function BrewRow({
         <span {...stylex.props(styles.meta)}>
           {showBro ? brew.bro.first_name : brew.roast.roaster.name} · {brew.method}
         </span>
+        {notes && <NotesLine notes={brew.brew_notes} />}
         {resultsPending(brew) && <span {...stylex.props(styles.pending)}>Results pending</span>}
       </div>
       <span {...stylex.props(styles.side)}>
@@ -101,6 +112,14 @@ const styles = stylex.create({
   },
   dialed: {
     color: colors.brass,
+  },
+  notes: {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    fontSize: 12,
+    fontStyle: "italic",
+    color: colors.muted,
   },
   side: {
     flexShrink: 0,

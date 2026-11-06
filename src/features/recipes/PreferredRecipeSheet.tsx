@@ -19,6 +19,7 @@ import { BREW_METHODS } from "../../lib/constants";
 import { BrewNotesField, ProcessFields, RecipeFields } from "../brew/BrewFields";
 import { brewDraft, notesFromDraft, processFromDraft, recipeFromDraft } from "../brew/draft";
 import { RoastPickerSheet, SelectedRoast } from "../brew/RoastChoice";
+import { DeleteRecipeDialog } from "./DeleteRecipeDialog";
 import { recipeName } from "./PreferredRow";
 
 /** What a new recipe starts from: a brew, a bro's recipe, or just a roast. Values are copied. */
@@ -45,7 +46,6 @@ export function PreferredRecipeSheet({ recipe, from, onClose, onSaved }: Props) 
   });
   const create = useMutation(preferredMutations.create());
   const update = useMutation(preferredMutations.update());
-  const remove = useMutation(preferredMutations.remove());
 
   const [roast, setRoast] = useState(recipe?.roast ?? from?.roast ?? null);
   const [picking, setPicking] = useState(!roast);
@@ -67,7 +67,7 @@ export function PreferredRecipeSheet({ recipe, from, onClose, onSaved }: Props) 
     enabled: !!roast && !!method,
   });
   const yours = existing.filter((r) => r.id !== recipe?.id);
-  const busy = create.isPending || update.isPending || remove.isPending;
+  const busy = create.isPending || update.isPending;
 
   if (picking) {
     return (
@@ -112,13 +112,6 @@ export function PreferredRecipeSheet({ recipe, from, onClose, onSaved }: Props) 
     onSaved();
   }
 
-  async function confirmDelete() {
-    if (!recipe) return;
-    if (!deleting) return setDeleting(true);
-    await remove.mutateAsync(recipe.id);
-    onSaved();
-  }
-
   return (
     <Sheet title={recipe ? "Edit preferred recipe" : "Preferred recipe"} tall onClose={onClose}>
       <SelectedRoast roast={roast} onChange={() => setPicking(true)} />
@@ -140,9 +133,16 @@ export function PreferredRecipeSheet({ recipe, from, onClose, onSaved }: Props) 
       </Button>
 
       {recipe && (
-        <Button variant="text" onClick={confirmDelete} disabled={busy}>
-          {deleting ? "Tap again to delete" : "Delete"}
+        <Button variant="text" onClick={() => setDeleting(true)} disabled={busy}>
+          Delete
         </Button>
+      )}
+      {deleting && recipe && (
+        <DeleteRecipeDialog
+          recipe={recipe}
+          onCancel={() => setDeleting(false)}
+          onDeleted={onSaved}
+        />
       )}
       {asking && (
         <Dialog

@@ -258,7 +258,7 @@ function BrewResults({
   return (
     <div>
       {brews.map((brew) => (
-        <BrewRow key={brew.id} brew={brew} showBro={showBro} onClick={() => onOpen(brew)} />
+        <BrewRow key={brew.id} brew={brew} showBro={showBro} notes onClick={() => onOpen(brew)} />
       ))}
       {more && (
         <Button variant="text" onClick={onMore} disabled={loadingMore}>

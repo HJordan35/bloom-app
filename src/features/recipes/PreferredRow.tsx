@@ -7,6 +7,7 @@ import type {
 import { Section } from "../../components/Section";
 import { mmss, recipeLine } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
+import { NotesLine } from "../brew/BrewRows";
 import { BrewRecipe } from "../brew/BrewStats";
 
 /** "18g · 14 · 205°F · Comandante · 3:30": the recipe at a glance. */
@@ -42,6 +43,7 @@ export function PreferredRow({
         {recipe.label && <span {...stylex.props(styles.label)}> · {recipe.label}</span>}
       </span>
       {line && <span {...stylex.props(styles.meta)}>{line}</span>}
+      <NotesLine notes={recipe.brew_notes} />
     </button>
   );
 }

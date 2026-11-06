@@ -105,3 +105,12 @@ export function BookmarkIcon() {
     </Icon>
   );
 }
+
+export function TrashIcon() {
+  return (
+    <Icon width="14" height="14" strokeWidth={1.5}>
+      <path d="M4.5 7h15M9.5 7V4.5h5V7" />
+      <path d="M6.5 7l1 13h9l1-13M10.5 11v5M13.5 11v5" />
+    </Icon>
+  );
+}

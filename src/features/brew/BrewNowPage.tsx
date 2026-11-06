@@ -91,7 +91,7 @@ export function BrewNowPage() {
         action={<HeaderAction onClick={() => navigate("/brews")}>Browse</HeaderAction>}
       >
         {recent.data?.map((brew) => (
-          <BrewRow key={brew.id} brew={brew} />
+          <BrewRow key={brew.id} brew={brew} notes />
         ))}
         {recent.data?.length === 0 && (
           <EmptyState title="No brews yet.">Your finished brews will gather here.</EmptyState>
