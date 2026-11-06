@@ -86,10 +86,22 @@ export function NewspaperIcon() {
   );
 }
 
+const BOOKMARK = "M6 3.5h12v17l-6-4-6 4v-17Z";
+
+/** The Recipes tab: preferred recipes are bookmarks. */
 export function RecipeIcon() {
   return (
     <Icon>
-      <path d="M6 3.5h12v17l-6-4-6 4v-17Z" />
+      <path d={BOOKMARK} />
+    </Icon>
+  );
+}
+
+/** Small, for header actions and inline markers. */
+export function BookmarkIcon() {
+  return (
+    <Icon width="14" height="14" strokeWidth={1.5}>
+      <path d={BOOKMARK} />
     </Icon>
   );
 }

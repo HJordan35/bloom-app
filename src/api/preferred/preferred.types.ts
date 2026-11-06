@@ -17,8 +17,6 @@ export type PreferredRecipe = {
   brew_time_s: number | null;
   volume_ml: number | null;
   brew_notes: string | null;
-  /** The brew it was copied from, if any. */
-  source_brew_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -26,12 +24,10 @@ export type PreferredRecipe = {
 export type PreferredRecipeWithRoast = PreferredRecipe & {
   roast: RoastWithRoaster;
   bro: Bro;
-  /** The brew it was copied from, for the credit line. */
-  source: { id: string; started_at: string; bro: Pick<Bro, "id" | "first_name"> } | null;
 };
 
 export type NewPreferredRecipe = Recipe &
   BrewProcess &
   BrewNotes &
-  Pick<PreferredRecipe, "bro_id" | "roast_id" | "method" | "label" | "source_brew_id">;
+  Pick<PreferredRecipe, "bro_id" | "roast_id" | "method" | "label">;
 export type PreferredRecipeUpdate = Partial<Omit<NewPreferredRecipe, "bro_id">>;

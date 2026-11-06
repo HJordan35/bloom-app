@@ -158,7 +158,6 @@ export function RecipesPage() {
                         roast: open.recipe.roast,
                         method: open.recipe.method,
                         values: open.recipe,
-                        sourceBrewId: open.recipe.source_brew_id,
                       },
                     })
                   }

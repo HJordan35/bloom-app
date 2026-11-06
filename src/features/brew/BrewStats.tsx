@@ -1,5 +1,4 @@
 import * as stylex from "@stylexjs/stylex";
-import type { ReactNode } from "react";
 import type { BrewProcess, Recipe } from "../../api/brews/brews.types";
 import { HeaderAction } from "../../components/HeaderAction";
 import { Section } from "../../components/Section";
@@ -9,30 +8,12 @@ import { colors, fonts, space } from "../../theme/tokens.stylex";
 /** The numbers a brew and a preferred recipe share. */
 type RecipeNumbers = Recipe & BrewProcess;
 
-/**
- * The Recipe section, with a quiet "Use recipe" in its header when `onUse` is given,
- * after any other `action`.
- */
-export function BrewRecipe({
-  brew,
-  onUse,
-  action,
-}: {
-  brew: RecipeNumbers;
-  onUse?: () => void;
-  action?: ReactNode;
-}) {
+/** The Recipe section, with a quiet "Use recipe" in its header when `onUse` is given. */
+export function BrewRecipe({ brew, onUse }: { brew: RecipeNumbers; onUse?: () => void }) {
   return (
     <Section
       label="Recipe"
-      action={
-        (onUse || action) && (
-          <span {...stylex.props(styles.actions)}>
-            {action}
-            {onUse && <HeaderAction onClick={onUse}>Use recipe</HeaderAction>}
-          </span>
-        )
-      }
+      action={onUse && <HeaderAction onClick={onUse}>Use recipe</HeaderAction>}
     >
       <BrewStats brew={brew} />
     </Section>
@@ -63,10 +44,6 @@ export function BrewStats({ brew }: { brew: RecipeNumbers }) {
 }
 
 const styles = stylex.create({
-  actions: {
-    display: "flex",
-    gap: space.md,
-  },
   stats: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",

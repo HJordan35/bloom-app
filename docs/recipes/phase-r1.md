@@ -11,7 +11,7 @@ Store preferred recipes and read and write them from the app. There's no UI yet,
   - the recipe: `dose_g`, `grind_size`, `grinder`, `temp`, `temp_unit`;
   - the estimates: `brew_time_s`, `volume_ml`;
   - `brew_notes`;
-  - `source_brew_id` (`on delete set null`): the brew it was copied from, if any;
+  - `source_brew_id`: dropped in R2 (`017_drop_recipe_source.sql`), since a saved recipe doesn't link back to its brew;
   - `created_at` and `updated_at`.
 
   The columns and checks are the same as on `brews`, so the brew draft and form fields work on both.

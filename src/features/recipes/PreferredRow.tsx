@@ -1,13 +1,11 @@
 import * as stylex from "@stylexjs/stylex";
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
 import type {
   PreferredRecipe,
   PreferredRecipeWithRoast,
 } from "../../api/preferred/preferred.types";
 import { Section } from "../../components/Section";
-import { useCurrentBro } from "../../lib/auth";
-import { mmss, recipeLine, relativeDate } from "../../lib/format";
+import { mmss, recipeLine } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { BrewRecipe } from "../brew/BrewStats";
 
@@ -58,8 +56,6 @@ export function PreferredSummary({
   you: boolean;
   action?: ReactNode;
 }) {
-  const me = useCurrentBro();
-  const { source } = recipe;
   return (
     <>
       <header {...stylex.props(styles.header)}>
@@ -73,12 +69,6 @@ export function PreferredSummary({
           {recipe.method}
           {recipe.label && <span {...stylex.props(styles.label)}>{recipe.label}</span>}
         </p>
-        {source && (
-          <Link to={`/brews/${source.id}`} {...stylex.props(styles.source)}>
-            From {source.bro.id === me.id ? "your" : `${source.bro.first_name}'s`} brew ·{" "}
-            {relativeDate(source.started_at)}
-          </Link>
-        )}
       </header>
 
       <BrewRecipe brew={recipe} />
@@ -145,13 +135,6 @@ const styles = stylex.create({
     alignItems: "baseline",
     fontFamily: fonts.display,
     fontSize: 22,
-  },
-  source: {
-    fontSize: 13,
-    color: colors.muted,
-    textDecoration: "underline",
-    textDecorationColor: colors.hairline,
-    textUnderlineOffset: 3,
   },
   notes: {
     whiteSpace: "pre-wrap",

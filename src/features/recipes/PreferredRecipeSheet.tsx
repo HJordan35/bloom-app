@@ -22,12 +22,11 @@ import { brewDraft, notesFromDraft, processFromDraft, recipeFromDraft } from "..
 import { RoastPickerSheet, SelectedRoast } from "../brew/RoastChoice";
 import { recipeName } from "./PreferredRow";
 
-/** What a new recipe starts from: a brew, a bro's recipe, or just a roast. */
+/** What a new recipe starts from: a brew, a bro's recipe, or just a roast. Values are copied. */
 export type PreferredStart = {
   roast?: RoastWithRoaster;
   method?: string;
   values?: Partial<Brew>;
-  sourceBrewId?: string | null;
 };
 
 type Props = {
@@ -101,20 +100,13 @@ export function PreferredRecipeSheet({ recipe, from, onClose, onSaved }: Props) 
   }
 
   async function keepBoth() {
-    await create.mutateAsync({
-      ...fields,
-      bro_id: me.id,
-      source_brew_id: from?.sourceBrewId ?? null,
-    });
+    await create.mutateAsync({ ...fields, bro_id: me.id });
     onSaved();
   }
 
   /** Overwrite one of yours in place: same recipe, new values. */
   async function replace(target: PreferredRecipe) {
-    await update.mutateAsync({
-      id: target.id,
-      fields: { ...fields, source_brew_id: from?.sourceBrewId ?? null },
-    });
+    await update.mutateAsync({ id: target.id, fields });
     onSaved();
   }
 

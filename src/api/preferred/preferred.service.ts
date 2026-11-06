@@ -8,9 +8,8 @@ import type {
   PreferredRecipeWithRoast,
 } from "./preferred.types";
 
-// A brew's joins (both have roast_id and bro_id), plus who brewed the source. The hint picks
-// source_brew_id over brews.preferred_recipe_id, the other link between the two tables.
-const PREFERRED_SELECT = `${BREW_SELECT}, source:brews!source_brew_id(id, started_at, bro:bros(id, first_name))`;
+// Same joins as a brew: both have roast_id and bro_id
+const PREFERRED_SELECT = BREW_SELECT;
 
 export async function fetchPreferredRecipe(id: string) {
   return unwrap<PreferredRecipeWithRoast>(

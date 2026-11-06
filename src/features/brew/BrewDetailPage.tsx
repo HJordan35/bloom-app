@@ -4,10 +4,9 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { brewQueries } from "../../api/brews/brews.queries";
 import { endorsementQueries } from "../../api/endorsements/endorsements.queries";
-import { preferredQueries } from "../../api/preferred/preferred.queries";
 import { FadeIn } from "../../components/FadeIn";
 import { HeaderAction } from "../../components/HeaderAction";
-import { PencilIcon } from "../../components/icons";
+import { BookmarkIcon, PencilIcon } from "../../components/icons";
 import { Section } from "../../components/Section";
 import { useCurrentBro } from "../../lib/auth";
 import { relativeDate } from "../../lib/format";
@@ -25,18 +24,8 @@ export function BrewDetailPage() {
   const [preferring, setPreferring] = useState(false);
   const { data: brew } = useQuery(brewQueries.detail(id));
   const { data: endorsements } = useQuery(endorsementQueries.list({ brewId: id }));
-  const { data: preferred = [] } = useQuery({
-    ...preferredQueries.forRoast(brew?.roast_id ?? ""),
-    enabled: !!brew,
-    select: (recipes) => recipes.filter((r) => r.source_brew_id === id),
-  });
   if (!brew || !endorsements) return null;
   const mine = brew.bro_id === me.id;
-  // Preferred recipes saved from this brew: yours first
-  const savedFrom = [...preferred].sort(
-    (a, b) => Number(b.bro_id === me.id) - Number(a.bro_id === me.id),
-  );
-  const yours = savedFrom.find((r) => r.bro_id === me.id);
 
   return (
     <FadeIn xstyle={styles.page}>
@@ -46,11 +35,17 @@ export function BrewDetailPage() {
             {brew.bro.first_name} · {relativeDate(brew.started_at)}
             {!brew.finished_at && " · brewing"}
           </p>
-          {mine && (
-            <HeaderAction icon={<PencilIcon />} onClick={() => setEditing(true)}>
-              Edit
+          <span {...stylex.props(styles.actions)}>
+            {/* Bookmark the recipe: saves a copy as one of your preferred recipes */}
+            <HeaderAction icon={<BookmarkIcon />} onClick={() => setPreferring(true)}>
+              Save
             </HeaderAction>
-          )}
+            {mine && (
+              <HeaderAction icon={<PencilIcon />} onClick={() => setEditing(true)}>
+                Edit
+              </HeaderAction>
+            )}
+          </span>
         </div>
         <Link to={`/library/roasts/${brew.roast.id}`} {...stylex.props(styles.roast)}>
           {brew.roast.name}
@@ -65,24 +60,10 @@ export function BrewDetailPage() {
         <p {...stylex.props(styles.method)}>
           {brew.method}
           {brew.dialed_in && <span {...stylex.props(styles.dialed)}>✦ Dialed in</span>}
-          {savedFrom.length > 0 && (
-            <span {...stylex.props(styles.dialed)}>
-              ★ Preferred by{" "}
-              {savedFrom.map((r) => (r.bro_id === me.id ? "You" : r.bro.first_name)).join(", ")}
-            </span>
-          )}
         </p>
       </header>
 
-      <BrewRecipe
-        brew={brew}
-        onUse={() => navigate(`/?recipe=${brew.id}`)}
-        action={
-          <HeaderAction onClick={() => setPreferring(true)}>
-            {yours ? "★ Preferred" : "☆ Prefer"}
-          </HeaderAction>
-        }
-      />
+      <BrewRecipe brew={brew} onUse={() => navigate(`/?recipe=${brew.id}`)} />
 
       {brew.brew_notes && (
         <Section label="Brew notes">
@@ -106,8 +87,7 @@ export function BrewDetailPage() {
 
       {preferring && (
         <PreferredRecipeSheet
-          recipe={yours}
-          from={{ roast: brew.roast, method: brew.method, values: brew, sourceBrewId: brew.id }}
+          from={{ roast: brew.roast, method: brew.method, values: brew }}
           onClose={() => setPreferring(false)}
           onSaved={() => setPreferring(false)}
         />
@@ -142,6 +122,10 @@ const styles = stylex.create({
     justifyContent: "space-between",
     gap: space.md,
   },
+  actions: {
+    display: "flex",
+    gap: space.md,
+  },
 
   eyebrow: {
     fontFamily: fonts.mono,
@@ -168,8 +152,7 @@ const styles = stylex.create({
   },
   method: {
     display: "flex",
-    flexWrap: "wrap",
-    columnGap: space.md,
+    gap: space.md,
     marginTop: space.sm,
   },
   dialed: {

@@ -5,7 +5,7 @@
 **Principles:**
 - Happy path only, no tests, minimal abstraction.
 - **Minimalist UI:**
-  - one quiet brass ★ marker;
+  - one quiet marker, a bookmark: preferring is "save this recipe for later";
   - text-weight toggles (`Mine · All`), not boxed controls;
   - inline confirms, not extra sheets;
   - filters hidden until they're useful;
@@ -17,12 +17,12 @@
 |---|---|---|---|
 | R1 | Data + API: `preferred_recipes` table, RLS, realtime, `brews.preferred_recipe_id`, `src/api/preferred` | ✅ Done (6973006) | [phase-r1.md](phase-r1.md) |
 | R2 | Create and manage: recipe sheet with inline replace-or-keep, Recipes tab, "Save as preferred" on a brew | 🔨 Built — awaiting review | [phase-r2.md](phase-r2.md) |
-| R3 | Brew with them: ★ methods and inline recipe rows in Brew now, `?preferred=`, `Preferred · History` in Select recipe, target line on the brewing card | ⏳ | |
+| R3 | Brew with them: bookmarked methods and inline recipe rows in Brew now, `?preferred=`, `Preferred · History` in Select recipe, target line on the brewing card | ⏳ | |
 | R4 | Roast page: "Preferred by…", every method opens Browse filtered to it | ⏳ | |
 
 ## Decisions
 - **A table of its own, not a flag on `brews`.** Every count reads `brews`: rankings, `brewed_by`, events, Brewing now, `monthly_stats`, insights, profile stats and the "is brewing" push. A recipe made from scratch must never count as a brew.
-- **Copy, don't link.** Saving a brew as preferred copies its values into a row you own. `source_brew_id` keeps the credit, and editing or deleting that brew later doesn't change the copy.
+- **Copy, don't link.** Saving a brew as preferred copies its values into a row you own. The recipe keeps no link back to the brew (dropped in 017), and a brew shows no "preferred by". "Use recipe" already covers going from a brew to its recipe. `brews.preferred_recipe_id` (brew → recipe) stays, so brews per recipe can be counted.
 - **Optional label** ("Comandante", "Iced") to tell several recipes apart.
 - **Replace or keep both:** "Replace" updates the existing row in place.
 - **Time and volume are estimates.** While brewing, they show as a target line, and Finish starts blank.
