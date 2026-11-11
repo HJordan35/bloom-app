@@ -114,6 +114,7 @@ export function BrewNotesField({
     <TextAreaField
       label="Brew notes"
       placeholder="Pours, WDT, swirl…"
+      minRows={4}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       action={value && <HeaderAction onClick={() => onChange("")}>Clear</HeaderAction>}
