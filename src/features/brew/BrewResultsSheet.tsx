@@ -14,7 +14,8 @@ import { brewDraft, outcomeFromDraft } from "./draft";
 type Props = {
   brew: BrewWithRoast;
   onClose: () => void;
-  onSaved: () => void;
+  /** Called with whether the brew was marked dialed in. */
+  onSaved: (dialedIn: boolean) => void;
 };
 
 /** Step 2 of finishing: results, dialed in and an endorsement — or "I'll do it later". */
@@ -38,7 +39,7 @@ export function BrewResultsSheet({ brew, onClose, onSaved }: Props) {
         roast_id: brew.roast_id,
         brew_id: brew.id,
       });
-    onSaved();
+    onSaved(draft.dialedIn);
   }
 
   return (

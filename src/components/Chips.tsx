@@ -12,9 +12,18 @@ type Props = {
   marked?: readonly string[];
   /** What each option reads as, when it isn't its own label (e.g. a bro id → "You"). */
   format?: (option: string) => string;
+  /** Leave the labels' capitals as written (sentences, not names). */
+  asWritten?: boolean;
 };
 
-export function Chips({ options, value, onChange, marked, format = (o) => o }: Props) {
+export function Chips({
+  options,
+  value,
+  onChange,
+  marked,
+  format = (o) => o,
+  asWritten = false,
+}: Props) {
   const selected = (option: string) =>
     Array.isArray(value) ? value.includes(option) : option === value;
   return (
@@ -25,7 +34,11 @@ export function Chips({ options, value, onChange, marked, format = (o) => o }: P
           type="button"
           aria-pressed={selected(option)}
           onClick={() => onChange(option)}
-          {...stylex.props(styles.chip, selected(option) && styles.selected)}
+          {...stylex.props(
+            styles.chip,
+            asWritten && styles.asWritten,
+            selected(option) && styles.selected,
+          )}
         >
           {marked?.includes(option) && (
             <span {...stylex.props(styles.mark)}>
@@ -58,6 +71,9 @@ const styles = stylex.create({
     textTransform: "capitalize",
     cursor: "pointer",
     transition: "border-color 150ms, color 150ms",
+  },
+  asWritten: {
+    textTransform: "none",
   },
   mark: {
     display: "inline-flex",

@@ -12,7 +12,8 @@ import { roastMutations, roastQueries } from "../../api/roasts/roasts.queries";
 import { Button } from "../../components/Button";
 import { DetailHeader } from "../../components/DetailHeader";
 import { FadeIn } from "../../components/FadeIn";
-import { BookmarkIcon } from "../../components/icons";
+import { HeaderAction } from "../../components/HeaderAction";
+import { BookmarkIcon, DialIcon } from "../../components/icons";
 import { PhotoPicker } from "../../components/PhotoPicker";
 import { Score } from "../../components/Score";
 import { Section } from "../../components/Section";
@@ -99,6 +100,11 @@ export function RoastPage() {
         </Button>
         <Button onClick={() => navigate(`/?roast=${roast.id}`)}>Brew now</Button>
       </div>
+      <div {...stylex.props(styles.coach)}>
+        <HeaderAction icon={<DialIcon />} onClick={() => navigate(`/?coach&roast=${roast.id}`)}>
+          Dial in
+        </HeaderAction>
+      </div>
 
       {methods.length > 0 && (
         <Section label="By method">
@@ -162,6 +168,10 @@ const styles = stylex.create({
     display: "grid",
     gridTemplateColumns: "1fr 2fr",
     gap: space.sm,
+  },
+  coach: {
+    display: "flex",
+    justifyContent: "flex-end",
   },
   method: {
     display: "flex",

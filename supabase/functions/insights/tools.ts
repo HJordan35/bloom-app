@@ -1,7 +1,8 @@
 // The agent's tools (Gemini Interactions API format): three read-only lookups, Google Search,
 // and a submit tool to finish — submit_insights for a bro, submit_roast_insight for a new coffee.
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
-import { BREW_SELECT, type BrewRow, brewForAgent, json } from "./snapshot.ts";
+import { BREW_SELECT, type BrewRow, brewForAgent } from "../_shared/brews.ts";
+import { json } from "./snapshot.ts";
 
 export const INSIGHT_TYPES = ["did_you_know", "pattern", "recommendation", "fact", "jab"] as const;
 

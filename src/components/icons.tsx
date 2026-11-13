@@ -67,6 +67,17 @@ export function HistoryIcon() {
   );
 }
 
+/** A grinder's dial: a knob with its mark, inside the arc it turns through. */
+export function DialIcon() {
+  return (
+    <Icon width="14" height="14" strokeWidth={1.5}>
+      <path d="M5.6 18.4a9 9 0 1 1 12.8 0" />
+      <circle cx="12" cy="12" r="4.5" />
+      <path d="M13.6 10.1l1.5-1.8" />
+    </Icon>
+  );
+}
+
 export function PencilIcon() {
   return (
     <Icon width="14" height="14" strokeWidth={1.5}>

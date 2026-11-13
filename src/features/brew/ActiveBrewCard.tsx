@@ -1,8 +1,9 @@
 import * as stylex from "@stylexjs/stylex";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type Ref, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { brewMutations, brewQueries } from "../../api/brews/brews.queries";
 import type { BrewWithRoast } from "../../api/brews/brews.types";
+import type { CoachRecipe } from "../../api/coach/coach.types";
 import { preferredQueries } from "../../api/preferred/preferred.queries";
 import { Button } from "../../components/Button";
 import { Chips } from "../../components/Chips";
@@ -16,13 +17,22 @@ import { elapsed, mmss, volume } from "../../lib/format";
 import { useNow } from "../../lib/useNow";
 import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 import { type RecipeSource, SelectRecipeSheet } from "../browse/SelectRecipeSheet";
+import { recipeForBrew } from "../coach/recipe";
 import { BrewNotesField, RecipeFields } from "./BrewFields";
 import { brewDraft, notesFromDraft, recipeFromDraft } from "./draft";
 
 // How long typing pauses before an edit is saved
 const SAVE_DELAY_MS = 600;
 
+/** What the coach does to the open brew from outside the card. */
+export type BrewCardHandle = {
+  /** Saves any edit still waiting, so the coach reads what's on screen. */
+  save: () => Promise<void>;
+  applyCoach: (card: CoachRecipe) => void;
+};
+
 type Props = {
+  ref?: Ref<BrewCardHandle>;
   /** Key the card by brew id: it keeps its own edits, so a refetch doesn't reset them. */
   brew: BrewWithRoast;
   /** Called once any pending edit is saved. */
@@ -31,7 +41,7 @@ type Props = {
 };
 
 /** Your open brew: method, recipe and notes stay editable, saved as you go. */
-export function ActiveBrewCard({ brew, onFinish, onDiscard }: Props) {
+export function ActiveBrewCard({ ref, brew, onFinish, onDiscard }: Props) {
   const now = useNow();
   const bro = useCurrentBro();
   const { data: grinders } = useQuery({
@@ -92,6 +102,32 @@ export function ActiveBrewCard({ brew, onFinish, onDiscard }: Props) {
     setPreferredId(fromPreferred);
     setBrowsing(false);
   }
+
+  /**
+   * A coach's card. Based on this brew, only what it changed is written, so an edit made here
+   * since the coach read the brew isn't put back. Based on anything else, the whole recipe is.
+   */
+  function applyCoach({ base, recipe, changes }: CoachRecipe) {
+    const whole = recipeForBrew(recipe);
+    if (base.kind !== "open_brew") return applyRecipe(whole, null);
+    const next = brewDraft(whole);
+    const fields = {
+      dose_g: "dose",
+      grind_size: "grindSize",
+      grinder: "grinder",
+      temp: "temp",
+      brew_notes: "brewNotes",
+    } as const;
+    for (const { field } of changes) {
+      if (field === "method") setMethod(recipe.method);
+      else if (field in fields) {
+        const key = fields[field as keyof typeof fields];
+        patch({ [key]: next[key] });
+      }
+    }
+  }
+
+  useImperativeHandle(ref, () => ({ save, applyCoach }));
 
   const targetLine =
     target &&

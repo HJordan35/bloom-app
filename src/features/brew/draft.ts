@@ -3,6 +3,7 @@ import type {
   BrewNotes,
   BrewOutcome,
   BrewProcess,
+  NewBrew,
   Recipe,
   TempUnit,
 } from "../../api/brews/brews.types";
@@ -66,4 +67,23 @@ export function processFromDraft(d: BrewDraft): BrewProcess {
 
 export function outcomeFromDraft(d: BrewDraft): BrewOutcome {
   return { brew_results: orNull(d.brewResults), dialed_in: d.dialedIn };
+}
+
+/** A brew to start: `from`'s recipe and notes (a past brew, a recipe, a coach's suggestion). */
+export function newBrew(
+  broId: string,
+  roastId: string,
+  method: string,
+  from: Partial<Brew> | null,
+  preferredId: string | null = null,
+): NewBrew {
+  const draft = brewDraft(from);
+  return {
+    bro_id: broId,
+    roast_id: roastId,
+    method,
+    ...recipeFromDraft(draft),
+    ...notesFromDraft(draft),
+    preferred_recipe_id: preferredId,
+  };
 }

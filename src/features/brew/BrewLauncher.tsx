@@ -9,13 +9,15 @@ import { roastQueries } from "../../api/roasts/roasts.queries";
 import type { RoastWithRoaster } from "../../api/roasts/roasts.types";
 import { Button } from "../../components/Button";
 import { Chips } from "../../components/Chips";
+import { HeaderAction } from "../../components/HeaderAction";
+import { DialIcon } from "../../components/icons";
 import { Section } from "../../components/Section";
 import { Sheet } from "../../components/Sheet";
 import { useCurrentBro } from "../../lib/auth";
 import { BREW_METHODS } from "../../lib/constants";
 import { space } from "../../theme/tokens.stylex";
 import { type RecipeSource, SelectRecipeSheet } from "../browse/SelectRecipeSheet";
-import { brewDraft, notesFromDraft, recipeFromDraft } from "./draft";
+import { newBrew } from "./draft";
 import { RoastPickerSheet, SelectedRoast } from "./RoastChoice";
 
 type Props = {
@@ -24,6 +26,8 @@ type Props = {
   initialRecipeId?: string | null;
   /** A preferred recipe to start from, the same way; the brew stays linked to it. */
   initialPreferredId?: string | null;
+  /** Hands the picked roast to the coach instead of starting. */
+  onAskCoach: (roastId: string) => void;
   onClose: () => void;
   onStarted: () => void;
 };
@@ -37,6 +41,7 @@ export function BrewLauncher({
   initialRoastId,
   initialRecipeId,
   initialPreferredId,
+  onAskCoach,
   onClose,
   onStarted,
 }: Props) {
@@ -79,15 +84,7 @@ export function BrewLauncher({
     from: Partial<Brew> | null,
     preferredId: string | null = null,
   ) {
-    const draft = brewDraft(from);
-    await startBrew.mutateAsync({
-      bro_id: bro.id,
-      roast_id: roastId,
-      method,
-      ...recipeFromDraft(draft),
-      ...notesFromDraft(draft),
-      preferred_recipe_id: preferredId,
-    });
+    await startBrew.mutateAsync(newBrew(bro.id, roastId, method, from, preferredId));
     onStarted();
   }
 
@@ -156,7 +153,14 @@ export function BrewLauncher({
   return (
     <Sheet title="Choose a method" onClose={onClose}>
       <SelectedRoast roast={roast} onChange={() => setPicking(true)} />
-      <Section label="Method">
+      <Section
+        label="Method"
+        action={
+          <HeaderAction icon={<DialIcon />} onClick={() => onAskCoach(roast.id)}>
+            Dial in
+          </HeaderAction>
+        }
+      >
         <Chips
           options={BREW_METHODS}
           value={chosen ?? method}

@@ -32,5 +32,6 @@ const styles = stylex.create({
     textTransform: "uppercase",
     color: colors.brass,
     cursor: "pointer",
+    opacity: { default: 1, ":disabled": 0.4 },
   },
 });
