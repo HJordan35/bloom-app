@@ -1,5 +1,6 @@
-import { queryOptions } from "@tanstack/react-query";
-import { fetchCoachChat, fetchCoachChats } from "./coach.service";
+import { mutationOptions, queryOptions } from "@tanstack/react-query";
+import { queryClient } from "../queryClient";
+import { deleteCoachChat, fetchCoachChat, fetchCoachChats } from "./coach.service";
 
 export const coachKeys = {
   all: ["coach"] as const,
@@ -18,5 +19,13 @@ export const coachQueries = {
       queryFn: () => fetchCoachChat(id),
       staleTime: 0,
       gcTime: 0,
+    }),
+};
+
+export const coachMutations = {
+  remove: () =>
+    mutationOptions({
+      mutationFn: deleteCoachChat,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: coachKeys.list() }),
     }),
 };

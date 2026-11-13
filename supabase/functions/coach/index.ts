@@ -178,7 +178,8 @@ async function turn(req: Request) {
         console.error("coach failed:", reason(e));
         supabase
           .from("coach_turns")
-          .insert({ ...turn, error: reason(e) })
+          // A chat that failed on its first turn was never saved, so there's no row to point at
+          .insert({ ...turn, chat_id: chat ? chat_id : null, error: reason(e) })
           .then(() => {});
         return "That hit a snag. Send it again.";
       },

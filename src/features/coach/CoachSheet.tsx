@@ -183,7 +183,7 @@ export function CoachSheet({ roastId, brewing, actions, opening, beforeSend, onC
   // The header's controls: your earlier chats, and a fresh one once this chat has begun
   const headerActions = (
     <>
-      {others && (
+      {(others || earlier) && (
         <button
           type="button"
           aria-label="Earlier chats"
@@ -214,7 +214,16 @@ export function CoachSheet({ roastId, brewing, actions, opening, beforeSend, onC
   if (earlier) {
     return (
       <Sheet title="Earlier" tall actions={headerActions} onClose={onClose}>
-        <EarlierChats chats={chats} currentId={chatId} onOpen={(id) => switchTo(openChat(id))} />
+        <EarlierChats
+          chats={chats}
+          currentId={chatId}
+          onOpen={(id) => switchTo(openChat(id))}
+          onDeleted={(id) => {
+            // Deleting the open chat leaves a fresh one in its place
+            if (id === chatId) setChatId(newChatId());
+            if (chats.length <= 1) setEarlier(false);
+          }}
+        />
       </Sheet>
     );
   }

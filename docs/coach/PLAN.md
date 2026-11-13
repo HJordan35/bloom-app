@@ -20,6 +20,7 @@ A coach you can ask how to brew a coffee, **before you start** or **while you're
 | A3 | Tuning: replay script with scripted conversations, prompt and primer rounds | — | phase-a3.md |
 | A4 | The complete chat, ahead of tuning: earlier chats, starters, an after-brew way in, the coach following up on its last suggestion, polish | 🔨 Built — awaiting review on a phone | [phase-a4.md](phase-a4.md) |
 | A5 | One card: always a complete recipe, built from a base and what the coach changed | 🔨 Built — awaiting review on a phone | [phase-a5.md](phase-a5.md) |
+| A6 | A voice (barista friend with opinions, and a read on each bro), and deleting a chat | 🔨 Built — awaiting review on a phone | [phase-a6.md](phase-a6.md) |
 
 Each phase is planned in `docs/coach/` before it's built, and ends staged for review.
 
@@ -32,6 +33,10 @@ Each phase is planned in `docs/coach/` before it's built, and ends staged for re
 - **Talking is a fine answer.** Explaining why a cup is sour, or that the recipe is already good and the coffee needs rest, needs no card.
 
 It never opens with a recipe, and never sends a card without the line that explains it.
+
+## Voice
+
+The group's barista friend: loves good coffee, has its own opinions about roasters and about each bro, dry and sarcastic when the moment earns it, and still invested in the cup you're making. Humor is never forced; instructions are always literal. See [phase-a6.md](phase-a6.md).
 
 ## Two moments, one chat
 

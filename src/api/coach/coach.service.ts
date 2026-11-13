@@ -22,6 +22,11 @@ export async function fetchCoachChats() {
   );
 }
 
+/** Deletes one of your chats for good. */
+export async function deleteCoachChat(id: string) {
+  unwrap(await supabase.from("coach_chats").delete().eq("id", id));
+}
+
 type TransportOptions = {
   /** A roast already settled, e.g. picked in the launcher; read as each message goes. */
   roastId: () => string | null | undefined;

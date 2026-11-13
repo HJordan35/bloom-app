@@ -111,7 +111,7 @@ export async function buildContext(
   open: OpenBrew | null,
   roastId: string | null,
 ) {
-  const [history, recipes, target] = await Promise.all([
+  const [history, recipes, target, total, brewsletter] = await Promise.all([
     db
       .from("brews")
       .select(BREW_SELECT)
@@ -131,6 +131,16 @@ export async function buildContext(
           .eq("id", open.preferred_recipe_id)
           .maybeSingle()
       : null,
+    db.from("brews").select("id", { count: "exact", head: true }).eq("bro_id", bro.id),
+    // What the latest Brewsletter said about them
+    db
+      .from("insight_runs")
+      .select("month, insights(type, content)")
+      .eq("bro_id", bro.id)
+      .eq("status", "succeeded")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
   if (history.error) throw history.error;
   if (recipes.error) throw recipes.error;
@@ -160,6 +170,16 @@ export async function buildContext(
   );
   sections.push(
     `## ${bro.first_name}'s bookmarked recipes (${mine.length})\n${json(mine.map(recipeForAgent))}`,
+  );
+
+  sections.push(
+    `## About ${bro.first_name}: their habits over their latest ${brews.length} brews, for your read on them (not for recipes)\n${json(
+      {
+        brews_logged_ever: total.count ?? brews.length,
+        ...habits(brews),
+        latest_brewsletter: brewsletter.data ?? null,
+      },
+    )}`,
   );
 
   const settled = open?.roast.id ?? roastId;
@@ -229,6 +249,35 @@ async function lastSuggestion(
       ? `## ${bro.first_name}'s brews of it since then (did they use it, and how did it turn out?)\n${json(brews.map(brewForAgent))}`
       : `${bro.first_name} hasn't brewed it since.`,
   ].join("\n\n");
+}
+
+/** The most common values, with how many times each, most first. */
+function tally(values: string[], top = 6) {
+  const counts = new Map<string, number>();
+  for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
+  return Object.fromEntries([...counts].sort((a, b) => b[1] - a[1]).slice(0, top));
+}
+
+/** How a bro brews: how often, how widely, and how they describe a cup. */
+function habits(brews: BrewRow[]) {
+  const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const finished = brews.filter((b) => b.finished_at);
+  return {
+    brews_last_30_days: brews.filter((b) => new Date(b.started_at).getTime() > monthAgo).length,
+    marked_dialed_in: `${finished.filter((b) => b.dialed_in).length} of ${finished.length} finished`,
+    distinct_roasts: new Set(brews.map((b) => b.roast.id)).size,
+    most_brewed_roasts: tally(
+      brews.map((b) => `${b.roast.name} (${b.roast.roaster.name})`),
+      5,
+    ),
+    roasters: tally(brews.map((b) => b.roast.roaster.name)),
+    methods: tally(brews.map((b) => b.method)),
+    roast_levels: tally(brews.map((b) => b.roast.roast_level)),
+    latest_tasting_notes: finished
+      .filter((b) => b.brew_results)
+      .slice(0, 8)
+      .map((b) => `${b.roast.name}: ${(b.brew_results as string).slice(0, 140)}`),
+  };
 }
 
 /** Each grinder → each method → the distinct grind settings used, newest first. */

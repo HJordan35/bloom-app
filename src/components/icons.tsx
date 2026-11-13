@@ -47,6 +47,14 @@ export function PlusIcon() {
   );
 }
 
+export function CloseIcon() {
+  return (
+    <Icon width="14" height="14">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </Icon>
+  );
+}
+
 export function BrosIcon() {
   return (
     <Icon>
