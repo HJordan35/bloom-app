@@ -149,7 +149,7 @@ export function MessageBubble({
 }
 
 /** The marks a message has, each once with its count from 2; yours edged in brass. */
-function ReactionPills({
+export function ReactionPills({
   message,
   meId,
   onReact,

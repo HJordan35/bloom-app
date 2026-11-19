@@ -18,8 +18,8 @@ Style stays noir and minimal. Links are subtle, photos are small thumbnails you 
 | M1 | Placement and profile: top-bar chat icon and dot, Inbox (Messages placeholder · Notifications), Bros tab as profile | ✅ Done (33b4a08) | [phase-m1.md](phase-m1.md) |
 | M2 | Text chat: thread, bubbles, composer, mentions, edit and delete, live updates | ✅ Done (4ba7aa8) | [phase-m2.md](phase-m2.md) |
 | M3 | Reactions and mention push | ✅ Done (9391cbf) | [phase-m3.md](phase-m3.md) |
-| M4 | Photos and recipe or brew sharing | 🔨 Built — awaiting review | [phase-m4.md](phase-m4.md) |
-| M5 | Bloom posts and the usage check | Planned | — |
+| M4 | Photos and recipe or brew sharing | ✅ Done (4d7758a) | [phase-m4.md](phase-m4.md) |
+| M5 | Bloom posts and the usage check | ✅ Done | [phase-m5.md](phase-m5.md) |
 
 ## Decisions
 - **Route `/inbox`**, with the tab in the URL (`/inbox?tab=notifications`).
@@ -198,6 +198,38 @@ These assume 5 bros. Supabase limits should be checked against the current prici
 - **Retention:** measured by volume, not time. Revisit at about **25k messages or 750 MB of photos**.
   - **Text:** a pg_cron job that keeps the latest N messages.
   - **Photos:** expire photos on all but the newest N photo messages, showing "photo expired".
+
+## Bloom posts
+Bloom's own posts are rows with `kind = 'bloom'` and no `bro_id`. Bros can't post them (RLS), so post from the SQL editor, which runs as admin. A future insights agent does the same with the service-role key.
+- **`label`** is the eyebrow: `'What''s new'`, `'Insight'`, or null for just "BLOOM".
+- **`mention_all = true`** pushes every bro ("Bloom, to everyone"). Leave it off for a quiet post that only lights the dot.
+
+```sql
+-- The welcome note
+insert into messages (kind, label, body, mention_all)
+values (
+  'bloom',
+  'What''s new',
+  'Messages are here: one board for every bro. @mention a bro or @everyone, share a recipe or a photo, and long-press a message to react. The old Bros Board lives under Notifications, and Bros now opens on your profile.',
+  true
+);
+```
+
+## Usage check
+Run before deciding on retention (thresholds above).
+
+```sql
+select
+  (select count(*) from messages) as messages,
+  (select count(*) from messages where photo_path is not null) as photos,
+  (select count(*) from message_reactions) as reactions,
+  pg_size_pretty(pg_total_relation_size('public.messages')) as messages_table,
+  (
+    select pg_size_pretty(coalesce(sum((metadata ->> 'size')::bigint), 0))
+    from storage.objects
+    where bucket_id = 'message-photos'
+  ) as photo_storage;
+```
 
 ## Follow-ups (not built)
 GIFs (picked or pasted, then GIPHY search) · AI insight agent posting · push on edits that add a mention · optimistic send and patching the cache from realtime payloads instead of refetching · first-name collisions in mentions · sharing a roast · "Share to Messages" from a recipe sheet · photo thumbnails via image transforms · a retention job · orphaned photos if a delete partly fails.

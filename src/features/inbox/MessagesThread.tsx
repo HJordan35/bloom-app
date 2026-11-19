@@ -9,6 +9,7 @@ import { Loader } from "../../components/Loader";
 import { useCurrentBro } from "../../lib/auth";
 import { dayHeading } from "../../lib/format";
 import { colors, fonts, space } from "../../theme/tokens.stylex";
+import { BloomPost } from "./BloomPost";
 import { MessageActions } from "./MessageActions";
 import { MessageBubble } from "./MessageBubble";
 
@@ -122,16 +123,26 @@ export function MessagesThread({ onEdit }: { onEdit: (message: Message) => void 
           return (
             <div key={message.id}>
               {day && <p {...stylex.props(styles.day)}>{day}</p>}
-              <MessageBubble
-                message={message}
-                sender={bros.find((bro) => bro.id === message.bro_id)}
-                bros={bros}
-                meId={me.id}
-                mine={mine}
-                runStart={runStart}
-                onActions={() => setActing(message)}
-                onReact={(emoji) => react(message, emoji)}
-              />
+              {message.kind === "bloom" ? (
+                <BloomPost
+                  message={message}
+                  bros={bros}
+                  meId={me.id}
+                  onActions={() => setActing(message)}
+                  onReact={(emoji) => react(message, emoji)}
+                />
+              ) : (
+                <MessageBubble
+                  message={message}
+                  sender={bros.find((bro) => bro.id === message.bro_id)}
+                  bros={bros}
+                  meId={me.id}
+                  mine={mine}
+                  runStart={runStart}
+                  onActions={() => setActing(message)}
+                  onReact={(emoji) => react(message, emoji)}
+                />
+              )}
             </div>
           );
         })}

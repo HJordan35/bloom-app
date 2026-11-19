@@ -1,6 +1,6 @@
 # Phase M4 — Photos and sharing
 
-**Status:** 🔨 Built — awaiting review
+**Status:** ✅ Done (4d7758a)
 
 ## Goal
 Post a photo, or share a recipe or brew, on the board. Each shows small: a thumbnail you tap to see full screen, or a one-line link.
