@@ -1,6 +1,6 @@
 # Phase M1 — Placement and profile
 
-**Status:** 🔨 Built — awaiting review
+**Status:** ✅ Done (33b4a08)
 
 ## Goal
 Lay out the new structure before any chat exists: the chat icon in the top bar, the Inbox with its two tabs, and the Bros tab as a profile. The Messages tab is a placeholder until M2.

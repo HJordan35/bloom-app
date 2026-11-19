@@ -42,8 +42,8 @@ export function AppShell() {
   const detail = DETAIL_TITLES.find(([prefix]) => pathname.startsWith(prefix));
   const title = detail?.[1] ?? TITLES[pathname] ?? "Bloom";
   const bro = useCurrentBro();
-  // The Inbox's composer (M2) takes the tab bar's place
-  const tabBar = pathname !== "/inbox";
+  // The Inbox lays itself out (a thread with its composer where the tab bar would be)
+  const inbox = pathname === "/inbox";
   useRealtimeSync();
 
   // Keep this device's push subscription saved, and open notification taps (sent by sw.js)
@@ -85,11 +85,11 @@ export function AppShell() {
 
       {/* Keyed so every path change remounts the view (its FadeIn plays, even roast → roast)
           and the scroll area, which starts back at the top */}
-      <main key={pathname} {...stylex.props(styles.content, !tabBar && styles.overInset)}>
+      <main key={pathname} {...stylex.props(styles.content, inbox && styles.fill)}>
         <Outlet />
       </main>
 
-      {tabBar && (
+      {!inbox && (
         <nav {...stylex.props(styles.tabBar)}>
           {TABS.map((tab) => (
             <NavLink
@@ -266,9 +266,14 @@ const styles = stylex.create({
     paddingTop: space.lg,
     paddingBottom: space.lg,
   },
-  // Without the tab bar, the content keeps clear of the home indicator itself
-  overInset: {
-    paddingBottom: `calc(env(safe-area-inset-bottom) + ${space.lg})`,
+  // The Inbox scrolls its own parts and keeps clear of the home indicator itself
+  fill: {
+    display: "flex",
+    flexDirection: "column",
+    overflowY: "hidden",
+    paddingInline: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   tabBar: {
     flexShrink: 0,

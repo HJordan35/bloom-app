@@ -1,6 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
-import { type ReactNode, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useKeyboardInset } from "../lib/useKeyboardInset";
 import { colors, fonts, layout, radius, space } from "../theme/tokens.stylex";
 
 type Props = {
@@ -45,28 +46,6 @@ export function Sheet({ title, tall = false, actions, footer, onClose, children 
     </div>,
     document.body,
   );
-}
-
-/**
- * How much of the screen's bottom the on-screen keyboard covers. Phones don't resize the page
- * for it, so a sheet with a pinned footer lifts itself by this much.
- */
-function useKeyboardInset(on: boolean) {
-  const [inset, setInset] = useState(0);
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!on || !viewport) return;
-    const update = () =>
-      setInset(Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop));
-    update();
-    viewport.addEventListener("resize", update);
-    viewport.addEventListener("scroll", update);
-    return () => {
-      viewport.removeEventListener("resize", update);
-      viewport.removeEventListener("scroll", update);
-    };
-  }, [on]);
-  return inset;
 }
 
 const fadeIn = stylex.keyframes({

@@ -15,8 +15,8 @@ Style stays noir and minimal. Links are subtle, photos are small thumbnails you 
 
 | Phase | Scope | Status | Plan |
 |---|---|---|---|
-| M1 | Placement and profile: top-bar chat icon and dot, Inbox (Messages placeholder · Notifications), Bros tab as profile | 🔨 Built — awaiting review | [phase-m1.md](phase-m1.md) |
-| M2 | Text chat: thread, bubbles, composer, mentions, edit and delete, live updates | Planned | — |
+| M1 | Placement and profile: top-bar chat icon and dot, Inbox (Messages placeholder · Notifications), Bros tab as profile | ✅ Done (33b4a08) | [phase-m1.md](phase-m1.md) |
+| M2 | Text chat: thread, bubbles, composer, mentions, edit and delete, live updates | 🔨 Built — awaiting review | [phase-m2.md](phase-m2.md) |
 | M3 | Reactions and mention push | Planned | — |
 | M4 | Photos and recipe or brew sharing | Planned | — |
 | M5 | Bloom posts and the usage check | Planned | — |
