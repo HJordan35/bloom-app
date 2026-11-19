@@ -1,5 +1,5 @@
 // The coach's brewing primer, in our own words. Bump KNOWLEDGE_VERSION on every change.
-export const KNOWLEDGE_VERSION = "k1";
+export const KNOWLEDGE_VERSION = "k2";
 
 export const KNOWLEDGE = `# Brewing knowledge
 
@@ -45,6 +45,9 @@ Wedge with two small holes: slower and more restricted than a V60, so it behaves
 
 ### Chemex
 Thick paper: very clean, light body, slow flow. Start: 30 g to 500 g (1:16.5), medium-coarse, 4:00–5:00. Rinse the filter well, keep the three-layer side on the spout. Bloom 45 s, then two or three large pours. The thick paper strips oils, so it suits light and medium roasts; if it tastes thin, go finer or tighten the ratio. A drawdown past 5:30 means too fine.
+
+### Clever Dripper
+Immersion through paper: a cone with a valve that holds the water until it's set on a cup. Fuller body than a V60 but still clean, and very forgiving. Start: 20 g to 320 g (1:16), medium (about V60 or a touch coarser). Water in first, then the coffee (it drains more evenly), a gentle stir, lid on; set it on the cup at about 2:00 and let it drain, roughly 3:00 total. Steep time and grind are the levers: sour or thin, steep longer or go finer; bitter, steep shorter or go coarser. A drain much past a minute means too fine.
 
 ### Pulsar
 No-bypass brewer with a valve, so you control flow and contact time, and all the water goes through the bed. Extraction is high: grind noticeably coarser than for V60 and use longer ratios (1:17 and up). Start: 20 g to 340 g, medium-coarse. Close the valve, bloom with 3× the dose for 1–2 minutes with a swirl, open the valve, and add the rest in two to four gentle pours, letting the bed nearly drain between them; 4–6 minutes total. Keep agitation low; the dispersion cap does the work. Bitter or drying: coarser first. Hedrick's published approach for it is a long closed-valve bloom followed by slow, low-agitation pours.

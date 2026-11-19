@@ -14,6 +14,7 @@ const BREW_METHODS = [
   "Espresso",
   "V60",
   "Chemex",
+  "Clever Dripper",
   "Pulsar",
   "AeroPress",
   "French Press",
