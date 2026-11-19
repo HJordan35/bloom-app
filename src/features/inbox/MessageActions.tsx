@@ -39,7 +39,7 @@ export function MessageActions({ message, bros, onReact, onEdit, onClose }: Prop
   }).join("  ·  ");
 
   async function confirmDelete() {
-    await remove.mutateAsync(message.id);
+    await remove.mutateAsync(message);
     onClose();
   }
 

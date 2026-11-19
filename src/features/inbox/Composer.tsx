@@ -3,13 +3,17 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { broQueries } from "../../api/bros/bros.queries";
 import { messageMutations } from "../../api/messages/messages.queries";
-import type { Message } from "../../api/messages/messages.types";
+import { uploadMessagePhoto } from "../../api/messages/messages.service";
+import type { Message, NewMessage } from "../../api/messages/messages.types";
 import { Avatar } from "../../components/Avatar";
 import { useAutoHeight } from "../../components/Field";
 import { HeaderAction } from "../../components/HeaderAction";
+import { CloseIcon, PlusIcon } from "../../components/icons";
 import { useCurrentBro } from "../../lib/auth";
-import { colors, fonts, space } from "../../theme/tokens.stylex";
+import { resizeImage } from "../../lib/resizeImage";
+import { colors, fonts, radius, space } from "../../theme/tokens.stylex";
 import { EVERYONE, mentionQuery, parseMentions } from "./mentions";
+import { type Shared, ShareSheet, sharedLine } from "./ShareSheet";
 
 type Props = {
   /** Your message being edited: its text loads in, and Send saves it instead. */
@@ -21,6 +25,9 @@ type Props = {
 
 type Suggestion = { id: string; name: string; bro?: { first_name: string; last_name: string } };
 
+/** What goes with the text: a photo, or a shared recipe or brew. One per message. */
+type Attachment = { kind: "photo"; file: File } | Shared;
+
 /** Pinned under the thread: write, @mention, send. Also edits one of yours. */
 export function Composer({ editing, onEditDone, raised }: Props) {
   const me = useCurrentBro();
@@ -29,8 +36,13 @@ export function Composer({ editing, onEditDone, raised }: Props) {
   const edit = useMutation(messageMutations.edit());
   const [text, setText] = useState("");
   const [caret, setCaret] = useState(0);
+  const [attachment, setAttachment] = useState<Attachment | null>(null);
+  const [adding, setAdding] = useState(false); // "Photo · Recipe" showing
+  const [sharing, setSharing] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const input = useRef<HTMLTextAreaElement>(null);
   useAutoHeight(input, text);
+  const preview = usePreview(attachment?.kind === "photo" ? attachment.file : null);
 
   useEffect(() => {
     if (!editing) return;
@@ -61,19 +73,37 @@ export function Composer({ editing, onEditDone, raised }: Props) {
   }
 
   const body = text.trim();
-  const busy = send.isPending || edit.isPending;
+  const busy = uploading || send.isPending || edit.isPending;
+  // An edit changes only the text; a new message can be just its attachment
+  const ready = editing ? !!body : !!body || !!attachment;
 
   async function submit() {
-    if (!body || busy) return;
+    if (!ready || busy) return;
     const mentions = parseMentions(body, bros, me.id);
     if (editing) {
       await edit.mutateAsync({ id: editing.id, body, ...mentions });
       onEditDone();
     } else {
-      await send.mutateAsync({ bro_id: me.id, body, ...mentions });
+      await send.mutateAsync({ bro_id: me.id, body, ...mentions, ...(await attached()) });
+      setAttachment(null);
     }
     setText("");
     setCaret(0);
+  }
+
+  /** The attachment's columns; a photo is resized and uploaded first. */
+  async function attached(): Promise<Partial<NewMessage>> {
+    if (attachment?.kind === "recipe") return { recipe_id: attachment.recipe.id };
+    if (attachment?.kind === "brew") return { brew_id: attachment.brew.id };
+    if (attachment?.kind !== "photo") return {};
+    setUploading(true);
+    try {
+      const { blob, width, height } = await resizeImage(attachment.file);
+      const path = await uploadMessagePhoto(me.id, blob);
+      return { photo_path: path, photo_w: width, photo_h: height };
+    } finally {
+      setUploading(false);
+    }
   }
 
   function cancelEdit() {
@@ -108,6 +138,61 @@ export function Composer({ editing, onEditDone, raised }: Props) {
         </div>
       )}
 
+      {attachment && !editing && (
+        <div {...stylex.props(styles.attachment)}>
+          {attachment.kind === "photo" ? (
+            <>
+              {preview && <img src={preview} alt="" {...stylex.props(styles.thumb)} />}
+              <span {...stylex.props(styles.kind)}>Photo</span>
+            </>
+          ) : (
+            <>
+              <span {...stylex.props(styles.kind)}>{attachment.kind}</span>
+              <span {...stylex.props(styles.line)}>{sharedLine(attachment, me.id, me.id)}</span>
+            </>
+          )}
+          <button
+            type="button"
+            aria-label="Remove"
+            onClick={() => setAttachment(null)}
+            {...stylex.props(styles.remove)}
+          >
+            <CloseIcon />
+          </button>
+        </div>
+      )}
+
+      {adding && !editing && !attachment && (
+        <div {...stylex.props(styles.adding)}>
+          <label {...stylex.props(styles.option)}>
+            Photo
+            <input
+              type="file"
+              accept="image/*"
+              {...stylex.props(styles.file)}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = ""; // the same photo can be picked again
+                if (!file) return;
+                setAttachment({ kind: "photo", file });
+                setAdding(false);
+              }}
+            />
+          </label>
+          <span {...stylex.props(styles.dot)}>·</span>
+          <button
+            type="button"
+            onClick={() => {
+              setSharing(true);
+              setAdding(false);
+            }}
+            {...stylex.props(styles.option)}
+          >
+            Recipe
+          </button>
+        </div>
+      )}
+
       {editing && (
         <div {...stylex.props(styles.editing)}>
           <span>Editing</span>
@@ -124,6 +209,17 @@ export function Composer({ editing, onEditDone, raised }: Props) {
           submit();
         }}
       >
+        {!editing && (
+          <button
+            type="button"
+            aria-label="Add a photo or recipe"
+            aria-expanded={adding}
+            onClick={() => setAdding((open) => !open)}
+            {...stylex.props(styles.plus, adding && styles.plusOpen)}
+          >
+            <PlusIcon />
+          </button>
+        )}
         <textarea
           ref={input}
           rows={1}
@@ -141,14 +237,36 @@ export function Composer({ editing, onEditDone, raised }: Props) {
         />
         <HeaderAction
           type="submit"
-          disabled={!body || busy}
+          disabled={!ready || busy}
           onPointerDown={(event) => event.preventDefault()}
         >
-          {editing ? "Save" : "Send"}
+          {busy ? "Sending…" : editing ? "Save" : "Send"}
         </HeaderAction>
       </form>
+
+      {sharing && (
+        <ShareSheet
+          onShare={(shared) => {
+            setAttachment(shared);
+            setSharing(false);
+          }}
+          onClose={() => setSharing(false)}
+        />
+      )}
     </div>
   );
+}
+
+/** An object URL for the picked photo while it's attached. */
+function usePreview(file: File | null) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!file) return setUrl(null);
+    const next = URL.createObjectURL(file);
+    setUrl(next);
+    return () => URL.revokeObjectURL(next);
+  }, [file]);
+  return url;
 }
 
 const styles = stylex.create({
@@ -188,6 +306,93 @@ const styles = stylex.create({
     letterSpacing: "0.08em",
     color: colors.muted,
     cursor: "pointer",
+  },
+  attachment: {
+    display: "flex",
+    alignItems: "center",
+    gap: space.sm,
+    minWidth: 0,
+  },
+  thumb: {
+    width: 32,
+    height: 40,
+    objectFit: "cover",
+    borderRadius: radius.sm,
+  },
+  kind: {
+    flexShrink: 0,
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: "0.2em",
+    textTransform: "uppercase",
+    color: colors.faint,
+  },
+  line: {
+    flex: 1,
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    fontSize: 13,
+    color: colors.muted,
+  },
+  remove: {
+    marginLeft: "auto",
+    width: 36,
+    height: 36,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    color: colors.faint,
+    cursor: "pointer",
+  },
+  adding: {
+    display: "flex",
+    alignItems: "center",
+    gap: space.sm,
+  },
+  option: {
+    minHeight: 36,
+    display: "inline-flex",
+    alignItems: "center",
+    padding: 0,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: "0.2em",
+    textTransform: "uppercase",
+    color: colors.brass,
+    cursor: "pointer",
+  },
+  file: {
+    display: "none",
+  },
+  dot: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.faint,
+  },
+  plus: {
+    flexShrink: 0,
+    width: 32,
+    height: 42,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    padding: 0,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    color: colors.muted,
+    cursor: "pointer",
+    transition: "color 150ms, transform 150ms",
+  },
+  plusOpen: {
+    color: colors.brass,
+    transform: "rotate(45deg)",
   },
   editing: {
     display: "flex",

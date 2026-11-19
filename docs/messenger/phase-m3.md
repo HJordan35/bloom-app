@@ -1,6 +1,6 @@
 # Phase M3 — Reactions and mention push
 
-**Status:** 🔨 Built — awaiting review
+**Status:** ✅ Done (9391cbf)
 
 ## Goal
 React to any message with one of six marks, and get a push when someone @mentions you (or @everyone). Nothing else on the board pushes.
