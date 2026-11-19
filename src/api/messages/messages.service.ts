@@ -1,6 +1,6 @@
 import { supabase } from "../../lib/supabase";
 import { unwrap } from "../api.utils";
-import type { Message, MessageEdit, NewMessage } from "./messages.types";
+import type { Message, MessageEdit, NewMessage, ReactionToggle } from "./messages.types";
 
 export const MESSAGE_PAGE = 50;
 
@@ -8,7 +8,7 @@ export const MESSAGE_PAGE = 50;
 export async function fetchMessages(before?: string) {
   let query = supabase
     .from("messages")
-    .select("*")
+    .select("*, reactions:message_reactions(bro_id, emoji)")
     .order("created_at", { ascending: false })
     .limit(MESSAGE_PAGE);
   if (before) query = query.lt("created_at", before);
@@ -30,4 +30,12 @@ export async function editMessage({ id, ...edit }: MessageEdit) {
 
 export async function deleteMessage(id: string) {
   unwrap(await supabase.from("messages").delete().eq("id", id));
+}
+
+export async function toggleReaction({ on, ...reaction }: ReactionToggle) {
+  if (on) {
+    unwrap(await supabase.from("message_reactions").upsert(reaction, { ignoreDuplicates: true }));
+  } else {
+    unwrap(await supabase.from("message_reactions").delete().match(reaction));
+  }
 }

@@ -1,3 +1,10 @@
+/** The six marks a message can get, in the order they're offered. Matches the DB check. */
+export const REACTIONS = ["☕", "👍", "❤️", "😂", "🔥", "😮"] as const;
+
+export type Emoji = (typeof REACTIONS)[number];
+
+export type Reaction = { bro_id: string; emoji: Emoji };
+
 /** One post on the shared board: a bro's, or Bloom's own (release notes, insights). */
 export type Message = {
   id: string;
@@ -16,6 +23,7 @@ export type Message = {
   photo_h: number | null;
   edited_at: string | null;
   created_at: string;
+  reactions: Reaction[];
 };
 
 /** Who a body mentions, parsed from its `@Name` / `@everyone`. */
@@ -24,3 +32,6 @@ export type Mentions = Pick<Message, "mentions" | "mention_all">;
 export type NewMessage = Mentions & { bro_id: string; body: string };
 
 export type MessageEdit = Mentions & { id: string; body: string };
+
+/** Add (`on`) or take back one of your reactions. */
+export type ReactionToggle = { message_id: string; bro_id: string; emoji: Emoji; on: boolean };

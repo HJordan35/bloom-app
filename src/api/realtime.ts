@@ -22,6 +22,7 @@ const INVALIDATE_ON_CHANGE: Record<string, (() => Promise<unknown>)[]> = {
   preferred_recipes: [invalidatePreferred],
   monthly_reports: [invalidateReportMonths], // a Brewsletter just published
   messages: [invalidateMessages, invalidateUnread],
+  message_reactions: [invalidateMessages],
 };
 
 /** One Realtime subscription for the signed-in app: any bro's change refreshes the cache. */

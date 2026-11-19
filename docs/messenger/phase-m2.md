@@ -1,6 +1,6 @@
 # Phase M2 — Text chat
 
-**Status:** 🔨 Built — awaiting review
+**Status:** ✅ Done (4ba7aa8)
 
 ## Goal
 The shared board, in text: send, read live, mention bros, and edit or delete your own messages. Reactions and push come in M3, and photos and sharing in M4.

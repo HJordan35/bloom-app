@@ -1,9 +1,9 @@
 import * as stylex from "@stylexjs/stylex";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { broQueries } from "../../api/bros/bros.queries";
-import { messageQueries } from "../../api/messages/messages.queries";
-import type { Message } from "../../api/messages/messages.types";
+import { messageMutations, messageQueries } from "../../api/messages/messages.queries";
+import type { Emoji, Message } from "../../api/messages/messages.types";
 import { EmptyState } from "../../components/EmptyState";
 import { Loader } from "../../components/Loader";
 import { useCurrentBro } from "../../lib/auth";
@@ -52,6 +52,14 @@ export function MessagesThread({ onEdit }: { onEdit: (message: Message) => void 
   const [atBottom, setAtBottom] = useState(true);
   const [fresh, setFresh] = useState(false);
   const [acting, setActing] = useState<Message | null>(null);
+  const { mutate: toggle } = useMutation(messageMutations.react());
+  const react = (message: Message, emoji: Emoji) =>
+    toggle({
+      message_id: message.id,
+      bro_id: me.id,
+      emoji,
+      on: !message.reactions.some((r) => r.bro_id === me.id && r.emoji === emoji),
+    });
 
   const messages = data?.pages.flat() ?? [];
   const newest = messages[0];
@@ -118,9 +126,11 @@ export function MessagesThread({ onEdit }: { onEdit: (message: Message) => void 
                 message={message}
                 sender={bros.find((bro) => bro.id === message.bro_id)}
                 bros={bros}
+                meId={me.id}
                 mine={mine}
                 runStart={runStart}
-                onActions={mine ? () => setActing(message) : undefined}
+                onActions={() => setActing(message)}
+                onReact={(emoji) => react(message, emoji)}
               />
             </div>
           );
@@ -141,10 +151,16 @@ export function MessagesThread({ onEdit }: { onEdit: (message: Message) => void 
       {acting && (
         <MessageActions
           message={acting}
-          onEdit={() => {
-            onEdit(acting);
-            setActing(null);
-          }}
+          bros={bros}
+          onReact={(emoji) => react(acting, emoji)}
+          onEdit={
+            acting.bro_id === me.id
+              ? () => {
+                  onEdit(acting);
+                  setActing(null);
+                }
+              : undefined
+          }
           onClose={() => setActing(null)}
         />
       )}

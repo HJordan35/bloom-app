@@ -1,7 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { Link } from "react-router-dom";
 import type { Bro } from "../../api/bros/bros.types";
-import type { Message } from "../../api/messages/messages.types";
+import { type Emoji, type Message, REACTIONS } from "../../api/messages/messages.types";
 import { Avatar } from "../../components/Avatar";
 import { clockTime } from "../../lib/format";
 import { useLongPress } from "../../lib/useLongPress";
@@ -13,15 +13,27 @@ type Props = {
   /** Who sent it (missing for Bloom posts, or a bro no longer listed). */
   sender: Bro | undefined;
   bros: Bro[];
+  meId: string;
   mine: boolean;
   /** The first of a run: shows the avatar, name and time. */
   runStart: boolean;
   /** Long-press (or right-click) opens the message's actions. */
   onActions?: () => void;
+  /** Tapping a reaction pill toggles yours. */
+  onReact: (emoji: Emoji) => void;
 };
 
 /** One message: yours on the right, everyone else's on the left with their avatar. */
-export function MessageBubble({ message, sender, bros, mine, runStart, onActions }: Props) {
+export function MessageBubble({
+  message,
+  sender,
+  bros,
+  meId,
+  mine,
+  runStart,
+  onActions,
+  onReact,
+}: Props) {
   const press = useLongPress(onActions);
   const time = clockTime(message.created_at);
 
@@ -51,7 +63,44 @@ export function MessageBubble({ message, sender, bros, mine, runStart, onActions
           <MessageText body={message.body} bros={bros} />
           {message.edited_at && <span {...stylex.props(styles.edited)}> edited</span>}
         </div>
+        <ReactionPills message={message} meId={meId} onReact={onReact} />
       </div>
+    </div>
+  );
+}
+
+/** The marks a message has, each once with its count from 2; yours edged in brass. */
+function ReactionPills({
+  message,
+  meId,
+  onReact,
+}: {
+  message: Message;
+  meId: string;
+  onReact: (emoji: Emoji) => void;
+}) {
+  const used = REACTIONS.flatMap((emoji) => {
+    const of = message.reactions.filter((r) => r.emoji === emoji);
+    return of.length ? [{ emoji, count: of.length, mine: of.some((r) => r.bro_id === meId) }] : [];
+  });
+  if (used.length === 0) return null;
+
+  return (
+    <div {...stylex.props(styles.pills)}>
+      {used.map(({ emoji, count, mine }) => (
+        <button
+          key={emoji}
+          type="button"
+          aria-pressed={mine}
+          onClick={() => onReact(emoji)}
+          {...stylex.props(styles.pill, mine && styles.pillMine)}
+        >
+          {emoji}
+          {count > 1 && (
+            <span {...stylex.props(styles.count, mine && styles.countMine)}>{count}</span>
+          )}
+        </button>
+      ))}
     </div>
   );
 }
@@ -111,6 +160,38 @@ const styles = stylex.create({
   pressable: {
     userSelect: "none",
     cursor: "default",
+  },
+  pills: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: space.xs,
+  },
+  pill: {
+    minHeight: 22,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 3,
+    paddingBlock: 0,
+    paddingInline: 6,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: colors.hairline,
+    borderRadius: 999,
+    fontSize: 12,
+    lineHeight: 1,
+    cursor: "pointer",
+  },
+  pillMine: {
+    borderColor: colors.brassFaint,
+  },
+  count: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.muted,
+  },
+  countMine: {
+    color: colors.brass,
   },
   edited: {
     fontFamily: fonts.mono,

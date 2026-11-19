@@ -1,7 +1,8 @@
 // Sends a push to every other bro when someone brews, adds a roaster or roast, or endorses (Push, phase P2),
-// and to every bro when a month's Brewsletter is published (Monthly Summary, phase S4).
-// Called by Database Webhooks (insert on brews, roasters, roasts, endorsements, monthly_reports) with an
-// x-notify-secret header.
+// to every bro when a month's Brewsletter is published (Monthly Summary, phase S4),
+// and to the bros a board message @mentions, or everyone for @everyone (Messenger, phase M3).
+// Called by Database Webhooks (insert on brews, roasters, roasts, endorsements, monthly_reports,
+// messages) with an x-notify-secret header.
 // Deploy: npx supabase functions deploy notify --no-verify-jwt --project-ref <ref>
 import { createClient } from "npm:@supabase/supabase-js@2";
 // @deno-types="npm:@types/web-push@3"
@@ -10,7 +11,15 @@ import webpush from "npm:web-push@3";
 declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
 
 type Row = Record<string, string | number | null>;
-type Message = { title: string; body: string; url: string; /** seconds; default an hour */ ttl?: number };
+type Message = {
+  title: string;
+  body: string;
+  url: string;
+  /** seconds; default an hour */
+  ttl?: number;
+  /** Only these bros (still never the actor); everyone when missing. */
+  to?: string[];
+};
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
@@ -36,14 +45,21 @@ Deno.serve(async (req) => {
   return new Response(null, { status: 202 });
 });
 
-/** Build the message for this insert and send it to every device but the actor's (all, with no actor). */
+/**
+ * Build the message for this insert and send it to every device but the actor's (all, with no
+ * actor), or only to the bros it names. A builder can return null: nothing to send.
+ */
 async function notify(table: string, record: Row) {
   const actorId = record.bro_id ?? record.created_by;
   const actor = actorId ? await firstName(String(actorId)) : "";
-  const { ttl = 3600, ...message } = await MESSAGES[table](record, actor);
+  const built = await MESSAGES[table](record, actor);
+  if (!built) return;
+  const { ttl = 3600, to, ...message } = built;
+  if (to?.length === 0) return;
 
   let devices = supabase.from("push_subscriptions").select("endpoint, p256dh, auth");
   if (actorId) devices = devices.neq("bro_id", actorId);
+  if (to) devices = devices.in("bro_id", to);
   const { data: subscriptions, error } = await devices;
   if (error) throw error;
 
@@ -68,7 +84,7 @@ async function notify(table: string, record: Row) {
   );
 }
 
-const MESSAGES: Record<string, (r: Row, actor: string) => Promise<Message>> = {
+const MESSAGES: Record<string, (r: Row, actor: string) => Promise<Message | null>> = {
   brews: async (r, actor) => {
     const roast = await roastWithRoaster(String(r.roast_id));
     return {
@@ -98,6 +114,20 @@ const MESSAGES: Record<string, (r: Row, actor: string) => Promise<Message>> = {
       body: "Showcase, stats and everyone's insights",
       url: `/reports/${month}`,
       ttl: 86400, // unlike "is brewing", still worth reading tomorrow
+    };
+  },
+  // Board messages push only on a mention; Bloom's own posts (no bro) go out as "Bloom"
+  messages: async (r, actor) => {
+    const mentions = r.mentions as unknown as string[];
+    const all = r.mention_all as unknown as boolean;
+    if (!all && mentions.length === 0) return null;
+    const sender = actor || "Bloom";
+    return {
+      title: all ? `${sender}, to everyone` : `${sender} mentioned you`,
+      body: clip(String(r.body ?? ""), 80),
+      url: "/inbox",
+      ttl: 86400,
+      to: all ? undefined : mentions,
     };
   },
   endorsements: async (r, actor) => {
