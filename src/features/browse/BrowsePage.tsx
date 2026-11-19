@@ -7,31 +7,23 @@ import { roastQueries } from "../../api/roasts/roasts.queries";
 import { Button } from "../../components/Button";
 import { Dialog } from "../../components/Dialog";
 import { FadeIn } from "../../components/FadeIn";
-import { HeaderAction } from "../../components/HeaderAction";
-import { PencilIcon, TrashIcon } from "../../components/icons";
-import { Sheet } from "../../components/Sheet";
-import { useCurrentBro } from "../../lib/auth";
 import { space } from "../../theme/tokens.stylex";
-import { DeleteRecipeDialog } from "../recipes/DeleteRecipeDialog";
 import { PreferredRecipeSheet, type PreferredStart } from "../recipes/PreferredRecipeSheet";
-import { PreferredSummary } from "../recipes/PreferredRow";
+import { PreferredRecipeViewer } from "../recipes/PreferredRecipeViewer";
 import { BrowseList } from "./BrowseList";
 import { type BrowseKind, useUrlFilter } from "./browse";
 
 /** What the page has open over it: a recipe, the recipe form, or New's choice. */
 type Open =
   | { kind: "view"; recipe: PreferredRecipeWithRoast }
-  | { kind: "edit"; recipe: PreferredRecipeWithRoast }
   | { kind: "new"; from: PreferredStart }
-  | { kind: "choose" }
-  | { kind: "delete"; recipe: PreferredRecipeWithRoast };
+  | { kind: "choose" };
 
 /**
  * The shared list as a page: the Recipes tab (`/recipes`) and Browse brews (`/brews`) differ
  * only in which kind they open on. Filters live in the URL.
  */
 export function BrowsePage({ defaultKind }: { defaultKind: BrowseKind }) {
-  const me = useCurrentBro();
   const navigate = useNavigate();
   const [filter, setFilter] = useUrlFilter(defaultKind);
   const [open, setOpen] = useState<Open | null>(null);
@@ -52,53 +44,7 @@ export function BrowsePage({ defaultKind }: { defaultKind: BrowseKind }) {
       />
 
       {open?.kind === "view" && (
-        <Sheet title="Preferred recipe" tall onClose={() => setOpen(null)}>
-          <PreferredSummary
-            recipe={open.recipe}
-            onUse={() => navigate(`/?preferred=${open.recipe.id}`)}
-            action={
-              open.recipe.bro_id === me.id ? (
-                <span {...stylex.props(styles.actions)}>
-                  <HeaderAction
-                    icon={<TrashIcon />}
-                    onClick={() => setOpen({ kind: "delete", recipe: open.recipe })}
-                  >
-                    Delete
-                  </HeaderAction>
-                  <HeaderAction
-                    icon={<PencilIcon />}
-                    onClick={() => setOpen({ kind: "edit", recipe: open.recipe })}
-                  >
-                    Edit
-                  </HeaderAction>
-                </span>
-              ) : (
-                <HeaderAction
-                  onClick={() =>
-                    setOpen({
-                      kind: "new",
-                      from: {
-                        roast: open.recipe.roast,
-                        method: open.recipe.method,
-                        values: open.recipe,
-                      },
-                    })
-                  }
-                >
-                  Save as mine
-                </HeaderAction>
-              )
-            }
-          />
-        </Sheet>
-      )}
-      {open?.kind === "delete" && (
-        <DeleteRecipeDialog
-          recipe={open.recipe}
-          // Cancel goes back to the recipe
-          onCancel={() => setOpen({ kind: "view", recipe: open.recipe })}
-          onDeleted={() => setOpen(null)}
-        />
+        <PreferredRecipeViewer recipe={open.recipe} onClose={() => setOpen(null)} />
       )}
       {open?.kind === "choose" && (
         <Dialog
@@ -124,13 +70,6 @@ export function BrowsePage({ defaultKind }: { defaultKind: BrowseKind }) {
           </Button>
         </Dialog>
       )}
-      {open?.kind === "edit" && (
-        <PreferredRecipeSheet
-          recipe={open.recipe}
-          onClose={() => setOpen(null)}
-          onSaved={() => setOpen(null)}
-        />
-      )}
       {open?.kind === "new" && (
         <PreferredRecipeSheet
           from={open.from}
@@ -147,9 +86,5 @@ const styles = stylex.create({
     display: "flex",
     flexDirection: "column",
     gap: space.lg,
-  },
-  actions: {
-    display: "flex",
-    gap: space.md,
   },
 });

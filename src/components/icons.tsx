@@ -105,6 +105,15 @@ export function NewspaperIcon() {
   );
 }
 
+/** The Inbox: messages and notifications. */
+export function ChatIcon() {
+  return (
+    <Icon>
+      <path d="M5.5 5h13A1.5 1.5 0 0 1 20 6.5v8a1.5 1.5 0 0 1-1.5 1.5H11l-4.5 3.5V16h-1A1.5 1.5 0 0 1 4 14.5v-8A1.5 1.5 0 0 1 5.5 5Z" />
+    </Icon>
+  );
+}
+
 const BOOKMARK = "M6 3.5h12v17l-6-4-6 4v-17Z";
 
 /** The Recipes tab: preferred recipes are bookmarks. */

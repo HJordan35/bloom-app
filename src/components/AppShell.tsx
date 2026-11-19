@@ -2,12 +2,13 @@ import * as stylex from "@stylexjs/stylex";
 import { useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { inboxQueries } from "../api/inbox/inbox.queries";
 import { useRealtimeSync } from "../api/realtime";
 import { reportQueries } from "../api/reports/reports.queries";
 import { useCurrentBro } from "../lib/auth";
 import { clearBadge, refreshPush } from "../lib/push";
 import { colors, fonts, layout, space } from "../theme/tokens.stylex";
-import { BrosIcon, CupIcon, LibraryIcon, NewspaperIcon, RecipeIcon } from "./icons";
+import { BrosIcon, ChatIcon, CupIcon, LibraryIcon, NewspaperIcon, RecipeIcon } from "./icons";
 
 const TABS: { to: string; label: string; icon: ReactNode }[] = [
   { to: "/", label: "Brew", icon: <CupIcon /> },
@@ -20,7 +21,7 @@ const TITLES: Record<string, string> = {
   "/": "Brew Now",
   "/library": "Library",
   "/recipes": "Browse",
-  "/bros": "Bros Board",
+  "/bros": "Bros",
 };
 
 // Detail routes get a back button instead of the wordmark
@@ -30,6 +31,7 @@ const DETAIL_TITLES: [prefix: string, title: string][] = [
   ["/library/roasters/", "Roaster"],
   ["/library/roasts/", "Roast"],
   ["/bros/", "Bro"],
+  ["/inbox", "Inbox"],
   ["/reports/", "Brewsletter"],
   ["/reports", "Brewsletters"],
 ];
@@ -40,6 +42,8 @@ export function AppShell() {
   const detail = DETAIL_TITLES.find(([prefix]) => pathname.startsWith(prefix));
   const title = detail?.[1] ?? TITLES[pathname] ?? "Bloom";
   const bro = useCurrentBro();
+  // The Inbox lays itself out (a thread with its composer where the tab bar would be)
+  const inbox = pathname === "/inbox";
   useRealtimeSync();
 
   // Keep this device's push subscription saved, and open notification taps (sent by sw.js)
@@ -73,30 +77,35 @@ export function AppShell() {
           )}
           <h1 {...stylex.props(styles.title)}>{title}</h1>
         </div>
-        <ReportsLink />
+        <div {...stylex.props(styles.end)}>
+          <ReportsLink />
+          <InboxLink />
+        </div>
       </header>
 
       {/* Keyed so every path change remounts the view (its FadeIn plays, even roast → roast)
           and the scroll area, which starts back at the top */}
-      <main key={pathname} {...stylex.props(styles.content)}>
+      <main key={pathname} {...stylex.props(styles.content, inbox && styles.fill)}>
         <Outlet />
       </main>
 
-      <nav {...stylex.props(styles.tabBar)}>
-        {TABS.map((tab) => (
-          <NavLink
-            key={tab.to}
-            to={tab.to}
-            end={tab.to === "/"}
-            className={({ isActive }) =>
-              stylex.props(styles.tab, isActive && styles.active).className
-            }
-          >
-            {tab.icon}
-            <span {...stylex.props(styles.tabLabel)}>{tab.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+      {!inbox && (
+        <nav {...stylex.props(styles.tabBar)}>
+          {TABS.map((tab) => (
+            <NavLink
+              key={tab.to}
+              to={tab.to}
+              end={tab.to === "/"}
+              className={({ isActive }) =>
+                stylex.props(styles.tab, isActive && styles.active).className
+              }
+            >
+              {tab.icon}
+              <span {...stylex.props(styles.tabLabel)}>{tab.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }
@@ -112,12 +121,34 @@ function ReportsLink() {
     <Link
       to="/reports"
       aria-label={unread ? "Brewsletters, a new one is in" : "Brewsletters"}
-      {...stylex.props(styles.reports)}
+      {...stylex.props(styles.headerLink)}
     >
-      <span {...stylex.props(styles.caption)}>Newsletter</span>
       <span {...stylex.props(styles.icon)}>
         <NewspaperIcon />
         {unread && <span {...stylex.props(styles.badge)} />}
+      </span>
+    </Link>
+  );
+}
+
+/**
+ * Opens the Inbox, with one dot while Messages or Notifications has something new. When only
+ * Notifications does, it opens on that tab.
+ */
+function InboxLink() {
+  const { data: unread } = useQuery(inboxQueries.unread());
+  const any = !!unread && (unread.messages || unread.notifications);
+  const toNotifications = !!unread?.notifications && !unread.messages;
+
+  return (
+    <Link
+      to={toNotifications ? "/inbox?tab=notifications" : "/inbox"}
+      aria-label={any ? "Inbox, something new" : "Inbox"}
+      {...stylex.props(styles.headerLink)}
+    >
+      <span {...stylex.props(styles.icon)}>
+        <ChatIcon />
+        {any && <span {...stylex.props(styles.badge)} />}
       </span>
     </Link>
   );
@@ -182,10 +213,18 @@ const styles = stylex.create({
     alignItems: "baseline",
     gap: space.md,
   },
-  reports: {
+  end: {
+    flexShrink: 0,
     display: "flex",
     alignItems: "center",
-    gap: 6,
+    gap: space.xs,
+  },
+  // A 44px target around the icon, overhanging the bar's padding
+  headerLink: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 40,
     minHeight: 44,
     marginBlock: -12,
     color: colors.muted,
@@ -193,13 +232,6 @@ const styles = stylex.create({
   icon: {
     position: "relative",
     display: "flex",
-  },
-  caption: {
-    lineHeight: 1,
-    fontFamily: fonts.mono,
-    fontSize: 9,
-    letterSpacing: "0.18em",
-    textTransform: "uppercase",
   },
   // On the icon's top-right corner
   badge: {
@@ -233,6 +265,15 @@ const styles = stylex.create({
     paddingInline: space.md,
     paddingTop: space.lg,
     paddingBottom: space.lg,
+  },
+  // The Inbox scrolls its own parts and keeps clear of the home indicator itself
+  fill: {
+    display: "flex",
+    flexDirection: "column",
+    overflowY: "hidden",
+    paddingInline: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   tabBar: {
     flexShrink: 0,

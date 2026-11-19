@@ -3,7 +3,8 @@ import { Fragment } from "react";
 import { colors, fonts } from "../theme/tokens.stylex";
 
 type Props<T extends string> = {
-  options: { value: T; label: string }[];
+  /** `dot`: a small ember dot after the label, for "something new here". */
+  options: { value: T; label: string; dot?: boolean }[];
   value: T;
   onChange: (value: T) => void;
 };
@@ -22,6 +23,7 @@ export function TextToggle<T extends string>({ options, value, onChange }: Props
             {...stylex.props(styles.option, option.value === value && styles.active)}
           >
             {option.label}
+            {option.dot && <span {...stylex.props(styles.new)} />}
           </button>
         </Fragment>
       ))}
@@ -52,6 +54,16 @@ const styles = stylex.create({
   },
   active: {
     color: colors.text,
+  },
+  // Raised to the caps' top, clear of the letter spacing
+  new: {
+    display: "inline-block",
+    width: 5,
+    height: 5,
+    marginLeft: 3,
+    verticalAlign: "top",
+    borderRadius: "50%",
+    backgroundColor: colors.ember,
   },
   dot: {
     fontFamily: fonts.mono,

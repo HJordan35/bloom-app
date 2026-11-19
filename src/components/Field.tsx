@@ -66,7 +66,7 @@ export function TextAreaField({
 }
 
 /** Fits a textarea's height to its text, again whenever its width changes the wrapping. */
-function useAutoHeight(ref: RefObject<HTMLTextAreaElement | null>, value: unknown) {
+export function useAutoHeight(ref: RefObject<HTMLTextAreaElement | null>, value: unknown) {
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-fit on each new value
   useLayoutEffect(() => {
     if (ref.current) fit(ref.current);

@@ -5,8 +5,8 @@ import { LoginPage } from "./features/auth/LoginPage";
 import { BrewDetailPage } from "./features/brew/BrewDetailPage";
 import { BrewNowPage } from "./features/brew/BrewNowPage";
 import { BroProfilePage } from "./features/bros/BroProfilePage";
-import { BrosBoardPage } from "./features/bros/BrosBoardPage";
 import { BrowsePage } from "./features/browse/BrowsePage";
+import { InboxPage } from "./features/inbox/InboxPage";
 import { LibraryPage } from "./features/library/LibraryPage";
 import { RoasterPage } from "./features/library/RoasterPage";
 import { RoastPage } from "./features/library/RoastPage";
@@ -55,8 +55,9 @@ function AppRoutes() {
         <Route path="/library/roasters/:id" element={<RoasterPage />} />
         <Route path="/library/roasts/:id" element={<RoastPage />} />
         <Route path="/recipes" element={<BrowsePage defaultKind="recipes" />} />
-        <Route path="/bros" element={<BrosBoardPage />} />
+        <Route path="/bros" element={<BroProfilePage />} />
         <Route path="/bros/:id" element={<BroProfilePage />} />
+        <Route path="/inbox" element={<InboxPage />} />
         <Route
           path="/reports"
           element={
