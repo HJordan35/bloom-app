@@ -22,6 +22,7 @@ import { colors, fonts, space } from "../../theme/tokens.stylex";
 import { isLive } from "../brew/api";
 import { BrewRow } from "../brew/BrewRows";
 import { EndorsementRow } from "../endorsements/EndorsementRow";
+import { BroStrip } from "./BroStrip";
 import { NotificationsToggle } from "./NotificationsToggle";
 
 /** Their roasts with how many times they've brewed each, most brewed first. */
@@ -41,9 +42,10 @@ function favouriteMethod(brews: BrewWithRoast[]) {
   return [...counts].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
 }
 
+/** A bro's profile: `/bros/:id`, or yours on the Bros tab (`/bros`). */
 export function BroProfilePage() {
-  const { id = "" } = useParams();
   const me = useCurrentBro();
+  const { id = me.id } = useParams();
   const { logout } = useAuth();
   const now = useNow();
   const { data: bro } = useQuery(broQueries.detail(id));
@@ -63,6 +65,8 @@ export function BroProfilePage() {
 
   return (
     <FadeIn xstyle={styles.page}>
+      <BroStrip selectedId={bro.id} />
+
       <header {...stylex.props(styles.header)}>
         <Avatar bro={bro} size="lg" live={!!live} />
         <div>
